@@ -25,19 +25,6 @@ struct {
 	{ 17,  87},
 	{169,  87},
 };
-const char *button_titles[] = {
-	"Start DSiMenu++",
-	"Start last-ran ROM",
-	"Boot screen",
-	"Notification LED",
-};
-const char *button_desc[] = {
-	NULL,
-	NULL,
-	NULL,
-	rainbowledvaluetext,
-};
-
 
 void screenoff()
 {
@@ -101,6 +88,19 @@ int main()
 				break;
 		}
 
+		const char *button_titles[] = {
+			"Start DSiMenu++",
+			"Start last-ran ROM",
+			"Boot screen",
+			"Notification LED",
+		};
+		const char *button_desc[] = {
+			NULL,
+			NULL,
+			NULL,
+			rainbowledvaluetext,
+		};
+
 		// Scan hid shared memory for input events
 		hidScanInput();
 		
@@ -136,7 +136,9 @@ int main()
 			int w = 0;
 			int x = ((2 - w) / 2) + buttons[i].x;
 			pp2d_draw_text(x, y, 0.50, 0.50, BLACK, button_titles[i]);
-			
+
+			y += 16;
+
 			// Draw the value.
 			w = 0;
 			x = ((2 - w) / 2) + buttons[i].x;
@@ -150,8 +152,8 @@ int main()
 			pp2d_draw_text(8, 198, 0.60, 0.60f, BLACK, "last-launched in DSiMenu++.");
 		}
 		if (menuSelection == 2) {
-			pp2d_draw_text(8, 184, 0.60, 0.60f, BLACK, "Enable/Disable showing DS/DSi boot");
-			pp2d_draw_text(8, 198, 0.60, 0.60f, BLACK, "screen, before DSiMenu++ appears.");
+			pp2d_draw_text(8, 184, 0.60, 0.60f, BLACK, "Show DS/DSi boot screen");
+			pp2d_draw_text(8, 198, 0.60, 0.60f, BLACK, "before DSiMenu++ appears.");
 		}
 		if (menuSelection == 3) {
 			pp2d_draw_text(8, 184, 0.60, 0.60f, BLACK, "Set a color to glow in");
@@ -176,6 +178,11 @@ int main()
 				fadealpha = 255;
 				fadeout = false;
 				SaveSettings();
+				if (settings.twl.rainbowLed == 1) {
+					dsGreenLed();
+				} else if (settings.twl.rainbowLed == 2) {
+					rainbowLed();
+				}
 				if (menuSelection == 0) {
 					// Launch DSiMenu++
 					while(1) {
@@ -211,19 +218,16 @@ int main()
 		if (!fadeout) {
 			if (hDown & KEY_UP) {
 				menuSelection -= 2;
-				if (menuSelection < 0) menuSelection = 0;
 			} else if (hDown & KEY_DOWN) {
 				menuSelection += 2;
 			} else if (hDown & KEY_LEFT) {
-				menuSelection--;
-				if (menuSelection < 0) menuSelection = 0;
+				if (menuSelection == 1 || menuSelection == 3) menuSelection--;
 			} else if (hDown & KEY_RIGHT) {
-				menuSelection++;
-				if (menuSelection > 1) menuSelection = 1;
+				if (menuSelection == 0 || menuSelection == 2) menuSelection++;
 			}
 			
-			if (menuSelection > 2) menuSelection = 0;
-			if (menuSelection < 0) menuSelection = 2;
+			if (menuSelection > 3) menuSelection = 0;
+			if (menuSelection < 0) menuSelection = 3;
 		}
 		
 		if (hDown & KEY_A) {
@@ -244,6 +248,8 @@ int main()
 	}
 
 	
+	SaveSettings();
+
 	pp2d_exit();
 
 	hidExit();

@@ -39,6 +39,9 @@ typedef struct _Settings_t {
 } Settings_t;
 extern Settings_t settings;
 
+int rainbowLed(void);
+int dsGreenLed(void);
+
 /**
  * Load settings.
  */
