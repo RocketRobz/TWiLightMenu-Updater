@@ -9,6 +9,7 @@ using std::wstring;
 #include <3ds.h>
 
 static CIniFile settingsini( "sdmc:/_nds/dsimenuplusplus/settings.ini" );
+static CIniFile bootstrapini( "sdmc:/_nds/nds-bootstrap.ini" );
 
 // Settings
 Settings_t settings;
@@ -121,4 +122,7 @@ void SaveSettings(void) {
 	settingsini.SetInt("SRLOADER", "CONSOLE_MODEL", settings.twl.consoleModel);
 	settingsini.SetInt("CTR-SETTINGS", "NOTIFICATION_LED", settings.twl.rainbowLed);
 	settingsini.SaveIniFile("sdmc:/_nds/dsimenuplusplus/settings.ini");
+
+	bootstrapini.SetInt("NDS-BOOTSTRAP", "CONSOLE_MODEL", settings.twl.consoleModel);
+	bootstrapini.SaveIniFile("sdmc:/_nds/nds-bootstrap.ini");
 }
