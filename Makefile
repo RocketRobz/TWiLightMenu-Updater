@@ -20,9 +20,9 @@ BANNERTOOL 	?= ../bannertool.exe
 # Cersion number
 #---------------------------------------------------------------------------------
 
-VERSION_MAJOR := 4
-VERSION_MINOR := 2
-VERSION_MICRO := 1
+VERSION_MAJOR := 1
+VERSION_MINOR := 1
+VERSION_MICRO := 0
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
@@ -59,7 +59,7 @@ RSF_FILE	:=	app/build-cia.rsf
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations \
+CFLAGS	:=	-g -Wall -O2 -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR) -DVERSION_MICRO=$(VERSION_MICRO) -mword-relocations \
 		-ffunction-sections \
 		$(ARCH)
 

@@ -56,6 +56,9 @@ void screenon()
     gspLcdExit();
 }
 
+// Version numbers.
+char launcher_vertext[13];
+
 int main()
 {
 	aptInit();
@@ -64,6 +67,8 @@ int main()
 	romfsInit();
 	srvInit();
 	hidInit();
+
+	snprintf(launcher_vertext, 13, "v%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
 
 	// make folders if they don't exist
 	mkdir("sdmc:/3ds", 0777);	// For DSP dump
@@ -183,6 +188,7 @@ int main()
 			else pp2d_draw_on(GFX_TOP, (gfx3dSide_t)topfb);
 			pp2d_draw_texture(topbgtex, 0, 0);
 			pp2d_draw_texture(logotex, offset3D[topfb].logo+400/2 - 256/2, 240/2 - 128/2);
+			pp2d_draw_text(offset3D[topfb].logo+272, 138, 0.50, 0.50, BLACK, launcher_vertext);
 			if (fadealpha > 0) pp2d_draw_rectangle(0, 0, 400, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
 		}
 		pp2d_draw_on(GFX_BOTTOM, GFX_LEFT);
