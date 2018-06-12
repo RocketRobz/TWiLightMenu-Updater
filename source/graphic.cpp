@@ -44,3 +44,14 @@ size_t topbgtex = 2;
 size_t subbgtex = 3;
 size_t logotex = 4;
 size_t buttontex = 5;
+
+size_t ndslogotex = 10;
+size_t itex = 11;
+size_t topotex = 12;
+size_t bottomotex = 13;
+size_t bigotex = 14;
+size_t nintendotex = 15;
+size_t hstexttex = 16;
+size_t hstouchtex = 17;
+size_t hstex = 18;
+size_t wipetex = 19;

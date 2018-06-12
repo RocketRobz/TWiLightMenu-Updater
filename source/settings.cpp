@@ -93,11 +93,19 @@ int dsGreenLed(void) {
 	return 0;
 }
 
+void LoadSettings(void) {
+	// UI settings.
+	settings.ui.bootscreen = settingsini.GetInt("CTR-SETTINGS", "BOOT_ANIMATION", 0);
+
+	// TWL settings.
+	settings.twl.consoleModel = settingsini.GetInt("SRLOADER", "CONSOLE_MODEL", 0);
+	settings.twl.rainbowLed = settingsini.GetInt("CTR-SETTINGS", "NOTIFICATION_LED", 0);
+}
+
 /**
  * Save settings.
  */
 void SaveSettings(void) {
-	// UI settings.
 	bool isNew = 0;
 	APT_CheckNew3DS(&isNew);
 	if (isNew) {
@@ -105,6 +113,11 @@ void SaveSettings(void) {
 	} else {
 		settings.twl.consoleModel = 2;
 	}
+
+	// UI settings.
+	settingsini.SetInt("CTR-SETTINGS", "BOOT_ANIMATION", settings.ui.bootscreen);
+
+	// TWL settings.
 	settingsini.SetInt("SRLOADER", "CONSOLE_MODEL", settings.twl.consoleModel);
 	settingsini.SetInt("CTR-SETTINGS", "NOTIFICATION_LED", settings.twl.rainbowLed);
 	settingsini.SaveIniFile("sdmc:/_nds/dsimenuplusplus/settings.ini");

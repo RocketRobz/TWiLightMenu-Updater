@@ -3,17 +3,33 @@
 #include <string.h>
 #include <3ds.h>
 #include <malloc.h>
+#include <unistd.h>
 #include <sys/stat.h>
 
 #include "graphic.h"
 #include "pp2d/pp2d.h"
+#include "sound.h"
+#include "dumpdsp.h"
 #include "settings.h"
+#include "dsbootsplash.h"
+#include "language.h"
 
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
+
+bool dspfirmfound = false;
+
+// Sound effects.
+sound *sfx_launch = NULL;
+sound *sfx_select = NULL;
+sound *sfx_stop = NULL;
+sound *sfx_switch = NULL;
+sound *sfx_wrong = NULL;
+sound *sfx_back = NULL;
 
 // 3D offsets. (0 == Left, 1 == Right)
 Offset3D offset3D[2] = {{0.0f}, {0.0f}};
 
+const char *bootscreenvaluetext;
 const char *rainbowledvaluetext;
 
 struct {
@@ -49,6 +65,12 @@ int main()
 	srvInit();
 	hidInit();
 
+	// make folders if they don't exist
+	mkdir("sdmc:/3ds", 0777);	// For DSP dump
+	mkdir("sdmc:/_nds", 0777);
+	mkdir("sdmc:/_nds/dsimenuplusplus", 0777);
+	mkdir("sdmc:/_nds/dsimenuplusplus/emulators", 0777);
+
 	pp2d_init();
 	
 	pp2d_set_screen_color(GFX_TOP, TRANSPARENT);
@@ -62,6 +84,39 @@ int main()
 	pp2d_load_texture_png(logotex, "romfs:/graphics/logo.png");
 	pp2d_load_texture_png(buttontex, "romfs:/graphics/button.png");
 	
+ 	if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
+		ndspInit();
+		dspfirmfound = true;
+	}else{
+		pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+		pp2d_draw_text(12, 16, 0.5f, 0.5f, WHITE, "Dumping DSP firm...");
+		pp2d_end_draw();
+		dumpDsp();
+		if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
+			ndspInit();
+			dspfirmfound = true;
+		} else {
+			for (int i = 0; i < 90; i++) {
+				pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+				pp2d_draw_text(12, 16, 0.5f, 0.5f, WHITE, "DSP firm dumping failed.\n"
+						"Running without sound.");
+				pp2d_end_draw();
+			}	
+		}
+	}
+
+	// Load the sound effects if DSP is available.
+	if (dspfirmfound) {
+		sfx_launch = new sound("romfs:/sounds/launch.wav", 2, false);
+		sfx_select = new sound("romfs:/sounds/select.wav", 2, false);
+		sfx_stop = new sound("romfs:/sounds/stop.wav", 2, false);
+		sfx_switch = new sound("romfs:/sounds/switch.wav", 2, false);
+		sfx_wrong = new sound("romfs:/sounds/wrong.wav", 2, false);
+		sfx_back = new sound("romfs:/sounds/back.wav", 2, false);
+	}
+	
+	LoadSettings();
+
 	int menuSelection = 0;
 	
 	int fadealpha = 255;
@@ -74,6 +129,22 @@ int main()
 		offset3D[1].logo = CONFIG_3D_SLIDERSTATE * 5.0f;
 		//offset3D[0].launchertext = CONFIG_3D_SLIDERSTATE * -3.0f;
 		//offset3D[1].launchertext = CONFIG_3D_SLIDERSTATE * 3.0f;
+
+		switch (settings.ui.bootscreen) {
+			case -1:
+			default:
+				bootscreenvaluetext = "Off";
+				break;
+			case 0:
+				bootscreenvaluetext = "Nintendo DS";
+				break;
+			case 1:
+				bootscreenvaluetext = "Nintendo DS (4:3)";
+				break;
+			case 2:
+				bootscreenvaluetext = "Nintendo DSi";
+				break;
+		}
 
 		switch (settings.twl.rainbowLed) {
 			case 0:
@@ -97,7 +168,7 @@ int main()
 		const char *button_desc[] = {
 			NULL,
 			NULL,
-			NULL,
+			bootscreenvaluetext,
 			rainbowledvaluetext,
 		};
 
@@ -159,10 +230,11 @@ int main()
 			pp2d_draw_text(8, 184, 0.60, 0.60f, BLACK, "Set a color to glow in");
 			pp2d_draw_text(8, 198, 0.60, 0.60f, BLACK, "the Notification LED.");
 		}
-		const int home_width = 144+16;
+		const wchar_t *home_text = TR(STR_RETURN_TO_HOME_MENU);
+		const int home_width = pp2d_get_wtext_width(home_text, 0.50, 0.50) + 16;
 		const int home_x = (320-home_width)/2;
 		pp2d_draw_texture(homeicontex, home_x, 219); // Draw HOME icon
-		pp2d_draw_text(home_x+20, 220, 0.50, 0.50, BLACK, ": Return to HOME Menu");
+		pp2d_draw_wtext(home_x+20, 220, 0.50, 0.50, BLACK, home_text);
 		if (fadealpha > 0) pp2d_draw_rectangle(0, 0, 320, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
 		pp2d_end_draw();
 		
@@ -183,7 +255,11 @@ int main()
 				} else if (settings.twl.rainbowLed == 2) {
 					rainbowLed();
 				}
-				if (menuSelection == 0) {
+				if (settings.ui.bootscreen != -1) {
+					bootSplash();
+					fade_whiteToBlack();
+				}
+				if (menuSelection == 0 && aptMainLoop()) {
 					// Launch DSiMenu++
 					while(1) {
 						// Buffers for APT_DoApplicationJump().
@@ -197,7 +273,7 @@ int main()
 						// Tell APT to trigger the app launch and set the status of this app to exit
 						APT_DoApplicationJump(param, sizeof(param), hmac);
 					}
-				} else if (menuSelection == 1) {
+				} else if (menuSelection == 1 && aptMainLoop()) {
 					// Launch last-ran ROM
 					while(1) {
 						// Buffers for APT_DoApplicationJump().
@@ -225,6 +301,12 @@ int main()
 			} else if (hDown & KEY_RIGHT) {
 				if (menuSelection == 0 || menuSelection == 2) menuSelection++;
 			}
+			if (hDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
+				if(dspfirmfound) {
+					sfx_select->stop();
+					sfx_select->play();
+				}
+			}
 			
 			if (menuSelection > 3) menuSelection = 0;
 			if (menuSelection < 0) menuSelection = 3;
@@ -238,17 +320,33 @@ int main()
 					if (!fadein) fadeout = true;
 					break;
 				case 2:
+					settings.ui.bootscreen++;
+					if (settings.ui.bootscreen > 2) settings.ui.bootscreen = -1;
 					break;
 				case 3:
 					settings.twl.rainbowLed++;
 					if (settings.twl.rainbowLed > 2) settings.twl.rainbowLed = 0;
 					break;
 			}
+			if(dspfirmfound) {
+				sfx_select->stop();
+				sfx_select->play();
+			}
 		}
 	}
 
 	
 	SaveSettings();
+
+	delete sfx_launch;
+	delete sfx_select;
+	delete sfx_stop;
+	delete sfx_switch;
+	delete sfx_wrong;
+	delete sfx_back;
+	if (dspfirmfound) {
+		ndspExit();
+	}
 
 	pp2d_exit();
 

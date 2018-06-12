@@ -11,6 +11,17 @@ extern size_t subbgtex;
 extern size_t logotex;
 extern size_t buttontex;
 
+extern size_t ndslogotex;
+extern size_t itex;
+extern size_t topotex;
+extern size_t bottomotex;
+extern size_t bigotex;
+extern size_t nintendotex;
+extern size_t hstexttex;
+extern size_t hstouchtex;
+extern size_t hstex;
+extern size_t wipetex;
+
 // Colors
 #define TRANSPARENT RGBA8(0, 0, 0, 0)
 
