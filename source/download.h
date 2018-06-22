@@ -49,11 +49,11 @@ void DownloadTWLoaderCIAs(void);
 int DownloadMissingFiles(void);
 
 /**
- * Update nds-bootstrap to the latest unofficial build.
+ * Update nds-bootstrap to the latest Nightly build.
  */
-void UpdateSDK1BootstrapUnofficial(void);
-void UpdateSDK5BootstrapUnofficial(void);
-void UpdateBootstrapUnofficial(void);
+void UpdateSDK1BootstrapNightly(void);
+void UpdateSDK5BootstrapNightly(void);
+void UpdateBootstrapNightly(void);
 
 /**
  * Update nds-bootstrap to the latest release build.
