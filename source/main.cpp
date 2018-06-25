@@ -169,6 +169,7 @@ int main()
 			"Start last-ran ROM",
 			"Boot screen",
 			"Notification LED",
+			"Update DSiMenu++",
 		};
 		const char *button_desc[] = {
 			NULL,
