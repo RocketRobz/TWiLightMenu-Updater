@@ -36,10 +36,10 @@ struct {
 	int x;
 	int y;
 } buttons[] = {
-	{ 17,  39},
-	{169,  39},
-	{ 17,  87},
-	{169,  87},
+	{ 40,  40},
+	{ 40,  40*2},
+	{ 40,  40*3},
+	{ 40,  40*4},
 };
 
 void screenoff()
@@ -83,11 +83,11 @@ int main()
 	
 	Result res = 0;
 
-	pp2d_load_texture_png(homeicontex, "romfs:/graphics/homeicon.png");
-	pp2d_load_texture_png(topbgtex, "romfs:/graphics/top_bg.png");
-	pp2d_load_texture_png(subbgtex, "romfs:/graphics/sub_bg.png");
-	pp2d_load_texture_png(logotex, "romfs:/graphics/logo.png");
-	pp2d_load_texture_png(buttontex, "romfs:/graphics/button.png");
+	pp2d_load_texture_png(homeicontex, "romfs:/graphics/BS_home_icon.png");
+	pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen.png");
+	pp2d_load_texture_png(subbgtex, "romfs:/graphics/BS_background.png");
+	pp2d_load_texture_png(buttontex, "romfs:/graphics/BS_1_2page_button.png");
+	pp2d_load_texture_png(smallbuttontex, "romfs:/graphics/BS_2page_small_button.png");
 	
  	if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
 		ndspInit();
@@ -123,6 +123,7 @@ int main()
 	LoadSettings();
 
 	int menuSelection = 0;
+	int menuPage = 0;
 	
 	int fadealpha = 255;
 	bool fadein = true;
@@ -148,6 +149,12 @@ int main()
 				break;
 			case 2:
 				bootscreenvaluetext = "Nintendo DSi";
+				break;
+			case 3:
+				bootscreenvaluetext = "DS (Inverted)";
+				break;
+			case 4:
+				bootscreenvaluetext = "DSi (Inverted)";
 				break;
 		}
 
@@ -187,13 +194,27 @@ int main()
 			if (topfb == GFX_LEFT) pp2d_begin_draw(GFX_TOP, (gfx3dSide_t)topfb);
 			else pp2d_draw_on(GFX_TOP, (gfx3dSide_t)topfb);
 			pp2d_draw_texture(topbgtex, 0, 0);
-			pp2d_draw_texture(logotex, offset3D[topfb].logo+400/2 - 256/2, 240/2 - 128/2);
-			pp2d_draw_text(offset3D[topfb].logo+272, 138, 0.50, 0.50, BLACK, launcher_vertext);
+			if (menuSelection == 0) {
+				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into DSiMenu++.");
+			}
+			if (menuSelection == 1) {
+				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into the ROM");
+				pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "last-launched in DSiMenu++.");
+			}
+			if (menuSelection == 2) {
+				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Show DS/DSi boot screen");
+				pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "before DSiMenu++ appears.");
+			}
+			if (menuSelection == 3) {
+				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Set a color to glow in");
+				pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "the Notification LED.");
+			}
+			pp2d_draw_text(336, 222, 0.50, 0.50, WHITE, launcher_vertext);
 			if (fadealpha > 0) pp2d_draw_rectangle(0, 0, 400, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
 		}
 		pp2d_draw_on(GFX_BOTTOM, GFX_LEFT);
 		pp2d_draw_texture(subbgtex, 0, 0);
-		pp2d_draw_text(2, 2, 0.75, 0.75, BLACK, "Settings: CTR-mode stuff");
+		pp2d_draw_text(2, 2, 0.75, 0.75, WHITE, "Settings: CTR-mode stuff");
 		// Draw buttons
 		for (int i = (int)(sizeof(buttons)/sizeof(buttons[0]))-1; i >= 0; i--) {
 			if (menuSelection == i) {
@@ -221,26 +242,11 @@ int main()
 			x = ((2 - w) / 2) + buttons[i].x;
 			pp2d_draw_text(x, y, 0.50, 0.50, BLACK, button_desc[i]);
 		}
-		if (menuSelection == 0) {
-			pp2d_draw_text(8, 184, 0.60, 0.60f, BLACK, "Press  to reboot into DSiMenu++.");
-		}
-		if (menuSelection == 1) {
-			pp2d_draw_text(8, 184, 0.60, 0.60f, BLACK, "Press  to reboot into the ROM");
-			pp2d_draw_text(8, 198, 0.60, 0.60f, BLACK, "last-launched in DSiMenu++.");
-		}
-		if (menuSelection == 2) {
-			pp2d_draw_text(8, 184, 0.60, 0.60f, BLACK, "Show DS/DSi boot screen");
-			pp2d_draw_text(8, 198, 0.60, 0.60f, BLACK, "before DSiMenu++ appears.");
-		}
-		if (menuSelection == 3) {
-			pp2d_draw_text(8, 184, 0.60, 0.60f, BLACK, "Set a color to glow in");
-			pp2d_draw_text(8, 198, 0.60, 0.60f, BLACK, "the Notification LED.");
-		}
 		const wchar_t *home_text = TR(STR_RETURN_TO_HOME_MENU);
 		const int home_width = pp2d_get_wtext_width(home_text, 0.50, 0.50) + 16;
 		const int home_x = (320-home_width)/2;
 		pp2d_draw_texture(homeicontex, home_x, 219); // Draw HOME icon
-		pp2d_draw_wtext(home_x+20, 220, 0.50, 0.50, BLACK, home_text);
+		pp2d_draw_wtext(home_x+20, 220, 0.50, 0.50, WHITE, home_text);
 		if (fadealpha > 0) pp2d_draw_rectangle(0, 0, 320, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
 		pp2d_end_draw();
 		
@@ -299,13 +305,9 @@ int main()
 
 		if (!fadeout) {
 			if (hDown & KEY_UP) {
-				menuSelection -= 2;
+				menuSelection--;
 			} else if (hDown & KEY_DOWN) {
-				menuSelection += 2;
-			} else if (hDown & KEY_LEFT) {
-				if (menuSelection == 1 || menuSelection == 3) menuSelection--;
-			} else if (hDown & KEY_RIGHT) {
-				if (menuSelection == 0 || menuSelection == 2) menuSelection++;
+				menuSelection++;
 			}
 			if (hDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
 				if(dspfirmfound) {
@@ -327,7 +329,7 @@ int main()
 					break;
 				case 2:
 					settings.ui.bootscreen++;
-					if (settings.ui.bootscreen > 2) settings.ui.bootscreen = -1;
+					if (settings.ui.bootscreen > 4) settings.ui.bootscreen = -1;
 					break;
 				case 3:
 					settings.twl.rainbowLed++;
