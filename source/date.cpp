@@ -1,6 +1,6 @@
 
 #include "date.h"
-#include "main.h"
+#include "main.cpp"
 #include "language.h"
 
 #include "graphic.h"
