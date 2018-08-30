@@ -16,6 +16,8 @@
 
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
 
+static touchPosition touch;
+
 bool dspfirmfound = false;
 static bool musicPlaying = false;
 
@@ -221,6 +223,8 @@ int main()
 		
 		const u32 hDown = hidKeysDown();
 		const u32 hHeld = hidKeysHeld();
+
+		hidTouchRead(&touch);
 
 		if (!topScreenGraphicLoaded) {
 			if (hHeld & KEY_UP) {
@@ -472,6 +476,7 @@ int main()
 
 				y += 16;
 			}
+			pp2d_draw_texture(rightpagetex, 290, 78);
 		} else if (menuPage == 1) {
 			pp2d_draw_text(42, 52, 0.50, 0.50, WHITE, "Boot screen");
 			pp2d_draw_text(42, 82, 0.50, 0.50, WHITE, "Notification");
@@ -504,6 +509,7 @@ int main()
 
 				y += 16;
 			}
+			pp2d_draw_texture(leftpagetex, 9, 78);
 		}
 		const wchar_t *home_text = TR(STR_RETURN_TO_HOME_MENU);
 		const int home_width = pp2d_get_wtext_width(home_text, 0.50, 0.50) + 16;
@@ -616,7 +622,9 @@ int main()
 			}
 		}
 
-		if (hDown & KEY_L) {
+		if ((hDown & KEY_L)
+		|| (menuPage == 1 && (hDown & KEY_TOUCH) && touch.px >= 276 && touch.px <= 291 && touch.py >= 5 && touch.py <= 20)
+		|| (menuPage == 1 && (hDown & KEY_TOUCH) && touch.px >= 9 && touch.px <= 29 && touch.py >= 78 && touch.py <= 158)) {
 			menuPage--;
 			if (menuPage < 0) menuPage = 1;
 			menuSelection = 0;
@@ -624,7 +632,9 @@ int main()
 				sfx_switch->stop();
 				sfx_switch->play();
 			}
-		} else if (hDown & KEY_R) {
+		} else if ((hDown & KEY_R)
+		|| (menuPage == 0 && (hDown & KEY_TOUCH) && touch.px >= 297 && touch.px <= 312 && touch.py >= 5 && touch.py <= 20)
+		|| (menuPage == 0 && (hDown & KEY_TOUCH) && touch.px >= 290 && touch.px <= 310 && touch.py >= 78 && touch.py <= 158)) {
 			menuPage++;
 			if (menuPage > 1) menuPage = 0;
 			menuSelection = 0;
