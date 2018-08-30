@@ -27,6 +27,7 @@ typedef struct _Settings_t {
 
 	// TODO: Use int8_t instead of int?
 	struct {
+		bool autoStart;
 		//int showbootscreen;	// 0 = No, 1 = Before ROM select screen, 2 = After launching a ROM
 		int bootscreen;	// 0 = Nintendo DS, 1 = Nintendo DS (OAR), 2 = Nintendo DSi
 		bool healthsafety;

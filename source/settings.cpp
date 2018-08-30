@@ -136,6 +136,7 @@ int blueLed(void) {
 
 void LoadSettings(void) {
 	// UI settings.
+	settings.ui.autoStart = settingsini.GetInt("CTR-SETTINGS", "AUTO_START", 0);
 	settings.ui.bootscreen = settingsini.GetInt("CTR-SETTINGS", "BOOT_ANIMATION", 0);
 
 	// TWL settings.
@@ -157,6 +158,7 @@ void SaveSettings(void) {
 	}
 
 	// UI settings.
+	settingsini.SetInt("CTR-SETTINGS", "AUTO_START", settings.ui.autoStart);
 	settingsini.SetInt("CTR-SETTINGS", "BOOT_ANIMATION", settings.ui.bootscreen);
 
 	// TWL settings.
