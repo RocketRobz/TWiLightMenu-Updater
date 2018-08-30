@@ -205,6 +205,9 @@ int main()
 	
 	LoadSettings();
 	
+	bool buttonShading = false;
+	bool setOption = false;
+	
 	int fadealpha = 255;
 	bool fadein = true;
 	bool fadeout = false;
@@ -376,7 +379,20 @@ int main()
 			if (topfb == GFX_LEFT) pp2d_begin_draw(GFX_TOP, (gfx3dSide_t)topfb);
 			else pp2d_draw_on(GFX_TOP, (gfx3dSide_t)topfb);
 			pp2d_draw_texture(topbgtex, 0, 0);
-			if (menuPage == 0) {
+			if (!buttonShading) {
+				menudescription[0] = "Start, set up, and update";
+				if (settings.twl.appName == 0) {
+					menudescription[1] = "DSiMenu++ and nds-bootstrap.";
+				} else if (settings.twl.appName == 1) {
+					menudescription[1] = "SRLoader and nds-bootstrap.";
+				} else if (settings.twl.appName == 2) {
+					menudescription[1] = "DSisionX and nds-bootstrap.";
+				}
+				menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
+				pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
+				menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
+				pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
+			} else if (menuPage == 0) {
 				if (menuSelection == 0) {
 					if (settings.twl.appName == 0) {
 						menudescription[0] = "Press  to reboot into DSiMenu++.";
@@ -458,7 +474,11 @@ int main()
 					pp2d_draw_texture(button_tex[i], buttons[i].x, buttons[i].y);
 				} else {
 					// Button is not highlighted. Darken the texture.
-					pp2d_draw_texture_blend(button_tex[i], buttons[i].x, buttons[i].y, GRAY);
+					if (buttonShading) {
+						pp2d_draw_texture_blend(button_tex[i], buttons[i].x, buttons[i].y, GRAY);
+					} else {
+						pp2d_draw_texture(button_tex[i], buttons[i].x, buttons[i].y);
+					}
 				}
 
 				// Determine the text height.
@@ -487,7 +507,11 @@ int main()
 					pp2d_draw_texture(button_tex2[i], buttons2[i].x, buttons2[i].y);
 				} else {
 					// Button is not highlighted. Darken the texture.
-					pp2d_draw_texture_blend(button_tex2[i], buttons2[i].x, buttons2[i].y, GRAY);
+					if (buttonShading) {
+						pp2d_draw_texture_blend(button_tex2[i], buttons2[i].x, buttons2[i].y, GRAY);
+					} else {
+						pp2d_draw_texture(button_tex2[i], buttons2[i].x, buttons2[i].y);
+					}
 				}
 
 				// Determine the text height.
@@ -556,17 +580,22 @@ int main()
 
 		if (!fadeout) {
 			if (hDown & KEY_UP) {
-				menuSelection--;
+				if (buttonShading) menuSelection--;
 			} else if (hDown & KEY_DOWN) {
-				menuSelection++;
+				if (buttonShading) menuSelection++;
 			}
 			if (hDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
+				buttonShading = true;
 				if(dspfirmfound) {
 					sfx_select->stop();
 					sfx_select->play();
 				}
 			}
-			
+
+			if (hDown & KEY_TOUCH) {
+				buttonShading = false;
+			}
+
 			if (menuPage == 0) {
 				if (menuSelection > 2) menuSelection = 0;
 				if (menuSelection < 0) menuSelection = 2;
@@ -577,6 +606,37 @@ int main()
 		}
 
 		if (hDown & KEY_A) {
+			setOption = true;
+		}
+
+		if (menuPage == 0 && (hDown & KEY_TOUCH) && touch.px >= 42 && touch.px <= 275) {
+			if (touch.py >= 52 && touch.py <= 81) {
+				menuSelection = 0;
+				setOption = true;
+			} else if (touch.py >= 102 && touch.py <= 131) {
+				menuSelection = 1;
+				setOption = true;
+			} else if (touch.px >= 125 && touch.py >= 152 && touch.py <= 181) {
+				menuSelection = 2;
+				setOption = true;
+			}
+		} else if (menuPage == 1 && (hDown & KEY_TOUCH) && touch.px >= 42 && touch.px <= 275) {
+			if (touch.px >= 125 && touch.py >= 42 && touch.py <= 72) {
+				menuSelection = 0;
+				setOption = true;
+			} else if (touch.px >= 125 && touch.py >= 82 && touch.py <= 112) {
+				menuSelection = 1;
+				setOption = true;
+			} else if (touch.py >= 122 && touch.py <= 152) {
+				menuSelection = 2;
+				setOption = true;
+			} else if (touch.py >= 162 && touch.py <= 192) {
+				menuSelection = 3;
+				setOption = true;
+			}
+		}
+
+		if (setOption) {
 			if (menuPage == 0) {
 				switch (menuSelection) {
 					case 0:
@@ -620,6 +680,7 @@ int main()
 						break;
 				}
 			}
+			setOption = false;
 		}
 
 		if ((hDown & KEY_L)

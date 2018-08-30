@@ -20,8 +20,8 @@ BANNERTOOL 	?= ../bannertool.exe
 # Cersion number
 #---------------------------------------------------------------------------------
 
-VERSION_MAJOR := 1
-VERSION_MINOR := 2
+VERSION_MAJOR := 2
+VERSION_MINOR := 0
 VERSION_MICRO := 0
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
