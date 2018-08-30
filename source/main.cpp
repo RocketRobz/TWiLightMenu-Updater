@@ -380,9 +380,9 @@ int main()
 		}
 		pp2d_draw_on(GFX_BOTTOM, GFX_LEFT);
 		pp2d_draw_texture(subbgtex, 0, 0);
-		pp2d_draw_text(6, 6, 0.55, 0.55, WHITE, "Settings: CTR-mode stuff");
-		pp2d_draw_text(280, 6, 0.55, 0.55, WHITE, "1");
-		pp2d_draw_text(300, 6, 0.55, 0.55, WHITE, "2");
+		pp2d_draw_text(6, 5, 0.55, 0.55, WHITE, "Settings: CTR-mode stuff");
+		pp2d_draw_text(280, 5, 0.50, 0.50, WHITE, "1");
+		pp2d_draw_text(300, 5, 0.50, 0.50, WHITE, "2");
 		pp2d_draw_texture(pagenumberframetex, 276+(menuPage*20), 5);
 		// Draw buttons
 		if (menuPage == 0) {
