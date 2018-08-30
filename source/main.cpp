@@ -32,6 +32,9 @@ Offset3D offset3D[2] = {{0.0f}, {0.0f}};
 const char *bootscreenvaluetext;
 const char *rainbowledvaluetext;
 
+const char *menudescription[2] = {""};
+static int menudescription_width = 0;
+
 struct {
 	int x;
 	int y;
@@ -234,36 +237,50 @@ int main()
 			pp2d_draw_texture(topbgtex, 0, 0);
 			if (menuSelection == 0) {
 				if (settings.twl.appName == 0) {
-					pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into DSiMenu++.");
+					menudescription[0] = "Press  to reboot into DSiMenu++.";
 				} else if (settings.twl.appName == 1) {
-					pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into SRLoader.");
+					menudescription[0] = "Press  to reboot into SRLoader.";
 				} else if (settings.twl.appName == 2) {
-					pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into DSisionX.");
+					menudescription[0] = "Press  to reboot into DSisionX.";
 				}
+				menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
+				pp2d_draw_text((400-menudescription_width)/2, 152, 0.60, 0.60f, WHITE, menudescription[0]);
 			}
 			if (menuSelection == 1) {
-				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into the ROM");
+				menudescription[0] = "Press  to reboot into the ROM";
 				if (settings.twl.appName == 0) {
-					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "last-launched in DSiMenu++.");
+					menudescription[1] = "last-launched in DSiMenu++.";
 				} else if (settings.twl.appName == 1) {
-					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "last-launched in SRLoader.");
+					menudescription[1] = "last-launched in SRLoader.";
 				} else if (settings.twl.appName == 2) {
-					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "last-launched in DSisionX.");
+					menudescription[1] = "last-launched in DSisionX.";
 				}
+				menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
+				pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
+				menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
+				pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
 			}
 			if (menuSelection == 2) {
-				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Show DS/DSi boot screen");
+				menudescription[0] = "Show DS/DSi boot screen";
 				if (settings.twl.appName == 0) {
-					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "before DSiMenu++ appears.");
+					menudescription[1] = "before DSiMenu++ appears.";
 				} else if (settings.twl.appName == 1) {
-					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "before SRLoader appears.");
+					menudescription[1] = "before SRLoader appears.";
 				} else if (settings.twl.appName == 2) {
-					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "before DSisionX appears.");
+					menudescription[1] = "before DSisionX appears.";
 				}
+				menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
+				pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
+				menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
+				pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
 			}
 			if (menuSelection == 3) {
-				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Set a color to glow in");
-				pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "the Notification LED.");
+				menudescription[0] = "Set a color to glow in";
+				menudescription[1] = "the Notification LED.";
+				menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
+				pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
+				menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
+				pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
 			}
 			pp2d_draw_text(336, 222, 0.50, 0.50, WHITE, launcher_vertext);
 			if (fadealpha > 0) pp2d_draw_rectangle(0, 0, 400, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
