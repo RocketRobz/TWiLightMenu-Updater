@@ -129,6 +129,13 @@ int main()
 	bool fadein = true;
 	bool fadeout = false;
 	
+	const char *button_titles[] = {
+		"Start DSiMenu++",
+		"Start last-ran ROM",
+		"Boot screen",
+		"Notification LED",
+	};
+
 	bool topScreenGraphicLoaded = false;
 	
 	// Loop as long as the status is not exit
@@ -179,18 +186,18 @@ int main()
 				break;
 		}
 
-		const char *button_titles[] = {
-			"Start DSiMenu++",
-			"Start last-ran ROM",
-			"Boot screen",
-			"Notification LED",
-		};
 		const char *button_desc[] = {
 			NULL,
 			NULL,
 			bootscreenvaluetext,
 			rainbowledvaluetext,
 		};
+
+		if (settings.twl.appName == 1) {
+			button_titles[0] = "Start SRLoader";
+		} else if (settings.twl.appName == 2) {
+			button_titles[0] = "Start DSisionX";
+		}
 
 		// Scan hid shared memory for input events
 		hidScanInput();
