@@ -80,7 +80,7 @@ int main()
 	pp2d_init();
 	
 	pp2d_set_screen_color(GFX_TOP, TRANSPARENT);
-	pp2d_set_3D(1);
+	pp2d_set_3D(0);
 	
 	Result res = 0;
 
