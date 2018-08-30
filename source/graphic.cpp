@@ -44,6 +44,8 @@ size_t topbgtex = 2;
 size_t subbgtex = 3;
 size_t buttontex = 4;
 size_t smallbuttontex = 5;
+size_t leftpagetex = 6;
+size_t rightpagetex = 7;
 
 size_t ndslogotex = 10;
 size_t itex = 11;
