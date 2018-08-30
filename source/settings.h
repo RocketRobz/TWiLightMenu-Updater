@@ -34,6 +34,7 @@ typedef struct _Settings_t {
 
 	struct {
 		int consoleModel;
+		int appName;
 		int rainbowLed;	// 0 = None, 1 = Green, 2 = Rainbow
 	} twl;
 } Settings_t;

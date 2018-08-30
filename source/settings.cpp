@@ -140,6 +140,7 @@ void LoadSettings(void) {
 
 	// TWL settings.
 	settings.twl.consoleModel = settingsini.GetInt("SRLOADER", "CONSOLE_MODEL", 0);
+	settings.twl.appName = settingsini.GetInt("SRLOADER", "APP_NAME", 0);
 	settings.twl.rainbowLed = settingsini.GetInt("CTR-SETTINGS", "NOTIFICATION_LED", 0);
 }
 
@@ -160,6 +161,7 @@ void SaveSettings(void) {
 
 	// TWL settings.
 	settingsini.SetInt("SRLOADER", "CONSOLE_MODEL", settings.twl.consoleModel);
+	settingsini.SetInt("SRLOADER", "APP_NAME", settings.twl.appName);
 	settingsini.SetInt("CTR-SETTINGS", "NOTIFICATION_LED", settings.twl.rainbowLed);
 	settingsini.SaveIniFile("sdmc:/_nds/dsimenuplusplus/settings.ini");
 

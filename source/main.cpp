@@ -74,6 +74,7 @@ int main()
 	mkdir("sdmc:/3ds", 0777);	// For DSP dump
 	mkdir("sdmc:/_nds", 0777);
 	mkdir("sdmc:/_nds/dsimenuplusplus", 0777);
+	mkdir("sdmc:/_nds/dsimenuplusplus/gamesettings", 0777);
 	mkdir("sdmc:/_nds/dsimenuplusplus/emulators", 0777);
 
 	pp2d_init();
@@ -84,7 +85,6 @@ int main()
 	Result res = 0;
 
 	pp2d_load_texture_png(homeicontex, "romfs:/graphics/BS_home_icon.png");
-	pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen.png");
 	pp2d_load_texture_png(subbgtex, "romfs:/graphics/BS_background.png");
 	pp2d_load_texture_png(buttontex, "romfs:/graphics/BS_1_2page_button.png");
 	pp2d_load_texture_png(smallbuttontex, "romfs:/graphics/BS_2page_small_button.png");
@@ -128,6 +128,8 @@ int main()
 	int fadealpha = 255;
 	bool fadein = true;
 	bool fadeout = false;
+	
+	bool topScreenGraphicLoaded = false;
 	
 	// Loop as long as the status is not exit
 	while(aptMainLoop()) {
@@ -196,20 +198,61 @@ int main()
 		const u32 hDown = hidKeysDown();
 		const u32 hHeld = hidKeysHeld();
 
+		if (!topScreenGraphicLoaded) {
+			if (hHeld & KEY_UP) {
+				settings.twl.appName = 0;
+			} else if (hHeld & KEY_DOWN) {
+				settings.twl.appName = 1;
+			} else if (hHeld & KEY_LEFT) {
+				settings.twl.appName = 2;
+			}
+			switch (settings.twl.appName) {
+				case 0:
+				default:
+					pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen.png");
+					break;
+				case 1:
+					pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen (SRLoader).png");
+					break;
+				case 2:
+					pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen (DSisionX).png");
+					break;
+			}
+			topScreenGraphicLoaded = true;
+		}
+
 		for (int topfb = GFX_LEFT; topfb <= GFX_RIGHT; topfb++) {
 			if (topfb == GFX_LEFT) pp2d_begin_draw(GFX_TOP, (gfx3dSide_t)topfb);
 			else pp2d_draw_on(GFX_TOP, (gfx3dSide_t)topfb);
 			pp2d_draw_texture(topbgtex, 0, 0);
 			if (menuSelection == 0) {
-				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into DSiMenu++.");
+				if (settings.twl.appName == 0) {
+					pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into DSiMenu++.");
+				} else if (settings.twl.appName == 1) {
+					pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into SRLoader.");
+				} else if (settings.twl.appName == 2) {
+					pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into DSisionX.");
+				}
 			}
 			if (menuSelection == 1) {
 				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Press  to reboot into the ROM");
-				pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "last-launched in DSiMenu++.");
+				if (settings.twl.appName == 0) {
+					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "last-launched in DSiMenu++.");
+				} else if (settings.twl.appName == 1) {
+					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "last-launched in SRLoader.");
+				} else if (settings.twl.appName == 2) {
+					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "last-launched in DSisionX.");
+				}
 			}
 			if (menuSelection == 2) {
 				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Show DS/DSi boot screen");
-				pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "before DSiMenu++ appears.");
+				if (settings.twl.appName == 0) {
+					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "before DSiMenu++ appears.");
+				} else if (settings.twl.appName == 1) {
+					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "before SRLoader appears.");
+				} else if (settings.twl.appName == 2) {
+					pp2d_draw_text(8, 198, 0.60, 0.60f, WHITE, "before DSisionX appears.");
+				}
 			}
 			if (menuSelection == 3) {
 				pp2d_draw_text(8, 184, 0.60, 0.60f, WHITE, "Set a color to glow in");
