@@ -29,6 +29,12 @@ sound *sfx_back = NULL;
 // 3D offsets. (0 == Left, 1 == Right)
 //Offset3D offset3D[2] = {{0.0f}, {0.0f}};
 
+static int ledColorDisplay_R = 0;
+static int ledColorDisplay_G = 0;
+static int ledColorDisplay_B = 0;
+static int rainbowLedColorDisplayPosition = 0;
+static int rainbowLedColorDisplayDelay = 0;
+
 const char *autostartvaluetext;
 const char *autostarttext = "DSiMenu++";
 
@@ -283,18 +289,61 @@ int main()
 			case 0:
 			default:
 				button_titles2[1] = "Off";
+				ledColorDisplay_R = 0;
+				ledColorDisplay_G = 0;
+				ledColorDisplay_B = 0;
 				break;
 			case 1:
 				button_titles2[1] = "Red";
+				ledColorDisplay_R = 255;
+				ledColorDisplay_G = 0;
+				ledColorDisplay_B = 0;
 				break;
 			case 2:
 				button_titles2[1] = "Green";
+				ledColorDisplay_R = 0;
+				ledColorDisplay_G = 255;
+				ledColorDisplay_B = 0;
 				break;
 			case 3:
 				button_titles2[1] = "Blue";
+				ledColorDisplay_R = 0;
+				ledColorDisplay_G = 0;
+				ledColorDisplay_B = 255;
 				break;
 			case 4:
+				button_titles2[1] = "Yellow";
+				ledColorDisplay_R = 255;
+				ledColorDisplay_G = 255;
+				ledColorDisplay_B = 0;
+				break;
+			case 5:
+				button_titles2[1] = "Cyan";
+				ledColorDisplay_R = 0;
+				ledColorDisplay_G = 255;
+				ledColorDisplay_B = 255;
+				break;
+			case 6:
+				button_titles2[1] = "Purple";
+				ledColorDisplay_R = 255;
+				ledColorDisplay_G = 0;
+				ledColorDisplay_B = 255;
+				break;
+			case 7:
 				button_titles2[1] = "Rainbow";
+				ledColorDisplay_R = redPatternDisplay[rainbowLedColorDisplayPosition];
+				ledColorDisplay_G = greenPatternDisplay[rainbowLedColorDisplayPosition];
+				ledColorDisplay_B = bluePatternDisplay[rainbowLedColorDisplayPosition];
+				if (!rainbowLedColorDisplayDelay) {
+					rainbowLedColorDisplayPosition++;
+					if (rainbowLedColorDisplayPosition == 32) {
+						rainbowLedColorDisplayPosition = 0;
+					}
+				}
+				rainbowLedColorDisplayDelay++;
+				if (rainbowLedColorDisplayDelay > 3) {
+					rainbowLedColorDisplayDelay = 0;
+				}
 				break;
 		}
 
@@ -436,7 +485,11 @@ int main()
 				if (button_tex2[i] == smallbuttontex) {
 					x_from_width += 40;
 				}
-				pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles2[i]);
+				if (i == 1) {
+					pp2d_draw_text(x_from_width, y, 0.75, 0.75, RGBA8(ledColorDisplay_R, ledColorDisplay_G, ledColorDisplay_B, 255), button_titles2[i]);
+				} else {
+					pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles2[i]);
+				}
 
 				y += 16;
 			}
@@ -535,7 +588,7 @@ int main()
 						break;
 					case 1:
 						settings.twl.rainbowLed++;
-						if (settings.twl.rainbowLed > 4) settings.twl.rainbowLed = 0;
+						if (settings.twl.rainbowLed > 7) settings.twl.rainbowLed = 0;
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();

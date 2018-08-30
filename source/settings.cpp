@@ -74,8 +74,20 @@ int rainbowLed(void) {
 	return 0;
 }
 
+int redPatternDisplay[32] =
+	{128, 103,  79,  57,  38,  22,  11,   3,   1,   3,  11,  22,  38,  57,  79, 103,
+	 128, 153, 177, 199, 218, 234, 245, 253, 255, 253, 245, 234, 218, 199, 177, 153};
+
+int greenPatternDisplay[32] =
+	{238, 248, 254, 255, 251, 242, 229, 212, 192, 169, 145, 120,  95,  72,  51,  33,
+	  18,   8,   2,   1,   5,  14,  27,  44,  65,  87, 111, 136, 161, 184, 205, 223};
+
+int bluePatternDisplay[32] =
+	{ 18,  33,  51,  72,  95, 120, 145, 169, 192, 212, 229, 242, 251, 255, 254, 248,
+	 238, 223, 205, 184, 161, 136, 111,  87,  64,  44,  27,  14,   5,   1,   2,   8};
+
 /**
- * Set green color for notification LED
+ * Set red color for notification LED
  * @return 0 on success; non-zero on error.
  */
 int redLed(void) {
@@ -115,7 +127,7 @@ int dsGreenLed(void) {
 }
 
 /**
- * Set green color for notification LED
+ * Set blue color for notification LED
  * @return 0 on success; non-zero on error.
  */
 int blueLed(void) {
@@ -124,6 +136,66 @@ int blueLed(void) {
 
 	// Set the color values to a single RGB value.
 	memset(&pattern.r, (u8)0, sizeof(pattern.r));
+	memset(&pattern.g, (u8)0, sizeof(pattern.g));
+	memset(&pattern.b, (u8)255, sizeof(pattern.b));
+
+	if (ptmsysmInit() < 0)
+		return -1;
+	ptmsysmSetInfoLedPattern(&pattern);
+	ptmsysmExit();
+	return 0;
+}
+
+/**
+ * Set yellow color for notification LED
+ * @return 0 on success; non-zero on error.
+ */
+int yellowLed(void) {
+	RGBLedPattern pattern;
+	pattern.ani = 32;	// Need to be 32 in order to be it constant
+
+	// Set the color values to a single RGB value.
+	memset(&pattern.r, (u8)255, sizeof(pattern.r));
+	memset(&pattern.g, (u8)255, sizeof(pattern.g));
+	memset(&pattern.b, (u8)0, sizeof(pattern.b));
+
+	if (ptmsysmInit() < 0)
+		return -1;
+	ptmsysmSetInfoLedPattern(&pattern);
+	ptmsysmExit();
+	return 0;
+}
+
+/**
+ * Set cyan color for notification LED
+ * @return 0 on success; non-zero on error.
+ */
+int cyanLed(void) {
+	RGBLedPattern pattern;
+	pattern.ani = 32;	// Need to be 32 in order to be it constant
+
+	// Set the color values to a single RGB value.
+	memset(&pattern.r, (u8)0, sizeof(pattern.r));
+	memset(&pattern.g, (u8)255, sizeof(pattern.g));
+	memset(&pattern.b, (u8)255, sizeof(pattern.b));
+
+	if (ptmsysmInit() < 0)
+		return -1;
+	ptmsysmSetInfoLedPattern(&pattern);
+	ptmsysmExit();
+	return 0;
+}
+
+/**
+ * Set purple color for notification LED
+ * @return 0 on success; non-zero on error.
+ */
+int purpleLed(void) {
+	RGBLedPattern pattern;
+	pattern.ani = 32;	// Need to be 32 in order to be it constant
+
+	// Set the color values to a single RGB value.
+	memset(&pattern.r, (u8)255, sizeof(pattern.r));
 	memset(&pattern.g, (u8)0, sizeof(pattern.g));
 	memset(&pattern.b, (u8)255, sizeof(pattern.b));
 
