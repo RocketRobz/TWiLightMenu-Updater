@@ -29,8 +29,6 @@ sound *sfx_back = NULL;
 // 3D offsets. (0 == Left, 1 == Right)
 //Offset3D offset3D[2] = {{0.0f}, {0.0f}};
 
-const char *bootscreenvaluetext;
-const char *rainbowledvaluetext;
 const char *autostartvaluetext;
 const char *autostarttext = "DSiMenu++";
 
@@ -205,76 +203,6 @@ int main()
 		//offset3D[0].launchertext = CONFIG_3D_SLIDERSTATE * -3.0f;
 		//offset3D[1].launchertext = CONFIG_3D_SLIDERSTATE * 3.0f;
 
-		switch (settings.ui.bootscreen) {
-			case -1:
-			default:
-				bootscreenvaluetext = "Off";
-				break;
-			case 0:
-				bootscreenvaluetext = "Nintendo DS";
-				break;
-			case 1:
-				bootscreenvaluetext = "NDS (4:3)";
-				break;
-			case 2:
-				bootscreenvaluetext = "Nintendo DSi";
-				break;
-			case 3:
-				bootscreenvaluetext = "NDS (Inverted)";
-				break;
-			case 4:
-				bootscreenvaluetext = "DSi (Inverted)";
-				break;
-		}
-
-		switch (settings.twl.rainbowLed) {
-			case 0:
-			default:
-				rainbowledvaluetext = "Off";
-				break;
-			case 1:
-				rainbowledvaluetext = "Red";
-				break;
-			case 2:
-				rainbowledvaluetext = "Green";
-				break;
-			case 3:
-				rainbowledvaluetext = "Blue";
-				break;
-			case 4:
-				rainbowledvaluetext = "Rainbow";
-				break;
-		}
-
-		const char *button_titles[] = {
-			"Start DSiMenu++",
-			"Start last-ran ROM",
-			autostartvaluetext,
-		};
-
-		const char *button_titles2[] = {
-			bootscreenvaluetext,
-			rainbowledvaluetext,
-			"Update DSiMenu++",
-			"Update nds-bootstrap",
-		};
-
-		if (settings.ui.autoStart) {
-			autostartvaluetext = "Yes";
-		} else {
-			autostartvaluetext = "No";
-		}
-
-		if (settings.twl.appName == 1) {
-			button_titles[0] = "Start SRLoader";
-			autostarttext = "SRLoader";
-			button_titles2[2] = "Update SRLoader";
-		} else if (settings.twl.appName == 2) {
-			button_titles[0] = "Start DSisionX";
-			autostarttext = "DSisionX";
-			button_titles2[2] = "Update DSisionX";
-		}
-
 		// Scan hid shared memory for input events
 		hidScanInput();
 		
@@ -308,6 +236,76 @@ int main()
 			launchDSiMenuPP();
 		}
 		autoStartDone = true;
+
+		const char *button_titles[] = {
+			"Start DSiMenu++",
+			"Start last-ran ROM",
+			"",
+		};
+
+		const char *button_titles2[] = {
+			"",
+			"",
+			"Update DSiMenu++",
+			"Update nds-bootstrap",
+		};
+
+		if (settings.ui.autoStart) {
+			button_titles[2] = "Yes";
+		} else {
+			button_titles[2] = "No";
+		}
+
+		switch (settings.ui.bootscreen) {
+			case -1:
+			default:
+				button_titles2[0] = "Off";
+				break;
+			case 0:
+				button_titles2[0] = "Nintendo DS";
+				break;
+			case 1:
+				button_titles2[0] = "NDS (4:3)";
+				break;
+			case 2:
+				button_titles2[0] = "Nintendo DSi";
+				break;
+			case 3:
+				button_titles2[0] = "NDS (Inverted)";
+				break;
+			case 4:
+				button_titles2[0] = "DSi (Inverted)";
+				break;
+		}
+
+		switch (settings.twl.rainbowLed) {
+			case 0:
+			default:
+				button_titles2[1] = "Off";
+				break;
+			case 1:
+				button_titles2[1] = "Red";
+				break;
+			case 2:
+				button_titles2[1] = "Green";
+				break;
+			case 3:
+				button_titles2[1] = "Blue";
+				break;
+			case 4:
+				button_titles2[1] = "Rainbow";
+				break;
+		}
+
+		if (settings.twl.appName == 1) {
+			button_titles[0] = "Start SRLoader";
+			autostarttext = "SRLoader";
+			button_titles2[2] = "Update SRLoader";
+		} else if (settings.twl.appName == 2) {
+			button_titles[0] = "Start DSisionX";
+			autostarttext = "DSisionX";
+			button_titles2[2] = "Update DSisionX";
+		}
 
 		for (int topfb = GFX_LEFT; topfb <= GFX_RIGHT; topfb++) {
 			if (topfb == GFX_LEFT) pp2d_begin_draw(GFX_TOP, (gfx3dSide_t)topfb);
@@ -381,11 +379,11 @@ int main()
 		}
 		pp2d_draw_on(GFX_BOTTOM, GFX_LEFT);
 		pp2d_draw_texture(subbgtex, 0, 0);
-		pp2d_draw_text(6, 6, 0.60, 0.60, WHITE, "Settings: CTR-mode stuff");
+		pp2d_draw_text(6, 6, 0.55, 0.55, WHITE, "Settings: CTR-mode stuff");
 		// Draw buttons
 		if (menuPage == 0) {
-			pp2d_draw_text(42, 152, 0.55, 0.55, WHITE, "Auto-start");
-			pp2d_draw_text(42, 170, 0.55, 0.55, WHITE, autostarttext);
+			pp2d_draw_text(42, 152, 0.50, 0.50, WHITE, "Auto-start");
+			pp2d_draw_text(42, 170, 0.50, 0.50, WHITE, autostarttext);
 			for (int i = (int)(sizeof(buttons)/sizeof(buttons[0]))-1; i >= 0; i--) {
 				if (menuSelection == i) {
 					// Button is highlighted.
@@ -411,9 +409,9 @@ int main()
 				y += 16;
 			}
 		} else if (menuPage == 1) {
-			pp2d_draw_text(42, 52, 0.55, 0.55, WHITE, "Boot screen");
-			pp2d_draw_text(42, 82, 0.55, 0.55, WHITE, "Notification");
-			pp2d_draw_text(42, 100, 0.55, 0.55, WHITE, "LED color");
+			pp2d_draw_text(42, 52, 0.50, 0.50, WHITE, "Boot screen");
+			pp2d_draw_text(42, 82, 0.50, 0.50, WHITE, "Notification");
+			pp2d_draw_text(42, 100, 0.50, 0.50, WHITE, "LED color");
 			for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
 				if (menuSelection == i) {
 					// Button is highlighted.

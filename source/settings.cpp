@@ -138,6 +138,7 @@ void LoadSettings(void) {
 	// UI settings.
 	settings.ui.autoStart = settingsini.GetInt("CTR-SETTINGS", "AUTO_START", 0);
 	settings.ui.bootscreen = settingsini.GetInt("CTR-SETTINGS", "BOOT_ANIMATION", 0);
+	settings.ui.healthsafety = settingsini.GetInt("CTR-SETTINGS", "HEALTH&SAFETY_MSG", 0);
 
 	// TWL settings.
 	settings.twl.consoleModel = settingsini.GetInt("SRLOADER", "CONSOLE_MODEL", 0);

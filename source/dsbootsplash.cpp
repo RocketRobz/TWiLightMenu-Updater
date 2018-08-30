@@ -69,8 +69,6 @@ void fade_whiteToBlack() {
  * Play DS boot splash.
  */
 void bootSplash() {
-	settings.ui.healthsafety = true;
-
 	if (settings.ui.bootscreen >= 3) {
 		if (sys_language == 6 || sys_language == 11)
 			pp2d_load_texture_png(ndslogotex, "romfs:/graphics/BootSplash/inv_iquelogo.png");
