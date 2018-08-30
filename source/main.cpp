@@ -164,9 +164,15 @@ int main()
 				rainbowledvaluetext = "color: Off";
 				break;
 			case 1:
-				rainbowledvaluetext = "color: Green";
+				rainbowledvaluetext = "color: Red";
 				break;
 			case 2:
+				rainbowledvaluetext = "color: Green";
+				break;
+			case 3:
+				rainbowledvaluetext = "color: Blue";
+				break;
+			case 4:
 				rainbowledvaluetext = "color: Rainbow";
 				break;
 		}
@@ -263,8 +269,12 @@ int main()
 				fadeout = false;
 				SaveSettings();
 				if (settings.twl.rainbowLed == 1) {
-					dsGreenLed();
+					redLed();
 				} else if (settings.twl.rainbowLed == 2) {
+					dsGreenLed();
+				} else if (settings.twl.rainbowLed == 3) {
+					blueLed();
+				} else if (settings.twl.rainbowLed == 4) {
 					rainbowLed();
 				}
 				if (settings.ui.bootscreen != -1) {
@@ -333,7 +343,7 @@ int main()
 					break;
 				case 3:
 					settings.twl.rainbowLed++;
-					if (settings.twl.rainbowLed > 2) settings.twl.rainbowLed = 0;
+					if (settings.twl.rainbowLed > 4) settings.twl.rainbowLed = 0;
 					break;
 			}
 			if(dspfirmfound) {
