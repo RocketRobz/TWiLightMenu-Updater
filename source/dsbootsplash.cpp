@@ -215,7 +215,7 @@ void bootSplash() {
 		if (settings.ui.healthsafety)
 			touchtocontinue_yPos = 209;
 		else
-			touchtocontinue_yPos = 124;
+			touchtocontinue_yPos = 116;
 	}
 	bool touchtocontinue_show = false;
 	int touchtocontinue_alpha = 0;

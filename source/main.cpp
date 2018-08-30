@@ -107,9 +107,9 @@ void bootPrep(void) {
 }
 
 void launchDSiMenuPP(void) {
+	if (aptMainLoop()) bootPrep();
+	// Launch DSiMenu++
 	if (aptMainLoop()) {
-		bootPrep();
-		// Launch DSiMenu++
 		while(1) {
 			// Buffers for APT_DoApplicationJump().
 			u8 param[0x300];
@@ -459,20 +459,22 @@ int main()
 				if (menuSelection == 0) {
 					// Launch DSiMenu++
 					launchDSiMenuPP();
-				} else if (menuSelection == 1 && aptMainLoop()) {
+				} else if (menuSelection == 1) {
 					// Launch last-ran ROM
-					bootPrep();
-					while(1) {
-						// Buffers for APT_DoApplicationJump().
-						u8 param[0x300];
-						u8 hmac[0x20];
-						// Clear both buffers
-						memset(param, 0, sizeof(param));
-						memset(hmac, 0, sizeof(hmac));
+					if (aptMainLoop()) bootPrep();
+					if (aptMainLoop()) {
+						while(1) {
+							// Buffers for APT_DoApplicationJump().
+							u8 param[0x300];
+							u8 hmac[0x20];
+							// Clear both buffers
+							memset(param, 0, sizeof(param));
+							memset(hmac, 0, sizeof(hmac));
 
-						APT_PrepareToDoApplicationJump(0, 0x00048015534C524EULL, MEDIATYPE_NAND);
-						// Tell APT to trigger the app launch and set the status of this app to exit
-						APT_DoApplicationJump(param, sizeof(param), hmac);
+							APT_PrepareToDoApplicationJump(0, 0x00048015534C524EULL, MEDIATYPE_NAND);
+							// Tell APT to trigger the app launch and set the status of this app to exit
+							APT_DoApplicationJump(param, sizeof(param), hmac);
+						}
 					}
 				}
 			}
