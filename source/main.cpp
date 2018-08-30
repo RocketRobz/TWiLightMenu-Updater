@@ -17,8 +17,10 @@
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
 
 bool dspfirmfound = false;
+static bool musicPlaying = false;
 
-// Sound effects.
+// Music and sound effects.
+sound *mus_settings = NULL;
 sound *sfx_launch = NULL;
 sound *sfx_select = NULL;
 sound *sfx_stop = NULL;
@@ -96,6 +98,9 @@ int menuPage = 0;
 bool autoStartDone = false;
 
 void bootPrep(void) {
+	if (dspfirmfound) {
+		mus_settings->stop();
+	}
 	SaveSettings();
 	if (settings.twl.rainbowLed == 1) {
 		redLed();
@@ -187,6 +192,7 @@ int main()
 
 	// Load the sound effects if DSP is available.
 	if (dspfirmfound) {
+		mus_settings = new sound("romfs:/sounds/settings.wav", 1, true);
 		sfx_launch = new sound("romfs:/sounds/launch.wav", 2, false);
 		sfx_select = new sound("romfs:/sounds/select.wav", 2, false);
 		sfx_stop = new sound("romfs:/sounds/stop.wav", 2, false);
@@ -243,6 +249,11 @@ int main()
 			launchDSiMenuPP();
 		}
 		autoStartDone = true;
+
+		if (!musicPlaying && dspfirmfound) {
+			mus_settings->play();
+			musicPlaying = true;
+		}
 
 		const char *button_titles[] = {
 			"Start DSiMenu++",
@@ -627,6 +638,7 @@ int main()
 	
 	SaveSettings();
 
+	delete mus_settings;
 	delete sfx_launch;
 	delete sfx_select;
 	delete sfx_stop;
