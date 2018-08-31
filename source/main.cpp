@@ -111,6 +111,12 @@ void bootPrep(void) {
 	} else if (settings.twl.rainbowLed == 3) {
 		blueLed();
 	} else if (settings.twl.rainbowLed == 4) {
+		yellowLed();
+	} else if (settings.twl.rainbowLed == 4) {
+		cyanLed();
+	} else if (settings.twl.rainbowLed == 5) {
+		purpleLed();
+	} else if (settings.twl.rainbowLed == 6) {
 		rainbowLed();
 	}
 	if (settings.ui.bootscreen != -1) {
@@ -527,6 +533,8 @@ int main()
 				}
 				if (i == 1) {
 					pp2d_draw_text(x_from_width, y, 0.75, 0.75, RGBA8(ledColorDisplay_R, ledColorDisplay_G, ledColorDisplay_B, 255), button_titles2[i]);
+				} else if (i > 1) {
+					pp2d_draw_text(x_from_width, y, 0.75, 0.75, GRAY, button_titles2[i]);
 				} else {
 					pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles2[i]);
 				}
