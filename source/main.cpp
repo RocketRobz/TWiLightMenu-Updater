@@ -112,11 +112,11 @@ void bootPrep(void) {
 		blueLed();
 	} else if (settings.twl.rainbowLed == 4) {
 		yellowLed();
-	} else if (settings.twl.rainbowLed == 4) {
-		cyanLed();
 	} else if (settings.twl.rainbowLed == 5) {
-		purpleLed();
+		cyanLed();
 	} else if (settings.twl.rainbowLed == 6) {
+		purpleLed();
+	} else if (settings.twl.rainbowLed == 7) {
 		rainbowLed();
 	}
 	if (settings.ui.bootscreen != -1) {
