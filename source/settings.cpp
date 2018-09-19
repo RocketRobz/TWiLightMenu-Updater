@@ -8,7 +8,7 @@ using std::wstring;
 
 #include <3ds.h>
 
-static CIniFile settingsini( "sdmc:/_nds/dsimenuplusplus/settings.ini" );
+static CIniFile settingsini( "sdmc:/_nds/TWiLightMenu/settings.ini" );
 static CIniFile bootstrapini( "sdmc:/_nds/nds-bootstrap.ini" );
 
 // Settings
@@ -238,7 +238,7 @@ void SaveSettings(void) {
 	settingsini.SetInt("SRLOADER", "CONSOLE_MODEL", settings.twl.consoleModel);
 	settingsini.SetInt("SRLOADER", "APP_NAME", settings.twl.appName);
 	settingsini.SetInt("CTR-SETTINGS", "NOTIFICATION_LED", settings.twl.rainbowLed);
-	settingsini.SaveIniFile("sdmc:/_nds/dsimenuplusplus/settings.ini");
+	settingsini.SaveIniFile("sdmc:/_nds/TWiLightMenu/settings.ini");
 
 	bootstrapini.SetInt("NDS-BOOTSTRAP", "CONSOLE_MODEL", settings.twl.consoleModel);
 	bootstrapini.SaveIniFile("sdmc:/_nds/nds-bootstrap.ini");

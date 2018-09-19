@@ -40,7 +40,7 @@ static int rainbowLedColorDisplayPosition = 0;
 static int rainbowLedColorDisplayDelay = 0;
 
 const char *autostartvaluetext;
-const char *autostarttext = "DSiMenu++";
+const char *autostarttext = "TWLMenu++";
 
 const char *menudescription[2] = {""};
 static int menudescription_width = 0;
@@ -269,7 +269,7 @@ int main()
 		}
 
 		const char *button_titles[] = {
-			"Start DSiMenu++",
+			"Start TWiLight Menu++",
 			"Start last-ran ROM",
 			"",
 		};
@@ -277,7 +277,7 @@ int main()
 		const char *button_titles2[] = {
 			"",
 			"",
-			"Update DSiMenu++",
+			"Update TWiLight Menu++",
 			"Update nds-bootstrap",
 		};
 
@@ -388,7 +388,7 @@ int main()
 			if (!buttonShading) {
 				menudescription[0] = "Start, set up, and update";
 				if (settings.twl.appName == 0) {
-					menudescription[1] = "DSiMenu++ and nds-bootstrap.";
+					menudescription[1] = "TWiLight Menu++ and nds-bootstrap.";
 				} else if (settings.twl.appName == 1) {
 					menudescription[1] = "SRLoader and nds-bootstrap.";
 				} else if (settings.twl.appName == 2) {
@@ -401,7 +401,7 @@ int main()
 			} else if (menuPage == 0) {
 				if (menuSelection == 0) {
 					if (settings.twl.appName == 0) {
-						menudescription[0] = "Press  to reboot into DSiMenu++.";
+						menudescription[0] = "Press  to reboot into TWiLight Menu++.";
 					} else if (settings.twl.appName == 1) {
 						menudescription[0] = "Press  to reboot into SRLoader.";
 					} else if (settings.twl.appName == 2) {
@@ -413,7 +413,7 @@ int main()
 				if (menuSelection == 1) {
 					menudescription[0] = "Press  to reboot into the ROM";
 					if (settings.twl.appName == 0) {
-						menudescription[1] = "last-launched in DSiMenu++.";
+						menudescription[1] = "last-launched in TWiLight Menu++.";
 					} else if (settings.twl.appName == 1) {
 						menudescription[1] = "last-launched in SRLoader.";
 					} else if (settings.twl.appName == 2) {
@@ -436,7 +436,7 @@ int main()
 				if (menuSelection == 0) {
 					menudescription[0] = "Show DS/DSi boot screen";
 					if (settings.twl.appName == 0) {
-						menudescription[1] = "before DSiMenu++ appears.";
+						menudescription[1] = "before TWiLight Menu++ appears.";
 					} else if (settings.twl.appName == 1) {
 						menudescription[1] = "before SRLoader appears.";
 					} else if (settings.twl.appName == 2) {
