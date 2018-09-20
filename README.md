@@ -1,2 +1,3 @@
 # TWiLightMenu-Launcher
-# TwiLightMenu-Launcher is a open-sourced Launcher for TwiLightMenu++
+# What is TWiLightMenu-Launcher
+TwiLightMenu-Launcher is a open-sourced Launcher for TwiLightMenu++
