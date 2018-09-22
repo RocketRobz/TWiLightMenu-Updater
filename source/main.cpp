@@ -158,9 +158,9 @@ int main()
 	// make folders if they don't exist
 	mkdir("sdmc:/3ds", 0777);	// For DSP dump
 	mkdir("sdmc:/_nds", 0777);
-	mkdir("sdmc:/_nds/dsimenuplusplus", 0777);
-	mkdir("sdmc:/_nds/dsimenuplusplus/gamesettings", 0777);
-	mkdir("sdmc:/_nds/dsimenuplusplus/emulators", 0777);
+	mkdir("sdmc:/_nds/TWiLightMenu", 0777);
+	mkdir("sdmc:/_nds/TWiLightMenu/gamesettings", 0777);
+	mkdir("sdmc:/_nds/TWiLightMenu/emulators", 0777);
 
 	pp2d_init();
 	
