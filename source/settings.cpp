@@ -237,6 +237,9 @@ void SaveSettings(void) {
 	// TWL settings.
 	settingsini.SetInt("SRLOADER", "CONSOLE_MODEL", settings.twl.consoleModel);
 	settingsini.SetInt("SRLOADER", "APP_NAME", settings.twl.appName);
+	FS_CardType type;
+	FSUSER_GetCardType(&type);
+	settingsini.SetInt("SRLOADER", "3DS_CART_INSERTED", ((type == CARD_CTR) ? true : false));
 	settingsini.SetInt("CTR-SETTINGS", "NOTIFICATION_LED", settings.twl.rainbowLed);
 	settingsini.SaveIniFile("sdmc:/_nds/TWiLightMenu/settings.ini");
 

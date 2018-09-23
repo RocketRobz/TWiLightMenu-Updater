@@ -252,7 +252,7 @@ int main()
 					pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen (SRLoader).png");
 					break;
 				case 2:
-					pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen (DSisionX).png");
+					pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen (DSiMenuPP).png");
 					break;
 			}
 			topScreenGraphicLoaded = true;
@@ -376,9 +376,9 @@ int main()
 			autostarttext = "SRLoader";
 			button_titles2[2] = "Update SRLoader";
 		} else if (settings.twl.appName == 2) {
-			button_titles[0] = "Start DSisionX";
-			autostarttext = "DSisionX";
-			button_titles2[2] = "Update DSisionX";
+			button_titles[0] = "Start DSiMenu++";
+			autostarttext = "DSiMenu++";
+			button_titles2[2] = "Update DSiMenu++";
 		}
 
 		for (int topfb = GFX_LEFT; topfb <= GFX_RIGHT; topfb++) {
@@ -392,7 +392,7 @@ int main()
 				} else if (settings.twl.appName == 1) {
 					menudescription[1] = "SRLoader and nds-bootstrap.";
 				} else if (settings.twl.appName == 2) {
-					menudescription[1] = "DSisionX and nds-bootstrap.";
+					menudescription[1] = "DSiMenu++ and nds-bootstrap.";
 				}
 				menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
 				pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
@@ -405,7 +405,7 @@ int main()
 					} else if (settings.twl.appName == 1) {
 						menudescription[0] = "Press  to reboot into SRLoader.";
 					} else if (settings.twl.appName == 2) {
-						menudescription[0] = "Press  to reboot into DSisionX.";
+						menudescription[0] = "Press  to reboot into DSiMenu++.";
 					}
 					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
 					pp2d_draw_text((400-menudescription_width)/2, 152, 0.60, 0.60f, WHITE, menudescription[0]);
@@ -417,7 +417,7 @@ int main()
 					} else if (settings.twl.appName == 1) {
 						menudescription[1] = "last-launched in SRLoader.";
 					} else if (settings.twl.appName == 2) {
-						menudescription[1] = "last-launched in DSisionX.";
+						menudescription[1] = "last-launched in DSiMenu++.";
 					}
 					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
 					pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
@@ -440,7 +440,7 @@ int main()
 					} else if (settings.twl.appName == 1) {
 						menudescription[1] = "before SRLoader appears.";
 					} else if (settings.twl.appName == 2) {
-						menudescription[1] = "before DSisionX appears.";
+						menudescription[1] = "before DSiMenu++ appears.";
 					}
 					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
 					pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
