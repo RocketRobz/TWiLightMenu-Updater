@@ -42,7 +42,7 @@ static int rainbowLedColorDisplayDelay = 0;
 const char *autostartvaluetext;
 const char *autostarttext = "TWLMenu++";
 
-const char *menudescription[2] = {""};
+const char *menudescription[3] = {""};
 static int menudescription_width = 0;
 
 struct {
@@ -167,8 +167,6 @@ int main()
 	pp2d_set_screen_color(GFX_TOP, TRANSPARENT);
 	pp2d_set_3D(0);
 	
-	Result res = 0;
-
 	pp2d_load_texture_png(homeicontex, "romfs:/graphics/BS_home_icon.png");
 	pp2d_load_texture_png(subbgtex, "romfs:/graphics/BS_background.png");
 	pp2d_load_texture_png(buttontex, "romfs:/graphics/BS_1_2page_button.png");
@@ -394,10 +392,13 @@ int main()
 				} else if (settings.twl.appName == 2) {
 					menudescription[1] = "DSiMenu++ and nds-bootstrap.";
 				}
+				menudescription[2] = "To see each selection's description, use the D-Pad.";
 				menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
-				pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
+				pp2d_draw_text((400-menudescription_width)/2, 128, 0.60, 0.60f, WHITE, menudescription[0]);
 				menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
-				pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
+				pp2d_draw_text((400-menudescription_width)/2, 146, 0.60, 0.60f, WHITE, menudescription[1]);
+				menudescription_width = pp2d_get_text_width(menudescription[2], 0.60, 0.60);
+				pp2d_draw_text((400-menudescription_width)/2, 184, 0.60, 0.60f, WHITE, menudescription[2]);
 			} else if (menuPage == 0) {
 				if (menuSelection == 0) {
 					if (settings.twl.appName == 0) {
@@ -425,8 +426,8 @@ int main()
 					pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
 				}
 				if (menuSelection == 2) {
-					menudescription[0] = "If this is set, hold SELECT after";
-					menudescription[1] = "launching this, to enter this menu.";
+					menudescription[0] = "If this is set, hold SELECT after the";
+					menudescription[1] = "\"homebrew\" screen, to enter this menu.";
 					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
 					pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
 					menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
