@@ -270,7 +270,7 @@ int main()
 
 		const char *button_titles[] = {
 			"Start TWiLight Menu++",
-			"Start last-ran ROM",
+			"Start last-run ROM",
 			"",
 		};
 
@@ -566,7 +566,7 @@ int main()
 					// Launch DSiMenu++
 					launchDSiMenuPP();
 				} else if (menuSelection == 1) {
-					// Launch last-ran ROM
+					// Launch last-run ROM
 					if (aptMainLoop()) bootPrep();
 					if (aptMainLoop()) {
 						while(1) {
