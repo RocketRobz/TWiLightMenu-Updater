@@ -209,6 +209,170 @@ std::vector<std::string> internal_json_reader(json_value* json, json_value* val,
 }
 
 /**
+ * Check for missing files, and download them.
+ */
+void DownloadMissingFiles(void) {
+	u32 responseCode = 0;
+	httpcContext context;	
+	
+	httpcInit(0);
+	if(R_FAILED(httpcOpenContext(&context, HTTPC_METHOD_GET, JSON_URL, 0))) {
+		return;
+	}
+	if(R_FAILED(httpcAddRequestHeaderField(&context, "User-Agent", "TWiLightMenu"))) {
+		return;
+	}
+	if(R_FAILED(httpcSetSSLOpt(&context, SSLCOPT_DisableVerify))) {
+		return;
+	}
+	if(R_FAILED(httpcSetKeepAlive(&context, HTTPC_KEEPALIVE_ENABLED))) {
+		return;
+	}
+	if(R_FAILED(httpcBeginRequest(&context))) {
+		return;
+	}
+	if(R_FAILED(httpcGetResponseStatusCode(&context, &responseCode))) {
+		return;
+	}
+    if (responseCode != 200) {
+		return;
+	}
+	
+	u32 size = 0;
+	httpcGetDownloadSizeState(&context, NULL, &size);	
+	char* jsonText = (char*) calloc(sizeof(char), size);
+	if(jsonText != NULL) {
+		u32 bytesRead = 0;
+		http_read_internal(&context, &bytesRead, (u8*) jsonText, size);
+		json_value* json = json_parse(jsonText, size);
+
+		if(json != NULL) {
+			if(json->type == json_object) { // {} are objects, [] are arrays				
+				json_value* val;
+				json_value* val2;
+				vector<std::string> strNames;
+				vector<std::string> strValues;
+				//val = json->u.object.values[1].value;
+				//val2 = val->u.object.values[0].value;
+				
+				// Search in nds-bootstrap object
+
+				val = json->u.object.values[4].value;
+				val2 = val->u.object.values[0].value;
+				strNames.push_back("release_ver");
+				strNames.push_back("nightly_ver");
+				strNames.push_back("release_url");
+				strNames.push_back("nightly_url");
+
+				strValues = internal_json_reader(json, val2, strNames);
+
+				release_BS_ver = strValues[0];
+				nightly_BS_ver = strValues[1];
+				release_BS_url = strValues[2];
+				nightly_BS_url = strValues[3];
+				strValues.clear();
+				strNames.clear();
+
+				//struct stat st;
+
+				// Download nds-bootstrap version data
+				if (access("sdmc:/_nds/TWiLightMenu/release-bootstrap.ver", F_OK) == -1) {
+					snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
+						"Now downloading nds-bootstrap...\n"
+						"(Release version data)"
+						"\n"
+						"Do not turn off the power.\n");
+					pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+					pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
+					pp2d_end_draw();
+
+					FILE* ver = fopen("sdmc:/_nds/TWiLightMenu/release-bootstrap.ver", "w");
+					if(!ver) {
+						snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
+							"Download failed.");
+						for (int i = 0; i < 60; i++) {
+							pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+							pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
+							pp2d_end_draw();
+						}
+					}
+					fputs(release_BS_ver.c_str(), ver);
+					fclose(ver);
+				}
+				if (access("sdmc:/_nds/TWiLightMenu/nightly-bootstrap.ver", F_OK) == -1) {
+					snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
+						"Now downloading nds-bootstrap...\n"
+						"(Nightly version data)"
+						"\n"
+						"Do not turn off the power.\n");
+					pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+					pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
+					pp2d_end_draw();
+
+					FILE* ver = fopen("sdmc:/_nds/TWiLightMenu/nightly-bootstrap.ver", "w");
+					if(!ver) {
+						snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
+							"Download failed.");
+						for (int i = 0; i < 60; i++) {
+							pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+							pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
+							pp2d_end_draw();
+						}
+					}
+					fputs(nightly_BS_ver.c_str(), ver);
+					fclose(ver);
+				}
+
+				// Download nds-bootstrap .nds files
+				if (access("sdmc:/_nds/nds-bootstrap-release.nds", F_OK) == -1) {
+					snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
+						"Now downloading nds-bootstrap...\n"
+						"(Release)\n"
+						"\n"
+						"Do not turn off the power.\n");
+					pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+					pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
+					pp2d_end_draw();
+
+					int res = downloadFile(release_BS_url.c_str(),"/_nds/nds-bootstrap-bootstrap.nds", MEDIA_SD_FILE);
+					if (res != 0) {
+						snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
+							"Download failed.");
+						for (int i = 0; i < 60; i++) {
+							pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+							pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
+							pp2d_end_draw();
+						}
+					}
+				}
+				if (access("sdmc:/_nds/nds-bootstrap-nightly.nds", F_OK) == -1) {
+					snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
+						"Now downloading nds-bootstrap...\n"
+						"(Nightly)\n"
+						"\n"
+						"Do not turn off the power.\n");
+					pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+					pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
+					pp2d_end_draw();
+
+					int res = downloadFile(nightly_BS_url.c_str(),"/_nds/nds-bootstrap-nightly.nds", MEDIA_SD_FILE);
+					if (res != 0) {
+						snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
+							"Download failed.");
+						for (int i = 0; i < 60; i++) {
+							pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+							pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
+							pp2d_end_draw();
+						}
+					}
+				}
+
+			}
+		}
+	}
+}
+
+/**
  * Update nds-bootstrap to the latest nightly build.
  */
 void UpdateBootstrapNightly(void) {

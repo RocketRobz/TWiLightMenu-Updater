@@ -46,7 +46,7 @@ int downloadFile(const char* url, const char* file, MediaType mediaType);
  * Check for missing files, and download them.
  * @return non-zero if an error occurred.
  */
-//int DownloadMissingFiles(void);
+void DownloadMissingFiles(void);
 
 /**
  * Update nds-bootstrap to the latest nightly build.

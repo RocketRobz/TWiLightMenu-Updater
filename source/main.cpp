@@ -221,6 +221,10 @@ int main()
 
 	bool topScreenGraphicLoaded = false;
 	
+	if (checkWifiStatus()) {
+		DownloadMissingFiles();
+	}
+	
 	// Loop as long as the status is not exit
 	while(aptMainLoop()) {
 		//offset3D[0].logo = CONFIG_3D_SLIDERSTATE * -5.0f;
