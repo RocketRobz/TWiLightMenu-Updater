@@ -6,6 +6,7 @@
 
 // Textures
 extern size_t homeicontex;
+extern size_t loadingbgtex;
 extern size_t topbgtex;
 extern size_t subbgtex;
 extern size_t buttontex;
