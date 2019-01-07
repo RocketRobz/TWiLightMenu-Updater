@@ -11,7 +11,6 @@
 #include "sound.h"
 #include "dumpdsp.h"
 #include "settings.h"
-#include "dsbootsplash.h"
 #include "language.h"
 #include "download.h"
 
@@ -32,7 +31,7 @@ sound *sfx_wrong = NULL;
 sound *sfx_back = NULL;
 
 // 3D offsets. (0 == Left, 1 == Right)
-//Offset3D offset3D[2] = {{0.0f}, {0.0f}};
+Offset3D offset3D[2] = {0.0f, 0.0f};
 
 static int ledColorDisplay_R = 0;
 static int ledColorDisplay_G = 0;
@@ -98,53 +97,6 @@ char launcher_vertext[13];
 int menuSelection = 0;
 int menuPage = 0;
 
-bool autoStartDone = false;
-
-void bootPrep(void) {
-	if (dspfirmfound) {
-		mus_settings->stop();
-	}
-	SaveSettings();
-	if (settings.twl.rainbowLed == 1) {
-		redLed();
-	} else if (settings.twl.rainbowLed == 2) {
-		dsGreenLed();
-	} else if (settings.twl.rainbowLed == 3) {
-		blueLed();
-	} else if (settings.twl.rainbowLed == 4) {
-		yellowLed();
-	} else if (settings.twl.rainbowLed == 5) {
-		cyanLed();
-	} else if (settings.twl.rainbowLed == 6) {
-		purpleLed();
-	} else if (settings.twl.rainbowLed == 7) {
-		rainbowLed();
-	}
-	if (settings.ui.bootscreen != -1) {
-		bootSplash();
-		fade_whiteToBlack();
-	}
-}
-
-void launchDSiMenuPP(void) {
-	if (aptMainLoop()) bootPrep();
-	// Launch DSiMenu++
-	if (aptMainLoop()) {
-		while(1) {
-			// Buffers for APT_DoApplicationJump().
-			u8 param[0x300];
-			u8 hmac[0x20];
-			// Clear both buffers
-			memset(param, 0, sizeof(param));
-			memset(hmac, 0, sizeof(hmac));
-
-			APT_PrepareToDoApplicationJump(0, 0x0004801553524C41ULL, MEDIATYPE_NAND);
-			// Tell APT to trigger the app launch and set the status of this app to exit
-			APT_DoApplicationJump(param, sizeof(param), hmac);
-		}
-	}
-}
-
 int main()
 {
 	aptInit();
@@ -167,16 +119,21 @@ int main()
 	pp2d_init();
 	
 	pp2d_set_screen_color(GFX_TOP, TRANSPARENT);
-	pp2d_set_3D(0);
+	pp2d_set_3D(1);
 	
 	pp2d_load_texture_png(homeicontex, "romfs:/graphics/BS_home_icon.png");
 	pp2d_load_texture_png(loadingbgtex, "romfs:/graphics/BS_loading_background.png");
+	pp2d_load_texture_png(topbgtex, "romfs:/graphics/top_bg.png");
 	pp2d_load_texture_png(subbgtex, "romfs:/graphics/BS_background.png");
 	pp2d_load_texture_png(buttontex, "romfs:/graphics/BS_1_2page_button.png");
 	pp2d_load_texture_png(smallbuttontex, "romfs:/graphics/BS_2page_small_button.png");
 	pp2d_load_texture_png(leftpagetex, "romfs:/graphics/BS_Left_page_button.png");
 	pp2d_load_texture_png(rightpagetex, "romfs:/graphics/BS_Rigt_page_button.png");
 	pp2d_load_texture_png(pagenumberframetex, "romfs:/graphics/BS_Page_number_frame.png");
+	pp2d_load_texture_png(twinkletex1, "romfs:/graphics/twinkle_1.png");
+	pp2d_load_texture_png(twinkletex2, "romfs:/graphics/twinkle_2.png");
+	pp2d_load_texture_png(twinkletex3, "romfs:/graphics/twinkle_3.png");
+	pp2d_load_texture_png(logotex, "romfs:/graphics/twlm_logo.png");
 	
  	if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
 		ndspInit();
@@ -217,20 +174,23 @@ int main()
 	
 	int fadealpha = 255;
 	bool fadein = true;
-	bool fadeout = false;
 
-	bool topScreenGraphicLoaded = false;
-	
 	if (checkWifiStatus()) {
 		DownloadMissingFiles();
 	}
 	
 	// Loop as long as the status is not exit
 	while(aptMainLoop()) {
-		//offset3D[0].logo = CONFIG_3D_SLIDERSTATE * -5.0f;
-		//offset3D[1].logo = CONFIG_3D_SLIDERSTATE * 5.0f;
-		//offset3D[0].launchertext = CONFIG_3D_SLIDERSTATE * -3.0f;
-		//offset3D[1].launchertext = CONFIG_3D_SLIDERSTATE * 3.0f;
+		offset3D[0].topbg = CONFIG_3D_SLIDERSTATE * -7.0f;
+		offset3D[1].topbg = CONFIG_3D_SLIDERSTATE * 7.0f;
+		offset3D[0].twinkle3 = CONFIG_3D_SLIDERSTATE * -6.0f;
+		offset3D[1].twinkle3 = CONFIG_3D_SLIDERSTATE * 6.0f;
+		offset3D[0].twinkle2 = CONFIG_3D_SLIDERSTATE * -5.0f;
+		offset3D[1].twinkle2 = CONFIG_3D_SLIDERSTATE * 5.0f;
+		offset3D[0].twinkle1 = CONFIG_3D_SLIDERSTATE * -4.0f;
+		offset3D[1].twinkle1 = CONFIG_3D_SLIDERSTATE * 4.0f;
+		offset3D[0].logo = CONFIG_3D_SLIDERSTATE * -2.0f;
+		offset3D[1].logo = CONFIG_3D_SLIDERSTATE * 2.0f;
 
 		// Scan hid shared memory for input events
 		hidScanInput();
@@ -239,34 +199,6 @@ int main()
 		const u32 hHeld = hidKeysHeld();
 
 		hidTouchRead(&touch);
-
-		if (!topScreenGraphicLoaded) {
-			if (hHeld & KEY_UP) {
-				settings.twl.appName = 0;
-			} else if (hHeld & KEY_DOWN) {
-				settings.twl.appName = 1;
-			} else if (hHeld & KEY_LEFT) {
-				settings.twl.appName = 2;
-			}
-			switch (settings.twl.appName) {
-				case 0:
-				default:
-					pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen.png");
-					break;
-				case 1:
-					pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen (SRLoader).png");
-					break;
-				case 2:
-					pp2d_load_texture_png(topbgtex, "romfs:/graphics/Top screen (DSiMenuPP).png");
-					break;
-			}
-			topScreenGraphicLoaded = true;
-		}
-
-		if (!autoStartDone && settings.ui.autoStart && !(hHeld & KEY_SELECT)) {
-			launchDSiMenuPP();
-		}
-		autoStartDone = true;
 
 		if (!musicPlaying && dspfirmfound) {
 			mus_settings->play();
@@ -389,97 +321,25 @@ int main()
 		for (int topfb = GFX_LEFT; topfb <= GFX_RIGHT; topfb++) {
 			if (topfb == GFX_LEFT) pp2d_begin_draw(GFX_TOP, (gfx3dSide_t)topfb);
 			else pp2d_draw_on(GFX_TOP, (gfx3dSide_t)topfb);
-			pp2d_draw_texture(topbgtex, 0, 0);
-			if (!buttonShading) {
-				menudescription[0] = "Start, set up, and update";
-				if (settings.twl.appName == 0) {
-					menudescription[1] = "TWiLight Menu++ and nds-bootstrap.";
-				} else if (settings.twl.appName == 1) {
-					menudescription[1] = "SRLoader and nds-bootstrap.";
-				} else if (settings.twl.appName == 2) {
-					menudescription[1] = "DSiMenu++ and nds-bootstrap.";
-				}
-				menudescription[2] = "To see each selection's description, use the D-Pad.";
-				menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
-				pp2d_draw_text((400-menudescription_width)/2, 128, 0.60, 0.60f, WHITE, menudescription[0]);
-				menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
-				pp2d_draw_text((400-menudescription_width)/2, 146, 0.60, 0.60f, WHITE, menudescription[1]);
-				menudescription_width = pp2d_get_text_width(menudescription[2], 0.60, 0.60);
-				pp2d_draw_text((400-menudescription_width)/2, 184, 0.60, 0.60f, WHITE, menudescription[2]);
-			} else if (menuPage == 0) {
-				if (menuSelection == 0) {
-					if (settings.twl.appName == 0) {
-						menudescription[0] = "Press  to reboot into TWiLight Menu++.";
-					} else if (settings.twl.appName == 1) {
-						menudescription[0] = "Press  to reboot into SRLoader.";
-					} else if (settings.twl.appName == 2) {
-						menudescription[0] = "Press  to reboot into DSiMenu++.";
-					}
-					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 152, 0.60, 0.60f, WHITE, menudescription[0]);
-				}
-				if (menuSelection == 1) {
-					menudescription[0] = "Press  to reboot into the ROM";
-					if (settings.twl.appName == 0) {
-						menudescription[1] = "last-launched in TWiLight Menu++.";
-					} else if (settings.twl.appName == 1) {
-						menudescription[1] = "last-launched in SRLoader.";
-					} else if (settings.twl.appName == 2) {
-						menudescription[1] = "last-launched in DSiMenu++.";
-					}
-					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
-					menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
-				}
-				if (menuSelection == 2) {
-					menudescription[0] = "If this is set, hold SELECT after the";
-					menudescription[1] = "\"homebrew\" screen, to enter this menu.";
-					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
-					menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
-				}
-			} else if (menuPage == 1) {
-				if (menuSelection == 0) {
-					menudescription[0] = "Show DS/DSi boot screen";
-					if (settings.twl.appName == 0) {
-						menudescription[1] = "before TWiLight Menu++ appears.";
-					} else if (settings.twl.appName == 1) {
-						menudescription[1] = "before SRLoader appears.";
-					} else if (settings.twl.appName == 2) {
-						menudescription[1] = "before DSiMenu++ appears.";
-					}
-					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
-					menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
-				}
-				if (menuSelection == 1) {
-					menudescription[0] = "Set a color to glow in";
-					menudescription[1] = "the Notification LED.";
-					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 144, 0.60, 0.60f, WHITE, menudescription[0]);
-					menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
-				}
-				if (menuSelection == 2) {
-					menudescription[0] = "This feature cannot be used yet.";
-					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 152, 0.60, 0.60f, WHITE, menudescription[0]);
-				}
-				if (menuSelection == 3) {
-					menudescription[0] = "Update nds-bootstrap to the latest version.";
-					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
-					pp2d_draw_text((400-menudescription_width)/2, 152, 0.60, 0.60f, WHITE, menudescription[0]);
-				}
-			}
+			pp2d_draw_texture(topbgtex, offset3D[topfb].topbg, 0);
+			pp2d_draw_texture(twinkletex3, 133+offset3D[topfb].twinkle3, 61);
+			pp2d_draw_texture(twinkletex2, 157+offset3D[topfb].twinkle2, 81);
+			pp2d_draw_texture(twinkletex1, 184+offset3D[topfb].twinkle1, 107);
+			pp2d_draw_texture(logotex, 127+offset3D[topfb].logo, 100);
+
+			menudescription[0] = "Start, set up, and update";
+			menudescription[1] = "TWiLight Menu++ and nds-bootstrap.";
+			menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
+			pp2d_draw_text((400-menudescription_width)/2, 168, 0.60, 0.60f, WHITE, menudescription[0]);
+			menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
+			pp2d_draw_text((400-menudescription_width)/2, 186, 0.60, 0.60f, WHITE, menudescription[1]);
+
 			pp2d_draw_text(336, 222, 0.50, 0.50, WHITE, launcher_vertext);
 			if (fadealpha > 0) pp2d_draw_rectangle(0, 0, 400, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
 		}
 		pp2d_draw_on(GFX_BOTTOM, GFX_LEFT);
 		pp2d_draw_texture(subbgtex, 0, 0);
-		pp2d_draw_text(6, 5, 0.55, 0.55, WHITE, "Settings: CTR-mode stuff");
+		pp2d_draw_text(6, 5, 0.55, 0.55, WHITE, "Updater menu");
 		pp2d_draw_text(280, 5, 0.50, 0.50, WHITE, "1");
 		pp2d_draw_text(300, 5, 0.50, 0.50, WHITE, "2");
 		pp2d_draw_texture(pagenumberframetex, 276+(menuPage*20), 5);
@@ -570,60 +430,31 @@ int main()
 				fadealpha = 0;
 				fadein = false;
 			}
-		} else if (fadeout == true && menuPage == 0) {
-			fadealpha += 15;
-			if (fadealpha > 255) {
-				fadealpha = 255;
-				fadeout = false;
-				if (menuSelection == 0) {
-					// Launch DSiMenu++
-					launchDSiMenuPP();
-				} else if (menuSelection == 1) {
-					// Launch last-run ROM
-					if (aptMainLoop()) bootPrep();
-					if (aptMainLoop()) {
-						while(1) {
-							// Buffers for APT_DoApplicationJump().
-							u8 param[0x300];
-							u8 hmac[0x20];
-							// Clear both buffers
-							memset(param, 0, sizeof(param));
-							memset(hmac, 0, sizeof(hmac));
+		}
 
-							APT_PrepareToDoApplicationJump(0, 0x00048015534C524EULL, MEDIATYPE_NAND);
-							// Tell APT to trigger the app launch and set the status of this app to exit
-							APT_DoApplicationJump(param, sizeof(param), hmac);
-						}
-					}
-				}
+		if (hDown & KEY_UP) {
+			if (buttonShading) menuSelection--;
+		} else if (hDown & KEY_DOWN) {
+			if (buttonShading) menuSelection++;
+		}
+		if (hDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
+			buttonShading = true;
+			if(dspfirmfound) {
+				sfx_select->stop();
+				sfx_select->play();	
 			}
 		}
 
-		if (!fadeout) {
-			if (hDown & KEY_UP) {
-				if (buttonShading) menuSelection--;
-			} else if (hDown & KEY_DOWN) {
-				if (buttonShading) menuSelection++;
-			}
-			if (hDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
-				buttonShading = true;
-				if(dspfirmfound) {
-					sfx_select->stop();
-					sfx_select->play();
-				}
-			}
+		if (hDown & KEY_TOUCH) {
+			buttonShading = false;
+		}
 
-			if (hDown & KEY_TOUCH) {
-				buttonShading = false;
-			}
-
-			if (menuPage == 0) {
-				if (menuSelection > 2) menuSelection = 0;
-				if (menuSelection < 0) menuSelection = 2;
-			} else {
-				if (menuSelection > 3) menuSelection = 0;
-				if (menuSelection < 0) menuSelection = 3;
-			}
+		if (menuPage == 0) {
+			if (menuSelection > 2) menuSelection = 0;
+			if (menuSelection < 0) menuSelection = 2;
+		} else {
+			if (menuSelection > 3) menuSelection = 0;
+			if (menuSelection < 0) menuSelection = 3;
 		}
 
 		if (hDown & KEY_A) {
@@ -663,7 +494,6 @@ int main()
 					case 0:
 					case 1:
 					default:
-						if (!fadein) fadeout = true;
 						break;
 					case 2:
 						settings.ui.autoStart = !settings.ui.autoStart;
