@@ -50,7 +50,7 @@ VERSION_MICRO := 1
 #---------------------------------------------------------------------------------
 TARGET		:=	TWiLight_Menu++_Launcher
 BUILD		:=	build
-SOURCES		:=	source source/pp2d
+SOURCES		:=	source source/pp2d source/json
 DATA		:=	data
 INCLUDES	:=	include
 ROMFS		:=	romfs

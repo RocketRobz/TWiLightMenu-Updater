@@ -13,6 +13,7 @@
 #include "settings.h"
 #include "dsbootsplash.h"
 #include "language.h"
+#include "download.h"
 
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
 
@@ -152,6 +153,7 @@ int main()
 	romfsInit();
 	srvInit();
 	hidInit();
+	acInit();
 
 	snprintf(launcher_vertext, 13, "v%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
 
@@ -168,6 +170,7 @@ int main()
 	pp2d_set_3D(0);
 	
 	pp2d_load_texture_png(homeicontex, "romfs:/graphics/BS_home_icon.png");
+	pp2d_load_texture_png(loadingbgtex, "romfs:/graphics/BS_loading_background.png");
 	pp2d_load_texture_png(subbgtex, "romfs:/graphics/BS_background.png");
 	pp2d_load_texture_png(buttontex, "romfs:/graphics/BS_1_2page_button.png");
 	pp2d_load_texture_png(smallbuttontex, "romfs:/graphics/BS_2page_small_button.png");
@@ -217,6 +220,10 @@ int main()
 	bool fadeout = false;
 
 	bool topScreenGraphicLoaded = false;
+	
+	if (checkWifiStatus()) {
+		DownloadMissingFiles();
+	}
 	
 	// Loop as long as the status is not exit
 	while(aptMainLoop()) {
@@ -456,8 +463,13 @@ int main()
 					menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
 					pp2d_draw_text((400-menudescription_width)/2, 162, 0.60, 0.60f, WHITE, menudescription[1]);
 				}
-				if (menuSelection >= 2) {
+				if (menuSelection == 2) {
 					menudescription[0] = "This feature cannot be used yet.";
+					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
+					pp2d_draw_text((400-menudescription_width)/2, 152, 0.60, 0.60f, WHITE, menudescription[0]);
+				}
+				if (menuSelection == 3) {
+					menudescription[0] = "Update nds-bootstrap to the latest version.";
 					menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
 					pp2d_draw_text((400-menudescription_width)/2, 152, 0.60, 0.60f, WHITE, menudescription[0]);
 				}
@@ -534,7 +546,7 @@ int main()
 				}
 				if (i == 1) {
 					pp2d_draw_text(x_from_width, y, 0.75, 0.75, RGBA8(ledColorDisplay_R, ledColorDisplay_G, ledColorDisplay_B, 255), button_titles2[i]);
-				} else if (i > 1) {
+				} else if (i == 2) {
 					pp2d_draw_text(x_from_width, y, 0.75, 0.75, GRAY, button_titles2[i]);
 				} else {
 					pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles2[i]);
@@ -681,10 +693,23 @@ int main()
 						}
 						break;
 					case 2:
-					case 3:
 						if(dspfirmfound) {
 							sfx_wrong->stop();
 							sfx_wrong->play();
+						}
+						break;
+					case 3:
+						if(checkWifiStatus()){
+							if(dspfirmfound) {
+								sfx_select->stop();
+								sfx_select->play();
+							}
+							UpdateBootstrap();
+						} else {
+							if(dspfirmfound) {
+								sfx_wrong->stop();
+								sfx_wrong->play();
+							}
 						}
 						break;
 				}

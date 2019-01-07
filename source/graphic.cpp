@@ -40,13 +40,14 @@ void pp2d_draw_texture_rotate_flip_blend(size_t id, int x, int y, float angle, f
 }
 
 size_t homeicontex = 1;
-size_t topbgtex = 2;
-size_t subbgtex = 3;
-size_t buttontex = 4;
-size_t smallbuttontex = 5;
-size_t leftpagetex = 6;
-size_t rightpagetex = 7;
-size_t pagenumberframetex = 8;
+size_t loadingbgtex = 2;
+size_t topbgtex = 3;
+size_t subbgtex = 4;
+size_t buttontex = 5;
+size_t smallbuttontex = 6;
+size_t leftpagetex = 7;
+size_t rightpagetex = 8;
+size_t pagenumberframetex = 9;
 
 size_t ndslogotex = 10;
 size_t itex = 11;
