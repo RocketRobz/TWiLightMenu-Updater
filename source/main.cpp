@@ -33,48 +33,22 @@ sound *sfx_back = NULL;
 // 3D offsets. (0 == Left, 1 == Right)
 Offset3D offset3D[2] = {0.0f, 0.0f};
 
-static int ledColorDisplay_R = 0;
-static int ledColorDisplay_G = 0;
-static int ledColorDisplay_B = 0;
-static int rainbowLedColorDisplayPosition = 0;
-static int rainbowLedColorDisplayDelay = 0;
-
-const char *autostartvaluetext;
-const char *autostarttext = "TWLMenu++";
-
-const char *menudescription[3] = {""};
-static int menudescription_width = 0;
-
-struct {
-	int x;
-	int y;
-} buttons[] = {
-	{ 42,  52},
-	{ 42,  102},
-	{ 125,  152},
-};
-
-size_t button_tex[] = {
-	buttontex,
-	buttontex,
-	smallbuttontex,
-};
-
 struct {
 	int x;
 	int y;
 } buttons2[] = {
-	{ 125,  42},
-	{ 125,  82},
-	{ 42,  122},
-	{ 42,  162},
+	{ 42,  88},
+	{ 42,  136},
 };
 
 size_t button_tex2[] = {
-	smallbuttontex,
-	smallbuttontex,
 	buttontex,
 	buttontex,
+};
+
+const char *button_titles2[] = {
+	"Update TWiLight Menu++",
+	"Update nds-bootstrap",
 };
 
 void screenoff()
@@ -95,7 +69,6 @@ void screenon()
 char launcher_vertext[13];
 
 int menuSelection = 0;
-int menuPage = 0;
 
 int main()
 {
@@ -134,6 +107,8 @@ int main()
 	pp2d_load_texture_png(twinkletex2, "romfs:/graphics/twinkle_2.png");
 	pp2d_load_texture_png(twinkletex3, "romfs:/graphics/twinkle_3.png");
 	pp2d_load_texture_png(logotex, "romfs:/graphics/twlm_logo.png");
+	pp2d_load_texture_png(arrowtex, "romfs:/graphics/arrow.png");
+	pp2d_load_texture_png(updatertex, "romfs:/graphics/text_updater.png");
 	
  	if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
 		ndspInit();
@@ -167,8 +142,6 @@ int main()
 		sfx_back = new sound("romfs:/sounds/back.wav", 2, false);
 	}
 	
-	LoadSettings();
-	
 	bool buttonShading = false;
 	bool setOption = false;
 	
@@ -189,6 +162,8 @@ int main()
 		offset3D[1].twinkle2 = CONFIG_3D_SLIDERSTATE * 5.0f;
 		offset3D[0].twinkle1 = CONFIG_3D_SLIDERSTATE * -4.0f;
 		offset3D[1].twinkle1 = CONFIG_3D_SLIDERSTATE * 4.0f;
+		offset3D[0].updater = CONFIG_3D_SLIDERSTATE * -3.0f;
+		offset3D[1].updater = CONFIG_3D_SLIDERSTATE * 3.0f;
 		offset3D[0].logo = CONFIG_3D_SLIDERSTATE * -2.0f;
 		offset3D[1].logo = CONFIG_3D_SLIDERSTATE * 2.0f;
 
@@ -205,119 +180,6 @@ int main()
 			musicPlaying = true;
 		}
 
-		const char *button_titles[] = {
-			"Start TWiLight Menu++",
-			"Start last-run ROM",
-			"",
-		};
-
-		const char *button_titles2[] = {
-			"",
-			"",
-			"Update TWiLight Menu++",
-			"Update nds-bootstrap",
-		};
-
-		if (settings.ui.autoStart) {
-			button_titles[2] = "Yes";
-		} else {
-			button_titles[2] = "No";
-		}
-
-		switch (settings.ui.bootscreen) {
-			case -1:
-			default:
-				button_titles2[0] = "Off";
-				break;
-			case 0:
-				button_titles2[0] = "Nintendo DS";
-				break;
-			case 1:
-				button_titles2[0] = "NDS (4:3)";
-				break;
-			case 2:
-				button_titles2[0] = "Nintendo DSi";
-				break;
-			case 3:
-				button_titles2[0] = "NDS (Inverted)";
-				break;
-			case 4:
-				button_titles2[0] = "DSi (Inverted)";
-				break;
-		}
-
-		switch (settings.twl.rainbowLed) {
-			case 0:
-			default:
-				button_titles2[1] = "Off";
-				ledColorDisplay_R = 0;
-				ledColorDisplay_G = 0;
-				ledColorDisplay_B = 0;
-				break;
-			case 1:
-				button_titles2[1] = "Red";
-				ledColorDisplay_R = 255;
-				ledColorDisplay_G = 0;
-				ledColorDisplay_B = 0;
-				break;
-			case 2:
-				button_titles2[1] = "Green";
-				ledColorDisplay_R = 0;
-				ledColorDisplay_G = 255;
-				ledColorDisplay_B = 0;
-				break;
-			case 3:
-				button_titles2[1] = "Blue";
-				ledColorDisplay_R = 0;
-				ledColorDisplay_G = 0;
-				ledColorDisplay_B = 255;
-				break;
-			case 4:
-				button_titles2[1] = "Yellow";
-				ledColorDisplay_R = 255;
-				ledColorDisplay_G = 255;
-				ledColorDisplay_B = 0;
-				break;
-			case 5:
-				button_titles2[1] = "Cyan";
-				ledColorDisplay_R = 0;
-				ledColorDisplay_G = 255;
-				ledColorDisplay_B = 255;
-				break;
-			case 6:
-				button_titles2[1] = "Purple";
-				ledColorDisplay_R = 255;
-				ledColorDisplay_G = 0;
-				ledColorDisplay_B = 255;
-				break;
-			case 7:
-				button_titles2[1] = "Rainbow";
-				ledColorDisplay_R = redPatternDisplay[rainbowLedColorDisplayPosition];
-				ledColorDisplay_G = greenPatternDisplay[rainbowLedColorDisplayPosition];
-				ledColorDisplay_B = bluePatternDisplay[rainbowLedColorDisplayPosition];
-				if (!rainbowLedColorDisplayDelay) {
-					rainbowLedColorDisplayPosition++;
-					if (rainbowLedColorDisplayPosition == 32) {
-						rainbowLedColorDisplayPosition = 0;
-					}
-				}
-				rainbowLedColorDisplayDelay++;
-				if (rainbowLedColorDisplayDelay > 3) {
-					rainbowLedColorDisplayDelay = 0;
-				}
-				break;
-		}
-
-		if (settings.twl.appName == 1) {
-			button_titles[0] = "Start SRLoader";
-			autostarttext = "SRLoader";
-			button_titles2[2] = "Update SRLoader";
-		} else if (settings.twl.appName == 2) {
-			button_titles[0] = "Start DSiMenu++";
-			autostarttext = "DSiMenu++";
-			button_titles2[2] = "Update DSiMenu++";
-		}
-
 		for (int topfb = GFX_LEFT; topfb <= GFX_RIGHT; topfb++) {
 			if (topfb == GFX_LEFT) pp2d_begin_draw(GFX_TOP, (gfx3dSide_t)topfb);
 			else pp2d_draw_on(GFX_TOP, (gfx3dSide_t)topfb);
@@ -325,96 +187,43 @@ int main()
 			pp2d_draw_texture(twinkletex3, 133+offset3D[topfb].twinkle3, 61);
 			pp2d_draw_texture(twinkletex2, 157+offset3D[topfb].twinkle2, 81);
 			pp2d_draw_texture(twinkletex1, 184+offset3D[topfb].twinkle1, 107);
+			pp2d_draw_texture(arrowtex, 41+offset3D[topfb].twinkle1, 25);
+			pp2d_draw_texture(updatertex, 187+offset3D[topfb].updater, 151);
 			pp2d_draw_texture(logotex, 127+offset3D[topfb].logo, 100);
-
-			menudescription[0] = "Start, set up, and update";
-			menudescription[1] = "TWiLight Menu++ and nds-bootstrap.";
-			menudescription_width = pp2d_get_text_width(menudescription[0], 0.60, 0.60);
-			pp2d_draw_text((400-menudescription_width)/2, 168, 0.60, 0.60f, WHITE, menudescription[0]);
-			menudescription_width = pp2d_get_text_width(menudescription[1], 0.60, 0.60);
-			pp2d_draw_text((400-menudescription_width)/2, 186, 0.60, 0.60f, WHITE, menudescription[1]);
-
 			pp2d_draw_text(336, 222, 0.50, 0.50, WHITE, launcher_vertext);
 			if (fadealpha > 0) pp2d_draw_rectangle(0, 0, 400, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
 		}
 		pp2d_draw_on(GFX_BOTTOM, GFX_LEFT);
 		pp2d_draw_texture(subbgtex, 0, 0);
 		pp2d_draw_text(6, 5, 0.55, 0.55, WHITE, "Updater menu");
-		pp2d_draw_text(280, 5, 0.50, 0.50, WHITE, "1");
-		pp2d_draw_text(300, 5, 0.50, 0.50, WHITE, "2");
-		pp2d_draw_texture(pagenumberframetex, 276+(menuPage*20), 5);
 		// Draw buttons
-		if (menuPage == 0) {
-			pp2d_draw_text(42, 152, 0.50, 0.50, WHITE, "Auto-start");
-			pp2d_draw_text(42, 170, 0.50, 0.50, WHITE, autostarttext);
-			for (int i = (int)(sizeof(buttons)/sizeof(buttons[0]))-1; i >= 0; i--) {
-				if (menuSelection == i) {
-					// Button is highlighted.
-					pp2d_draw_texture(button_tex[i], buttons[i].x, buttons[i].y);
+		for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
+			if (menuSelection == i) {
+				// Button is highlighted.
+				pp2d_draw_texture(button_tex2[i], buttons2[i].x, buttons2[i].y);
+			} else {
+				// Button is not highlighted. Darken the texture.
+				if (buttonShading) {
+					pp2d_draw_texture_blend(button_tex2[i], buttons2[i].x, buttons2[i].y, GRAY);
 				} else {
-					// Button is not highlighted. Darken the texture.
-					if (buttonShading) {
-						pp2d_draw_texture_blend(button_tex[i], buttons[i].x, buttons[i].y, GRAY);
-					} else {
-						pp2d_draw_texture(button_tex[i], buttons[i].x, buttons[i].y);
-					}
-				}
-
-				// Determine the text height.
-				// NOTE: Button texture size is 132x34.
-				const int h = 32;
-
-				// Draw the title.
-				int y = buttons[i].y + ((40 - h) / 2);
-				int text_width = pp2d_get_text_width(button_titles[i], 0.75, 0.75);
-				int x_from_width = (320-text_width)/2;
-				if (button_tex[i] == smallbuttontex) {
-					x_from_width += 40;
-				}
-				pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles[i]);
-
-				y += 16;
-			}
-			pp2d_draw_texture(rightpagetex, 290, 78);
-		} else if (menuPage == 1) {
-			pp2d_draw_text(42, 52, 0.50, 0.50, WHITE, "Boot screen");
-			pp2d_draw_text(42, 82, 0.50, 0.50, WHITE, "Notification");
-			pp2d_draw_text(42, 100, 0.50, 0.50, WHITE, "LED color");
-			for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
-				if (menuSelection == i) {
-					// Button is highlighted.
 					pp2d_draw_texture(button_tex2[i], buttons2[i].x, buttons2[i].y);
-				} else {
-					// Button is not highlighted. Darken the texture.
-					if (buttonShading) {
-						pp2d_draw_texture_blend(button_tex2[i], buttons2[i].x, buttons2[i].y, GRAY);
-					} else {
-						pp2d_draw_texture(button_tex2[i], buttons2[i].x, buttons2[i].y);
-					}
 				}
-
-				// Determine the text height.
-				// NOTE: Button texture size is 132x34.
-				const int h = 32;
-
-				// Draw the title.
-				int y = buttons2[i].y + ((40 - h) / 2);
-				int text_width = pp2d_get_text_width(button_titles2[i], 0.75, 0.75);
-				int x_from_width = (320-text_width)/2;
-				if (button_tex2[i] == smallbuttontex) {
-					x_from_width += 40;
-				}
-				if (i == 1) {
-					pp2d_draw_text(x_from_width, y, 0.75, 0.75, RGBA8(ledColorDisplay_R, ledColorDisplay_G, ledColorDisplay_B, 255), button_titles2[i]);
-				} else if (i == 2) {
-					pp2d_draw_text(x_from_width, y, 0.75, 0.75, GRAY, button_titles2[i]);
-				} else {
-					pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles2[i]);
-				}
-
-				y += 16;
 			}
-			pp2d_draw_texture(leftpagetex, 9, 78);
+
+			// Determine the text height.
+			// NOTE: Button texture size is 132x34.
+			const int h = 32;
+
+			// Draw the title.
+			int y = buttons2[i].y + ((40 - h) / 2);
+			int text_width = pp2d_get_text_width(button_titles2[i], 0.75, 0.75);
+			int x_from_width = (320-text_width)/2;
+			if (button_tex2[i] == smallbuttontex) {
+				x_from_width += 40;
+			}
+			pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles2[i]);
+
+			y += 16;
 		}
 		const wchar_t *home_text = TR(STR_RETURN_TO_HOME_MENU);
 		const int home_width = pp2d_get_wtext_width(home_text, 0.50, 0.50) + 16;
@@ -449,130 +258,53 @@ int main()
 			buttonShading = false;
 		}
 
-		if (menuPage == 0) {
-			if (menuSelection > 2) menuSelection = 0;
-			if (menuSelection < 0) menuSelection = 2;
-		} else {
-			if (menuSelection > 3) menuSelection = 0;
-			if (menuSelection < 0) menuSelection = 3;
-		}
+		if (menuSelection > 2) menuSelection = 0;
+		if (menuSelection < 0) menuSelection = 1;
 
 		if (hDown & KEY_A) {
 			setOption = true;
 		}
 
-		if (menuPage == 0 && (hDown & KEY_TOUCH) && touch.px >= 42 && touch.px <= 275) {
-			if (touch.py >= 52 && touch.py <= 81) {
+		if ((hDown & KEY_TOUCH) && touch.px >= 42 && touch.px <= 275) {
+			if (touch.py >= 88 && touch.py <= 118) {
 				menuSelection = 0;
 				setOption = true;
-			} else if (touch.py >= 102 && touch.py <= 131) {
+			} else if (touch.py >= 136 && touch.py <= 166) {
 				menuSelection = 1;
-				setOption = true;
-			} else if (touch.px >= 125 && touch.py >= 152 && touch.py <= 181) {
-				menuSelection = 2;
-				setOption = true;
-			}
-		} else if (menuPage == 1 && (hDown & KEY_TOUCH) && touch.px >= 42 && touch.px <= 275) {
-			if (touch.px >= 125 && touch.py >= 42 && touch.py <= 72) {
-				menuSelection = 0;
-				setOption = true;
-			} else if (touch.px >= 125 && touch.py >= 82 && touch.py <= 112) {
-				menuSelection = 1;
-				setOption = true;
-			} else if (touch.py >= 122 && touch.py <= 152) {
-				menuSelection = 2;
-				setOption = true;
-			} else if (touch.py >= 162 && touch.py <= 192) {
-				menuSelection = 3;
 				setOption = true;
 			}
 		}
 
 		if (setOption) {
-			if (menuPage == 0) {
-				switch (menuSelection) {
-					case 0:
-					case 1:
-					default:
-						break;
-					case 2:
-						settings.ui.autoStart = !settings.ui.autoStart;
-						break;
-				}
-				if(dspfirmfound) {
-					sfx_select->stop();
-					sfx_select->play();
-				}
-			} else if (menuPage == 1) {
-				switch (menuSelection) {
-					case 0:
-					default:
-						settings.ui.bootscreen++;
-						if (settings.ui.bootscreen > 4) settings.ui.bootscreen = -1;
+			switch (menuSelection) {
+				case 0:
+				default:
+					if(dspfirmfound) {
+						sfx_wrong->stop();
+						sfx_wrong->play();
+					}
+					break;
+				case 1:
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						break;
-					case 1:
-						settings.twl.rainbowLed++;
-						if (settings.twl.rainbowLed > 7) settings.twl.rainbowLed = 0;
-						if(dspfirmfound) {
-							sfx_select->stop();
-							sfx_select->play();
-						}
-						break;
-					case 2:
+						UpdateBootstrap();
+					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
 							sfx_wrong->play();
 						}
-						break;
-					case 3:
-						if(checkWifiStatus()){
-							if(dspfirmfound) {
-								sfx_select->stop();
-								sfx_select->play();
-							}
-							UpdateBootstrap();
-						} else {
-							if(dspfirmfound) {
-								sfx_wrong->stop();
-								sfx_wrong->play();
-							}
-						}
-						break;
-				}
+					}
+				break;
 			}
 			setOption = false;
 		}
 
-		if ((hDown & KEY_L)
-		|| (menuPage == 1 && (hDown & KEY_TOUCH) && touch.px >= 276 && touch.px <= 291 && touch.py >= 5 && touch.py <= 20)
-		|| (menuPage == 1 && (hDown & KEY_TOUCH) && touch.px >= 9 && touch.px <= 29 && touch.py >= 78 && touch.py <= 158)) {
-			menuPage--;
-			if (menuPage < 0) menuPage = 1;
-			menuSelection = 0;
-			if(dspfirmfound) {
-				sfx_switch->stop();
-				sfx_switch->play();
-			}
-		} else if ((hDown & KEY_R)
-		|| (menuPage == 0 && (hDown & KEY_TOUCH) && touch.px >= 297 && touch.px <= 312 && touch.py >= 5 && touch.py <= 20)
-		|| (menuPage == 0 && (hDown & KEY_TOUCH) && touch.px >= 290 && touch.px <= 310 && touch.py >= 78 && touch.py <= 158)) {
-			menuPage++;
-			if (menuPage > 1) menuPage = 0;
-			menuSelection = 0;
-			if(dspfirmfound) {
-				sfx_switch->stop();
-				sfx_switch->play();
-			}
-		}
 	}
 
 	
-	SaveSettings();
-
 	delete mus_settings;
 	delete sfx_launch;
 	delete sfx_select;

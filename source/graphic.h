@@ -18,6 +18,8 @@ extern size_t twinkletex1;
 extern size_t twinkletex2;
 extern size_t twinkletex3;
 extern size_t logotex;
+extern size_t arrowtex;
+extern size_t updatertex;
 
 // Colors
 #define TRANSPARENT RGBA8(0, 0, 0, 0)
@@ -30,7 +32,6 @@ extern size_t logotex;
 #define RED RGBA8(255, 0, 0, 255)
 
 #define TIME RGBA8(16, 0, 0, 223)
-#define DSSPLASH RGBA8(61, 161, 191, 255)
 
 void pp2d_draw_texture_scale_blend(size_t id, int x, int y, float scaleX, float scaleY, u32 color);
 void pp2d_draw_texture_part_blend(size_t id, int x, int y, int xbegin, int ybegin, int width, int height, u32 color);

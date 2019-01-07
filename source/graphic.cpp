@@ -52,3 +52,5 @@ size_t twinkletex1 = 10;
 size_t twinkletex2 = 11;
 size_t twinkletex3 = 12;
 size_t logotex = 13;
+size_t arrowtex = 14;
+size_t updatertex = 15;
