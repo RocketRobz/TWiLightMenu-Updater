@@ -48,14 +48,14 @@ VERSION_MICRO := 1
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
-TARGET		:=	TWiLight_Menu++_Launcher
+TARGET		:=	TWiLight_Menu++_Updater
 BUILD		:=	build
 SOURCES		:=	source source/pp2d source/json
 DATA		:=	data
 INCLUDES	:=	include
 ROMFS		:=	romfs
 APP_AUTHOR	:=	RocketRobz
-APP_DESCRIPTION :=  TWiLight Menu++ Launcher
+APP_DESCRIPTION :=  TWiLight Menu++ Updater
 ICON		:=	app/icon.png
 BNR_IMAGE	:=  app/banner.png
 BNR_AUDIO	:=	app/BannerAudio.wav
@@ -192,9 +192,9 @@ $(OUTPUT).elf	:	$(OFILES)
 $(OUTPUT).cia	:	$(OUTPUT).elf $(OUTPUT).smdh
 	$(BANNERTOOL) makebanner -i "../app/banner.png" -a "../app/BannerAudio.wav" -o "../app/banner.bin"
 
-	$(BANNERTOOL) makesmdh -i "../app/icon.png" -s "TWiLight Menu++ Launcher" -l "TWiLight Menu++ Launcher" -p "$(APP_AUTHOR)" -o "../app/icon.bin"
+	$(BANNERTOOL) makesmdh -i "../app/icon.png" -s "TWiLight Menu++ Updater" -l "TWiLight Menu++ Updater" -p "$(APP_AUTHOR)" -o "../app/icon.bin"
 
-	$(MAKEROM) -f cia -target t -exefslogo -o "../TWiLight_Menu++_Launcher.cia" -elf "../TWiLight_Menu++_Launcher.elf" -rsf "../app/build-cia.rsf" -banner "../app/banner.bin" -icon "../app/icon.bin" -logo "../app/logo.bcma.lz" -DAPP_ROMFS="$(TOPDIR)/$(ROMFS)" -major $(VERSION_MAJOR) -minor $(VERSION_MINOR) -micro $(VERSION_MICRO) -DAPP_VERSION_MAJOR="$(VERSION_MAJOR)"
+	$(MAKEROM) -f cia -target t -exefslogo -o "../TWiLight_Menu++_Updater.cia" -elf "../TWiLight_Menu++_Updater.elf" -rsf "../app/build-cia.rsf" -banner "../app/banner.bin" -icon "../app/icon.bin" -logo "../app/logo.bcma.lz" -DAPP_ROMFS="$(TOPDIR)/$(ROMFS)" -major $(VERSION_MAJOR) -minor $(VERSION_MINOR) -micro $(VERSION_MICRO) -DAPP_VERSION_MAJOR="$(VERSION_MAJOR)"
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
