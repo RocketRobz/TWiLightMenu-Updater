@@ -215,3 +215,4 @@ void SaveSettings(void) {
 	bootstrapini.SetInt("NDS-BOOTSTRAP", "CONSOLE_MODEL", settings.twl.consoleModel);
 	bootstrapini.SaveIniFile("sdmc:/_nds/nds-bootstrap.ini");
 }
+*/
