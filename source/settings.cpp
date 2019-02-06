@@ -1,4 +1,4 @@
-#include "settings.h"
+/* #include "settings.h"
 #include "inifile.h"
 
 #include <unistd.h>
@@ -44,10 +44,6 @@ static Result ptmsysmSetInfoLedPattern(const RGBLedPattern* pattern)
     return ipc[1];
 }
 
-/**
- * Set a rainbow cycle pattern on the notification LED.
- * @return 0 on success; non-zero on error.
- */
 int rainbowLed(void) {
 	static const RGBLedPattern pat = {
 		32,	// Number of valid entries.
@@ -86,10 +82,6 @@ int bluePatternDisplay[32] =
 	{ 18,  33,  51,  72,  95, 120, 145, 169, 192, 212, 229, 242, 251, 255, 254, 248,
 	 238, 223, 205, 184, 161, 136, 111,  87,  64,  44,  27,  14,   5,   1,   2,   8};
 
-/**
- * Set red color for notification LED
- * @return 0 on success; non-zero on error.
- */
 int redLed(void) {
 	RGBLedPattern pattern;
 	pattern.ani = 32;	// Need to be 32 in order to be it constant
@@ -106,10 +98,6 @@ int redLed(void) {
 	return 0;
 }
 
-/**
- * Set green color for notification LED
- * @return 0 on success; non-zero on error.
- */
 int dsGreenLed(void) {
 	RGBLedPattern pattern;
 	pattern.ani = 32;	// Need to be 32 in order to be it constant
@@ -126,10 +114,6 @@ int dsGreenLed(void) {
 	return 0;
 }
 
-/**
- * Set blue color for notification LED
- * @return 0 on success; non-zero on error.
- */
 int blueLed(void) {
 	RGBLedPattern pattern;
 	pattern.ani = 32;	// Need to be 32 in order to be it constant
@@ -146,10 +130,6 @@ int blueLed(void) {
 	return 0;
 }
 
-/**
- * Set yellow color for notification LED
- * @return 0 on success; non-zero on error.
- */
 int yellowLed(void) {
 	RGBLedPattern pattern;
 	pattern.ani = 32;	// Need to be 32 in order to be it constant
@@ -166,10 +146,6 @@ int yellowLed(void) {
 	return 0;
 }
 
-/**
- * Set cyan color for notification LED
- * @return 0 on success; non-zero on error.
- */
 int cyanLed(void) {
 	RGBLedPattern pattern;
 	pattern.ani = 32;	// Need to be 32 in order to be it constant
@@ -186,10 +162,6 @@ int cyanLed(void) {
 	return 0;
 }
 
-/**
- * Set purple color for notification LED
- * @return 0 on success; non-zero on error.
- */
 int purpleLed(void) {
 	RGBLedPattern pattern;
 	pattern.ani = 32;	// Need to be 32 in order to be it constant
@@ -218,9 +190,6 @@ void LoadSettings(void) {
 	settings.twl.rainbowLed = settingsini.GetInt("CTR-SETTINGS", "NOTIFICATION_LED", 0);
 }
 
-/**
- * Save settings.
- */
 void SaveSettings(void) {
 	bool isNew = 0;
 	APT_CheckNew3DS(&isNew);
