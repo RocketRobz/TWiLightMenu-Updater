@@ -55,9 +55,9 @@ DATA		:=	data
 INCLUDES	:=	include
 ROMFS		:=	romfs
 APP_AUTHOR	:=	RocketRobz
-APP_DESCRIPTION :=  TWiLight Menu++ Updater
+APP_DESCRIPTION :=  	TWiLight Menu++ Updater
 ICON		:=	app/icon.png
-BNR_IMAGE	:=  app/banner.png
+BNR_IMAGE	:=  	app/banner.png
 BNR_AUDIO	:=	app/BannerAudio.wav
 RSF_FILE	:=	app/build-cia.rsf
 
