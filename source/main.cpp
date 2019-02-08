@@ -12,7 +12,7 @@
 #include "dumpdsp.h"
 #include "settings.h"
 #include "language.h"
-#include "download.h"
+#include "download.hpp"
 
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
 
@@ -149,7 +149,7 @@ int main()
 	bool fadein = true;
 
 	if (checkWifiStatus()) {
-		DownloadMissingFiles();
+		// DownloadMissingFiles();
 	}
 	
 	// Loop as long as the status is not exit
@@ -278,6 +278,22 @@ int main()
 		if (setOption) {
 			switch (menuSelection) {
 				case 0:
+					if(checkWifiStatus()){
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z");
+						downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.7z", "/nds-boostrap-release.7z");
+						downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z");
+						downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z");
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
+					break;
 				default:
 					if(dspfirmfound) {
 						sfx_wrong->stop();
@@ -290,14 +306,14 @@ int main()
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						UpdateBootstrap();
+						// UpdateBootstrap();
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
 							sfx_wrong->play();
 						}
 					}
-				break;
+					break;
 			}
 			setOption = false;
 		}

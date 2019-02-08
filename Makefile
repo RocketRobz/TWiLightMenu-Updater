@@ -77,7 +77,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -std=c++11 -std=gnu
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcitro3d -lctru -lm -lstdc++
+LIBS	:= -lcurl -lmbedtls -lmbedx509 -lmbedcrypto  -larchive -lbz2 -llzma -lz -lcitro3d -lctru -lm -lstdc++
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

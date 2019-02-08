@@ -1,0 +1,16 @@
+# Builds files
+*.d
+*.o
+build/*
+
+# Output files
+*.cia
+*.3dsx
+*.elf
+*.smdh
+
+# Apple files
+*.DS_Store
+
+# VS Code files
+.vscode/*

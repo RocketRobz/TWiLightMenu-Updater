@@ -1,43 +1,232 @@
-﻿#include "download.h"
-#include "inifile.h"
-#include "settings.h"
+#include "download.hpp"
 
-#include <cstdio>
-#include <malloc.h>
-#include <unistd.h>
+#define  USER_AGENT   APP_TITLE "-" VERSION_STRING
 
-#include <algorithm>
-#include <string>
-#include <unordered_set>
-#include <vector>
-#include <sys/stat.h>
-using std::string;
-using std::unordered_set;
-using std::vector;
+static char* result_buf = NULL;
+static size_t result_sz = 0;
+static size_t result_written = 0;
 
-#include <3ds.h>
-#include "pp2d/pp2d.h"
-#include "graphic.h"
+// following function is from 
+// https://github.com/angelsl/libctrfgh/blob/master/curl_test/src/main.c
+static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata)
+{
+    (void) userdata;
+    const size_t bsz = size*nmemb;
 
-#include "json/json.h"
+    if (result_sz == 0 || !result_buf)
+    {
+        result_sz = 0x1000;
+        result_buf = (char*)malloc(result_sz);
+    }
 
-const char* JSON_URL = "https://github.com/RocketRobz/TWiLightMenu-update/raw/master/update.json";
-//const char* JSON_NIGHTLIES_URL = "https://github.com/RocketRobz/TWiLightMenu-update/raw/master/updatenightlies.json";
-bool updateGBARUNNER_2 = false;
+    bool need_realloc = false;
+    while (result_written + bsz > result_sz) 
+    {
+        result_sz <<= 1;
+        need_realloc = true;
+    }
 
-std::string gbarunner2_url;
-std::string release_BS_ver;
-std::string nightly_BS_ver;
-std::string release_BS_url;
-std::string nightly_BS_url;
-std::string release_hbBS_url;
-std::string unofficial_hbBS_url;
+    if (need_realloc)
+    {
+        char *new_buf = (char*)realloc(result_buf, result_sz);
+        if (!new_buf)
+        {
+            return 0;
+        }
+        result_buf = new_buf;
+    }
 
-std::string nightly_url = "";
-std::string nightly_commit = "";
-std::string nightly_zip = "";
+    if (!result_buf)
+    {
+        return 0;
+    }
 
-static char download_textOnScreen[256];
+    memcpy(result_buf + result_written, ptr, bsz);
+    result_written += bsz;
+    return bsz;
+}
+
+static Result setupContext(CURL *hnd, const char * url)
+{
+    curl_easy_setopt(hnd, CURLOPT_BUFFERSIZE, 102400L);
+    curl_easy_setopt(hnd, CURLOPT_URL, url);
+    curl_easy_setopt(hnd, CURLOPT_NOPROGRESS, 1L);
+    curl_easy_setopt(hnd, CURLOPT_USERAGENT, USER_AGENT);
+    curl_easy_setopt(hnd, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(hnd, CURLOPT_MAXREDIRS, 50L);
+    curl_easy_setopt(hnd, CURLOPT_HTTP_VERSION, (long)CURL_HTTP_VERSION_2TLS);
+    curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, handle_data);
+    curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L);
+    curl_easy_setopt(hnd, CURLOPT_STDERR, stdout);
+
+    return 0;
+}
+
+Result downloadToFile(std::string url, std::string path)
+{
+	Result ret = 0;	
+	printf("Downloading from:\n%s\nto:\n%s\n", url.c_str(), path.c_str());
+
+    void *socubuf = memalign(0x1000, 0x100000);
+    if (!socubuf)
+    {
+        return -1;
+    }
+
+	ret = socInit((u32*)socubuf, 0x100000);
+	if (R_FAILED(ret))
+    {
+		free(socubuf);
+        return ret;
+    }
+
+	CURL *hnd = curl_easy_init();
+	ret = setupContext(hnd, url.c_str());
+	if (ret != 0) {
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return ret;
+	}
+
+	Handle fileHandle;
+	u64 offset = 0;
+	u32 bytesWritten = 0;
+	
+	ret = openFile(&fileHandle, path.c_str(), true);
+	if (R_FAILED(ret)) {
+		printf("Error: couldn't open file to write.\n");
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return DL_ERROR_WRITEFILE;
+	}
+	
+	u64 startTime = osGetTime();
+
+	CURLcode cres = curl_easy_perform(hnd);
+    curl_easy_cleanup(hnd);
+
+	if (cres != CURLE_OK) {
+		printf("Error in:\ncurl\n");
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return -1;
+	}
+	
+	FSFILE_Write(fileHandle, &bytesWritten, offset, result_buf, result_written, 0);
+
+	u64 endTime = osGetTime();
+	u64 totalTime = endTime - startTime;
+	printf("Download took %llu milliseconds.\n", totalTime);
+
+    socExit();
+    free(result_buf);
+    free(socubuf);
+	result_buf = NULL;
+	result_sz = 0;
+	result_written = 0;
+	FSFILE_Close(fileHandle);
+	return 0;
+}
+
+Result downloadFromRelease(std::string url, std::string asset, std::string path)
+{
+	Result ret = 0;
+    void *socubuf = memalign(0x1000, 0x100000);
+    if (!socubuf)
+    {
+        return -1;
+    }
+
+	ret = socInit((u32*)socubuf, 0x100000);
+	if (R_FAILED(ret))
+    {
+		free(socubuf);
+        return ret;
+    }
+
+	std::regex parseUrl("github\\.com\\/(.+)\\/(.+)");
+	std::smatch result;
+	regex_search(url, result, parseUrl);
+	
+	std::string repoOwner = result[1].str(), repoName = result[2].str();
+	
+	std::stringstream apiurlStream;
+	apiurlStream << "https://api.github.com/repos/" << repoOwner << "/" << repoName << "/releases/latest";
+	std::string apiurl = apiurlStream.str();
+	
+	printf("Downloading latest release from repo:\n%s\nby:\n%s\n", repoName.c_str(), repoOwner.c_str());
+	printf("Crafted API url:\n%s\n", apiurl.c_str());
+	
+	CURL *hnd = curl_easy_init();
+	ret = setupContext(hnd, apiurl.c_str());
+	if (ret != 0) {
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return ret;
+	}
+
+	CURLcode cres = curl_easy_perform(hnd);
+    curl_easy_cleanup(hnd);
+	char* newbuf = (char*)realloc(result_buf, result_written + 1);
+	result_buf = newbuf;
+	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
+	
+	if (cres != CURLE_OK) {
+		printf("Error in:\ncurl\n");
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return -1;
+	}
+	
+	printf("Looking for asset with name matching:\n%s\n", asset.c_str());
+	std::string assetUrl;
+	json parsedAPI = json::parse(result_buf);
+	if (parsedAPI["assets"].is_array()) {
+		for (auto jsonAsset : parsedAPI["assets"]) {
+			if (jsonAsset.is_object() && jsonAsset["name"].is_string() && jsonAsset["browser_download_url"].is_string()) {
+				std::string assetName = jsonAsset["name"];
+				if (matchPattern(asset, assetName)) {
+					assetUrl = jsonAsset["browser_download_url"];
+					break;
+				}
+			}
+		}
+	}
+    socExit();
+    free(result_buf);
+    free(socubuf);
+	result_buf = NULL;
+	result_sz = 0;
+	result_written = 0;
+	
+	if (assetUrl.empty())
+		ret = DL_ERROR_GIT;
+	else
+		ret = downloadToFile(assetUrl, path);
+	
+	return ret;
+}
 
 /**
  * Check Wi-Fi status.
@@ -52,508 +241,4 @@ bool checkWifiStatus(void) {
 	}
 	
 	return res;
-}
-
-/**
- * Download a file.
- * @param url URL of the file.
- * @param file Local filename.
- * @param mediaType How the file should be handled.
- * @return 0 on success; non-zero on error.
- */
-int downloadFile(const char* url, const char* file, MediaType mediaType) {
-	if (!checkWifiStatus())
-		return -1;
-
-	fsInit();
-	httpcInit(0x1000);
-	httpcContext context;
-	u32 statuscode = 0;
-	HTTPC_RequestMethod useMethod = HTTPC_METHOD_GET;
-
-	do {
-		if (statuscode >= 301 && statuscode <= 308) {
-			char newurl[4096];
-			httpcGetResponseHeader(&context, (char*)"Location", &newurl[0], 4096);
-			url = &newurl[0];
-
-			httpcCloseContext(&context);
-		}
-
-		Result ret = httpcOpenContext(&context, useMethod, (char*)url, 0);
-		httpcSetSSLOpt(&context, SSLCOPT_DisableVerify);
-
-		if (ret==0) {
-			if(R_SUCCEEDED(httpcBeginRequest(&context))){
-				u32 contentsize=0;
-				if(R_FAILED(httpcGetResponseStatusCode(&context, &statuscode))){
-					httpcCloseContext(&context);
-					httpcExit();
-					fsExit();
-					return -1;
-				}
-				if (statuscode == 200) {
-					u32 readSize = 0;
-					long int bytesWritten = 0;
-
-					Handle fileHandle;
-					FS_Path filePath=fsMakePath(PATH_ASCII, file);
-					FSUSER_OpenFileDirectly(&fileHandle, ARCHIVE_SDMC, fsMakePath(PATH_EMPTY, ""), filePath, FS_OPEN_CREATE | FS_OPEN_WRITE, 0x00000000);
-
-					if(R_FAILED(httpcGetDownloadSizeState(&context, NULL, &contentsize))){
-						httpcCloseContext(&context);
-						httpcExit();
-						fsExit();
-						return -1;
-					}
-					u8* buf = (u8*)malloc(contentsize);
-					memset(buf, 0, contentsize);
-
-					do {
-						if(R_FAILED(ret = httpcDownloadData(&context, buf, contentsize, &readSize))){
-							// In case there is an error
-							free(buf);
-							httpcCloseContext(&context);
-							httpcExit();
-							fsExit();
-							return -1;
-						}
-						FSFILE_Write(fileHandle, NULL, bytesWritten, buf, readSize, 0x10001);
-						bytesWritten += readSize;
-					} while (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING);
-
-					FSFILE_Close(fileHandle);
-					svcCloseHandle(fileHandle);
-
-					if (mediaType != MEDIA_SD_FILE) {
-						// This is a CIA, so we should install it.
-						amInit();
-						Handle handle;
-						// FIXME: Should check the return values.
-						switch (mediaType) {
-							case MEDIA_SD_CIA:
-								AM_QueryAvailableExternalTitleDatabase(NULL);
-								AM_StartCiaInstall(MEDIATYPE_SD, &handle);
-								break;
-							case MEDIA_NAND_CIA:
-								AM_StartCiaInstall(MEDIATYPE_NAND, &handle);
-								break;
-							default:
-								break;
-						}
-						FSFILE_Write(handle, NULL, 0, buf, contentsize, 0);
-						AM_FinishCiaInstall(handle);
-						amExit();
-					}
-
-					free(buf);
-				}  else if ( ((statuscode >= 400) && (statuscode <= 451)) || ((statuscode >= 500) && (statuscode <= 512)) ) {
-					// 4XX client error.
-					// 5XX server error.
-					httpcCloseContext(&context);
-					char errorcode_s[4];
-					snprintf(errorcode_s, sizeof(errorcode_s), "%lu", statuscode);
-					httpcExit();
-					fsExit();
-					return -1;
-				}
-			}else{
-				// There was an error begining the request
-				httpcCloseContext(&context);
-				httpcExit();
-				fsExit();
-				return -1;
-			}
-		}else{
-			// There was a problem opening HTTP context
-			httpcCloseContext(&context);
-			httpcExit();
-			fsExit();
-			return -1;
-		}
-	} while ((statuscode >= 301 && statuscode <= 303) || (statuscode >= 307 && statuscode <= 308));
-	httpcCloseContext(&context);
-
-	httpcExit();
-	fsExit();
-	return 0;
-}
-
-Result http_read_internal(httpcContext* context, u32* bytesRead, void* buffer, u32 size) {
-    if(context == NULL || buffer == NULL) {
-        return -1;
-    }
-
-    Result res = httpcDownloadData(context, (u8*) buffer, size, bytesRead);
-    return res != (int) HTTPC_RESULTCODE_DOWNLOADPENDING ? res : 0;
-}
-
-std::vector<std::string> internal_json_reader(json_value* json, json_value* val, vector<std::string> strNames) {
-	
-	std::vector<std::string> strvalues;
-	
-	for (int i = 0; i < (int) strNames.size(); i++) {
-		for(int j = 0; j < (int) json->u.object.length; j++) {
-			char* name = val->u.object.values[j].name;
-			int nameLen = val->u.object.values[j].name_length;
-			json_value* subVal = val->u.object.values[j].value;	
-
-			if(subVal->type == json_string) {
-				if(strncmp(name, strNames[i].c_str(), nameLen) == 0) {
-					strvalues.push_back(std::string(subVal->u.string.ptr));
-					}
-			}
-		}
-	}
-	return strvalues;
-}
-
-/**
- * Check for missing files, and download them.
- */
-void DownloadMissingFiles(void) {
-	u32 responseCode = 0;
-	httpcContext context;	
-	
-	httpcInit(0);
-	if(R_FAILED(httpcOpenContext(&context, HTTPC_METHOD_GET, JSON_URL, 0))) {
-		return;
-	}
-	if(R_FAILED(httpcAddRequestHeaderField(&context, "User-Agent", "TWiLightMenu"))) {
-		return;
-	}
-	if(R_FAILED(httpcSetSSLOpt(&context, SSLCOPT_DisableVerify))) {
-		return;
-	}
-	if(R_FAILED(httpcSetKeepAlive(&context, HTTPC_KEEPALIVE_ENABLED))) {
-		return;
-	}
-	if(R_FAILED(httpcBeginRequest(&context))) {
-		return;
-	}
-	if(R_FAILED(httpcGetResponseStatusCode(&context, &responseCode))) {
-		return;
-	}
-    if (responseCode != 200) {
-		return;
-	}
-	
-	u32 size = 0;
-	httpcGetDownloadSizeState(&context, NULL, &size);	
-	char* jsonText = (char*) calloc(sizeof(char), size);
-	if(jsonText != NULL) {
-		u32 bytesRead = 0;
-		http_read_internal(&context, &bytesRead, (u8*) jsonText, size);
-		json_value* json = json_parse(jsonText, size);
-
-		if(json != NULL) {
-			if(json->type == json_object) { // {} are objects, [] are arrays				
-				json_value* val;
-				json_value* val2;
-				vector<std::string> strNames;
-				vector<std::string> strValues;
-				//val = json->u.object.values[1].value;
-				//val2 = val->u.object.values[0].value;
-				
-				// Search in nds-bootstrap object
-
-				val = json->u.object.values[4].value;
-				val2 = val->u.object.values[0].value;
-				strNames.push_back("release_ver");
-				strNames.push_back("nightly_ver");
-				strNames.push_back("release_url");
-				strNames.push_back("nightly_url");
-
-				strValues = internal_json_reader(json, val2, strNames);
-
-				release_BS_ver = strValues[0];
-				nightly_BS_ver = strValues[1];
-				release_BS_url = strValues[2];
-				nightly_BS_url = strValues[3];
-				strValues.clear();
-				strNames.clear();
-
-				//struct stat st;
-
-				// Download nds-bootstrap version data
-				if (access("sdmc:/_nds/TWiLightMenu/release-bootstrap.ver", F_OK) == -1) {
-					snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-						"Now downloading nds-bootstrap...\n"
-						"(Release version data)"
-						"\n"
-						"Do not turn off the power.\n");
-					pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-					pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
-					pp2d_end_draw();
-
-					FILE* ver = fopen("sdmc:/_nds/TWiLightMenu/release-bootstrap.ver", "w");
-					if(!ver) {
-						snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-							"Download failed.");
-						for (int i = 0; i < 60; i++) {
-							pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-							pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
-							pp2d_end_draw();
-						}
-					}
-					fputs(release_BS_ver.c_str(), ver);
-					fclose(ver);
-				}
-				if (access("sdmc:/_nds/TWiLightMenu/nightly-bootstrap.ver", F_OK) == -1) {
-					snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-						"Now downloading nds-bootstrap...\n"
-						"(Nightly version data)"
-						"\n"
-						"Do not turn off the power.\n");
-					pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-					pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
-					pp2d_end_draw();
-
-					FILE* ver = fopen("sdmc:/_nds/TWiLightMenu/nightly-bootstrap.ver", "w");
-					if(!ver) {
-						snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-							"Download failed.");
-						for (int i = 0; i < 60; i++) {
-							pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-							pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
-							pp2d_end_draw();
-						}
-					}
-					fputs(nightly_BS_ver.c_str(), ver);
-					fclose(ver);
-				}
-
-				// Download nds-bootstrap .nds files
-				if (access("sdmc:/_nds/nds-bootstrap-release.nds", F_OK) == -1) {
-					snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-						"Now downloading nds-bootstrap...\n"
-						"(Release)\n"
-						"\n"
-						"Do not turn off the power.\n");
-					pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-					pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
-					pp2d_end_draw();
-
-					int res = downloadFile(release_BS_url.c_str(),"/_nds/nds-bootstrap-bootstrap.nds", MEDIA_SD_FILE);
-					if (res != 0) {
-						snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-							"Download failed.");
-						for (int i = 0; i < 60; i++) {
-							pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-							pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
-							pp2d_end_draw();
-						}
-					}
-				}
-				if (access("sdmc:/_nds/nds-bootstrap-nightly.nds", F_OK) == -1) {
-					snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-						"Now downloading nds-bootstrap...\n"
-						"(Nightly)\n"
-						"\n"
-						"Do not turn off the power.\n");
-					pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-					pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
-					pp2d_end_draw();
-
-					int res = downloadFile(nightly_BS_url.c_str(),"/_nds/nds-bootstrap-nightly.nds", MEDIA_SD_FILE);
-					if (res != 0) {
-						snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-							"Download failed.");
-						for (int i = 0; i < 60; i++) {
-							pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-							pp2d_draw_text(24, 32, 0.5f, 0.5f, WHITE, download_textOnScreen);
-							pp2d_end_draw();
-						}
-					}
-				}
-
-			}
-		}
-	}
-}
-
-/**
- * Update nds-bootstrap to the latest nightly build.
- */
-void UpdateBootstrapNightly(void) {
-	snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-		"Now updating nds-bootstrap (Nightly)...");
-	pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-	pp2d_draw_texture(loadingbgtex, 0, 0);
-	pp2d_draw_text(24, 32, 0.5f, 0.5f, BLACK, download_textOnScreen);
-	pp2d_end_draw();
-	// Download first .nds file
-	rename("sdmc:/_nds/nds-bootstrap-nightly.nds", "sdmc:/_nds/nds-bootstrap-nightly.nds.launcherbak");
-	int result = downloadFile(nightly_BS_url.c_str(),"/_nds/nds-bootstrap-nightly.nds", MEDIA_SD_FILE);
-	
-	// Then, download version string
-	if(result == 0) {
-		remove("sdmc:/_nds/nds-bootstrap-nightly.nds.launcherbak");
-		remove("sdmc:/_nds/TWiLightMenu/nightly-bootstrap.ver");
-		downloadBootstrapVersion(false);
-		checkBootstrapVersion(false);
-		snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-			"Done!");
-		for (int i = 0; i < 60; i++) {
-			pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-			pp2d_draw_texture(loadingbgtex, 0, 0);
-			pp2d_draw_text(24, 32, 0.5f, 0.5f, BLACK, download_textOnScreen);
-			pp2d_end_draw();
-		}
-	} else {
-		remove("sdmc:/_nds/nds-bootstrap-nightly.nds");
-		rename("sdmc:/_nds/nds-bootstrap-nightly.nds.launcherbak", "sdmc:/_nds/nds-bootstrap-nightly.nds");
-		snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-			"An error has occurred!");
-		for (int i = 0; i < 60*2; i++) {
-			pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-			pp2d_draw_texture(loadingbgtex, 0, 0);
-			pp2d_draw_text(24, 32, 0.5f, 0.5f, BLACK, download_textOnScreen);
-			pp2d_end_draw();
-		}
-	}
-}
-
-/**
- * Update nds-bootstrap to the latest release build.
- */
-void UpdateBootstrapRelease(void) {
-	snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-		"Now updating nds-bootstrap (Release)...");
-	pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-	pp2d_draw_texture(loadingbgtex, 0, 0);
-	pp2d_draw_text(24, 32, 0.5f, 0.5f, BLACK, download_textOnScreen);
-	pp2d_end_draw();
-	// Download first .nds file
-	rename("sdmc:/_nds/nds-bootstrap-release.nds", "sdmc:/_nds/nds-bootstrap-release.nds.launcherbak");
-	int result = downloadFile(release_BS_url.c_str(),"/_nds/nds-bootstrap-release.nds", MEDIA_SD_FILE);
-
-	// Then, download version string
-	if(result == 0) {
-		remove("sdmc:/_nds/nds-bootstrap-release.nds.launcherbak");
-		remove("sdmc:/_nds/TWiLightMenu/release-bootstrap.ver");
-		downloadBootstrapVersion(true);
-		checkBootstrapVersion(true);
-		snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-			"Done!");
-		for (int i = 0; i < 60; i++) {
-			pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-			pp2d_draw_texture(loadingbgtex, 0, 0);
-			pp2d_draw_text(24, 32, 0.5f, 0.5f, BLACK, download_textOnScreen);
-			pp2d_end_draw();
-		}
-	} else {
-		remove("sdmc:/_nds/nds-bootstrap-release.nds");
-		rename("sdmc:/_nds/nds-bootstrap-release.nds.launcherbak", "sdmc:/_nds/nds-bootstrap-release.nds");
-		snprintf(download_textOnScreen, sizeof(download_textOnScreen), "%s",
-			"An error has occurred!");
-		for (int i = 0; i < 60*2; i++) {
-			pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-			pp2d_draw_texture(loadingbgtex, 0, 0);
-			pp2d_draw_text(24, 32, 0.5f, 0.5f, BLACK, download_textOnScreen);
-			pp2d_end_draw();
-		}
-	}
-}
-
-/**
- * Update nds-bootstrap to the latest build.
- */
-void UpdateBootstrap(void) {
-	UpdateBootstrapRelease();
-	UpdateBootstrapNightly();
-}
-
-/**
- * Download bootstrap version files
- * @return non zero if error
- */
-
-int downloadBootstrapVersion(bool type)
-{
-	u32 responseCode = 0;
-	httpcContext context;	
-	int res = -1;	
-	
-	httpcInit(0);
-	if(R_FAILED(httpcOpenContext(&context, HTTPC_METHOD_GET, JSON_URL, 0))) {
-		return -1;
-	}
-	if(R_FAILED(httpcAddRequestHeaderField(&context, "User-Agent", "TWiLightMenu"))) {
-		return -1;
-	}
-	if(R_FAILED(httpcSetSSLOpt(&context, SSLCOPT_DisableVerify))) {
-		return -1;
-	}
-	if(R_FAILED(httpcSetKeepAlive(&context, HTTPC_KEEPALIVE_ENABLED))) {
-		return -1;
-	}
-	if(R_FAILED(httpcBeginRequest(&context))) {
-		return -1;
-	}
-	if(R_FAILED(httpcGetResponseStatusCode(&context, &responseCode))) {
-		return -1;
-	}
-    if (responseCode != 200) {
-		return -1;
-	}
-	
-	u32 size = 0;
-	httpcGetDownloadSizeState(&context, NULL, &size);	
-	char* jsonText = (char*) calloc(sizeof(char), size);
-	if(jsonText != NULL) {
-		u32 bytesRead = 0;
-		http_read_internal(&context, &bytesRead, (u8*) jsonText, size);
-		json_value* json = json_parse(jsonText, size);
-
-		if(json != NULL) {
-			if(json->type == json_object) {				
-				
-				json_value* val = json->u.object.values[4].value;				
-				json_value* val2 = val->u.object.values[0].value;
-				vector<std::string> strNames;
-				vector<std::string> strValues;
-
-				strNames.push_back("release_ver");
-				strNames.push_back("nightly_ver");
-				strNames.push_back("release_url");
-				strNames.push_back("nightly_url");
-
-				strValues = internal_json_reader(json, val2, strNames);
-				
-				release_BS_ver = strValues[0];
-				nightly_BS_ver = strValues[1];
-				release_BS_url = strValues[2];
-				nightly_BS_url = strValues[3];
-				strValues.clear();
-				strNames.clear();			
-			}
-		}
-	}
-	
-	free(jsonText);
-	httpcCloseContext(&context);		
-
-	FILE* ver = fopen(type ? "sdmc:/_nds/TWiLightMenu/release-bootstrap.ver" : "sdmc:/_nds/TWiLightMenu/nightly-bootstrap.ver", "w");
-	if(!ver) {
-		return res;
-	}
-	fputs(type ? release_BS_ver.c_str() : nightly_BS_ver.c_str(), ver);
-	fclose(ver);
-
-	return res;
-}
-
-/**
- * check, download and store bootstrap version
- */
-
-void checkBootstrapVersion(bool type){
-	FILE* VerFile = fopen(type ? "sdmc:/_nds/TWiLightMenu/release-bootstrap.ver" : "sdmc:/_nds/TWiLightMenu/nightly-bootstrap.ver", "r");
-	if (!VerFile){
-		if(checkWifiStatus()){
-			downloadBootstrapVersion(type); // true == release
-		}
-	}
-	fclose(VerFile);
 }
