@@ -20,6 +20,7 @@ static touchPosition touch;
 
 bool dspfirmfound = false;
 static bool musicPlaying = false;
+bool downloadNightlies = true;
 
 // Music and sound effects.
 sound *mus_settings = NULL;
@@ -265,6 +266,13 @@ int main()
 			setOption = true;
 		}
 
+		if (hDown & KEY_X) {
+			if(dspfirmfound) {
+				sfx_select->stop();
+				sfx_select->play();
+			}
+		}
+
 		if ((hDown & KEY_TOUCH) && touch.px >= 42 && touch.px <= 275) {
 			if (touch.py >= 88 && touch.py <= 118) {
 				menuSelection = 0;
@@ -283,10 +291,7 @@ int main()
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z");
-						downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.7z", "/nds-boostrap-release.7z");
-						downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z");
-						downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z");
+						updateTWiLight();
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
@@ -306,7 +311,7 @@ int main()
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						// UpdateBootstrap();
+						updateBootstrap();
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();

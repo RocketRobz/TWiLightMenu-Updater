@@ -1,10 +1,15 @@
 #include "download.hpp"
+#include <sys/stat.h>
+
+#include "extract.hpp"
 
 #define  USER_AGENT   APP_TITLE "-" VERSION_STRING
 
 static char* result_buf = NULL;
 static size_t result_sz = 0;
 static size_t result_written = 0;
+
+extern bool downloadNightlies;
 
 // following function is from 
 // https://github.com/angelsl/libctrfgh/blob/master/curl_test/src/main.c
@@ -241,4 +246,32 @@ bool checkWifiStatus(void) {
 	}
 	
 	return res;
+}
+
+void updateBootstrap(void) {
+	mkdir("sdmc:/_nds/TWiLightMenu/extras/", 0777);
+	mkdir("sdmc:/_nds/TWiLightMenu/extras/updater/", 0777);
+	if(downloadNightlies) {
+		downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z");
+
+		extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/nds-bootstrap-nightly\\.nds", "/_nds/nds-bootstrap-nightly.nds");
+		extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/nds-bootstrap-hb-nightly\\.nds", "/_nds/nds-bootstrap-hb-nightly.nds");
+		extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/TWiLightMenu/nightly-bootstrap\\.ver", "/_nds/TWiLightMenu/nightly-bootstrap.ver");
+	} else {
+		downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.7z", "/nds-bootstrap-release.7z");
+
+		extractArchive("/nds-bootstrap-release.7z", "nds-bootstrap-release\\.nds", "/_nds/nds-bootstrap-release.nds");
+		extractArchive("/nds-bootstrap-release.7z", "nds-bootstrap-hb-release\\.nds", "/_nds/nds-bootstrap-hb-release.nds");
+		extractArchive("/nds-bootstrap-release.7z", "release-bootstrap\\.ver", "/_nds/TWiLightMenu/release-bootstrap.ver");
+	}
+}
+
+void updateTWiLight(void) {
+	mkdir("sdmc:/_nds/TWiLightMenu/extras/", 0777);
+	mkdir("sdmc:/_nds/TWiLightMenu/extras/updater/", 0777);
+	if(downloadNightlies) {
+		downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z");
+	} else {
+		downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z");
+	}
 }

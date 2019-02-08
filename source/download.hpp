@@ -16,4 +16,28 @@ enum DownloadError {
 Result downloadToFile(std::string url, std::string path);
 Result downloadFromRelease(std::string url, std::string asset, std::string path);
 
+/**
+ * Check Wi-Fi status.
+ * @return True if Wi-Fi is connected; false if not.
+ */
 bool checkWifiStatus(void);
+
+/**
+ * Update nds-bootstrap to the latest nightly build.
+ */
+void UpdateBootstrapNightly(void);
+
+/**
+ * Update nds-bootstrap to the latest release build.
+ */
+void UpdateBootstrapRelease(void);
+
+/**
+ * Update nds-bootstrap to the latest build.
+ */
+void updateBootstrap(void);
+
+/**
+ * Update nds-bootstrap to the latest build.
+ */
+void updateTWiLight(void);
