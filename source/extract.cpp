@@ -20,10 +20,11 @@ Result extractArchive(std::string archivePath, std::string wantedFile, std::stri
 	Result ret = EXTRACT_ERROR_FIND;
 	while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
 		std::string entryName(archive_entry_pathname(entry));
-		if (matchPattern(wantedFile, entryName)) {
+		if (matchPattern(wantedFile, entryName.substr(0,wantedFile.length()))) {
 			ret = EXTRACT_ERROR_NONE;
-			
+
 			Handle fileHandle;
+			outputPath += entryName.substr(wantedFile.length());
 			Result res = openFile(&fileHandle, outputPath.c_str(), true);
 			if (R_FAILED(res)) {
 				ret = EXTRACT_ERROR_OPENFILE;
@@ -61,7 +62,7 @@ Result extractArchive(std::string archivePath, std::string wantedFile, std::stri
 			
 			FSFILE_Close(fileHandle);
 			free(buf);
-			break;
+			// break;
 		}
 	}
 	

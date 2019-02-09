@@ -249,29 +249,44 @@ bool checkWifiStatus(void) {
 }
 
 void updateBootstrap(void) {
-	mkdir("sdmc:/_nds/TWiLightMenu/extras/", 0777);
 	mkdir("sdmc:/_nds/TWiLightMenu/extras/updater/", 0777);
-	if(downloadNightlies) {
-		downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z");
+	// if(downloadNightlies) {
+	// 	downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z");
 
-		extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/nds-bootstrap-nightly\\.nds", "/_nds/nds-bootstrap-nightly.nds");
-		extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/nds-bootstrap-hb-nightly\\.nds", "/_nds/nds-bootstrap-hb-nightly.nds");
-		extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/TWiLightMenu/nightly-bootstrap\\.ver", "/_nds/TWiLightMenu/nightly-bootstrap.ver");
-	} else {
-		downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.7z", "/nds-bootstrap-release.7z");
+	// 	extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/nds-bootstrap-nightly\\.nds", "/_nds/nds-bootstrap-nightly.nds");
+	// 	extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/nds-bootstrap-hb-nightly\\.nds", "/_nds/nds-bootstrap-hb-nightly.nds");
+	// 	extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/TWiLightMenu/nightly-bootstrap\\.ver", "/_nds/TWiLightMenu/nightly-bootstrap.ver");
+	// } else {
+		downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip");
 
-		extractArchive("/nds-bootstrap-release.7z", "nds-bootstrap-release\\.nds", "/_nds/nds-bootstrap-release.nds");
-		extractArchive("/nds-bootstrap-release.7z", "nds-bootstrap-hb-release\\.nds", "/_nds/nds-bootstrap-hb-release.nds");
-		extractArchive("/nds-bootstrap-release.7z", "release-bootstrap\\.ver", "/_nds/TWiLightMenu/release-bootstrap.ver");
-	}
+		extractArchive("/nds-bootstrap-release.zip", "nds-bootstrap-release\\.nds", "/_nds/nds-bootstrap-release.nds");
+		extractArchive("/nds-bootstrap-release.zip", "nds-bootstrap-hb-release\\.nds", "/_nds/nds-bootstrap-hb-release.nds");
+		extractArchive("/nds-bootstrap-release.zip", "release-bootstrap\\.ver", "/_nds/TWiLightMenu/release-bootstrap.ver");
+	// }
 }
 
 void updateTWiLight(void) {
-	mkdir("sdmc:/_nds/TWiLightMenu/extras/", 0777);
 	mkdir("sdmc:/_nds/TWiLightMenu/extras/updater/", 0777);
 	if(downloadNightlies) {
 		downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z");
+
+		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/TWiLightMenu/akmenu.srldr", "/_nds/TWiLightMenu/akmenu.srldr");
+		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/TWiLightMenu/dsimenu.srldr", "/_nds/TWiLightMenu/dsimenu.srldr");
+		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/TWiLightMenu/main.srldr", "/_nds/TWiLightMenu/main.srldr");
+		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/TWiLightMenu/mainmenu.srldr", "/_nds/TWiLightMenu/mainmenu.srldr");
+		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/TWiLightMenu/r4menu.srldr", "/_nds/TWiLightMenu/r4menu.srldr");
+		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/TWiLightMenu/settings.srldr", "/_nds/TWiLightMenu/settings.srldr");
+		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/TWiLightMenu/slot1launch.srldr", "/_nds/TWiLightMenu/slot1launch.srldr");
 	} else {
 		downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z");
+		
+		extractArchive("/TWiLightMenu-release.7z", "_nds/TWiLightMenu/akmenu/", "/_nds/TWiLightMenu/akmenu/");
+		extractArchive("/TWiLightMenu-release.7z", "_nds/TWiLightMenu/akmenu.srldr", "/_nds/TWiLightMenu/akmenu.srldr");
+		extractArchive("/TWiLightMenu-release.7z", "_nds/TWiLightMenu/dsimenu.srldr", "/_nds/TWiLightMenu/dsimenu.srldr");
+		extractArchive("/TWiLightMenu-release.7z", "_nds/TWiLightMenu/main.srldr", "/_nds/TWiLightMenu/main.srldr");
+		extractArchive("/TWiLightMenu-release.7z", "_nds/TWiLightMenu/mainmenu.srldr", "/_nds/TWiLightMenu/mainmenu.srldr");
+		extractArchive("/TWiLightMenu-release.7z", "_nds/TWiLightMenu/r4menu.srldr", "/_nds/TWiLightMenu/r4menu.srldr");
+		extractArchive("/TWiLightMenu-release.7z", "_nds/TWiLightMenu/settings.srldr", "/_nds/TWiLightMenu/settings.srldr");
+		extractArchive("/TWiLightMenu-release.7z", "_nds/TWiLightMenu/slot1launch.srldr", "/_nds/TWiLightMenu/slot1launch.srldr");
 	}
 }

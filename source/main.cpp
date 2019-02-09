@@ -20,7 +20,7 @@ static touchPosition touch;
 
 bool dspfirmfound = false;
 static bool musicPlaying = false;
-bool downloadNightlies = true;
+bool downloadNightlies = false;
 
 // Music and sound effects.
 sound *mus_settings = NULL;
