@@ -89,6 +89,8 @@ int main()
 	mkdir("sdmc:/_nds/TWiLightMenu", 0777);
 	mkdir("sdmc:/_nds/TWiLightMenu/gamesettings", 0777);
 	mkdir("sdmc:/_nds/TWiLightMenu/emulators", 0777);
+	mkdir("sdmc:/_nds/TWiLightMenu/extras", 0777);
+	mkdir("sdmc:/_nds/TWiLightMenu/extras/updater", 0777);
 
 	pp2d_init();
 	
@@ -266,11 +268,21 @@ int main()
 			setOption = true;
 		}
 
+		// For testing
 		if (hDown & KEY_X) {
 			if(dspfirmfound) {
 				sfx_select->stop();
 				sfx_select->play();
 			}
+		}
+
+		// For testing
+		if (hDown & KEY_Y) {
+			if(dspfirmfound) {
+				sfx_select->stop();
+				sfx_select->play();
+			}
+			downloadNightlies = !downloadNightlies;
 		}
 
 		if ((hDown & KEY_TOUCH) && touch.px >= 42 && touch.px <= 275) {
