@@ -269,9 +269,14 @@ void updateTWiLight(void) {
 		downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z");
 
 		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/", "/_nds/");
+
+		deleteFile("sdmc:/TWiLightMenu-nightly.7z");
 	} else {
 		downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z");
 		
 		extractArchive("/TWiLightMenu-release.7z", "_nds/", "/_nds/");
+		extractArchive("/TWiLightMenu-release.7z", "3DS - CFW users/cia/", "/cia/");
+
+		deleteFile("sdmc:/TWiLightMenu-release.7z");
 	}
 }
