@@ -12,7 +12,7 @@
 #include "dumpdsp.h"
 #include "settings.h"
 #include "language.h"
-#include "download.h"
+#include "download.hpp"
 
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
 
@@ -20,6 +20,7 @@ static touchPosition touch;
 
 bool dspfirmfound = false;
 static bool musicPlaying = false;
+bool downloadNightlies = false;
 
 // Music and sound effects.
 sound *mus_settings = NULL;
@@ -88,6 +89,8 @@ int main()
 	mkdir("sdmc:/_nds/TWiLightMenu", 0777);
 	mkdir("sdmc:/_nds/TWiLightMenu/gamesettings", 0777);
 	mkdir("sdmc:/_nds/TWiLightMenu/emulators", 0777);
+	mkdir("sdmc:/_nds/TWiLightMenu/extras", 0777);
+	mkdir("sdmc:/_nds/TWiLightMenu/extras/updater", 0777);
 
 	pp2d_init();
 	
@@ -147,10 +150,6 @@ int main()
 	
 	int fadealpha = 255;
 	bool fadein = true;
-
-	if (checkWifiStatus()) {
-		DownloadMissingFiles();
-	}
 	
 	// Loop as long as the status is not exit
 	while(aptMainLoop()) {
@@ -265,6 +264,23 @@ int main()
 			setOption = true;
 		}
 
+		// For testing
+		if (hDown & KEY_X) {
+			if(dspfirmfound) {
+				sfx_select->stop();
+				sfx_select->play();
+			}
+		}
+
+		// For testing
+		if (hDown & KEY_Y) {
+			if(dspfirmfound) {
+				sfx_select->stop();
+				sfx_select->play();
+			}
+			downloadNightlies = !downloadNightlies;
+		}
+
 		if ((hDown & KEY_TOUCH) && touch.px >= 42 && touch.px <= 275) {
 			if (touch.py >= 88 && touch.py <= 118) {
 				menuSelection = 0;
@@ -278,6 +294,19 @@ int main()
 		if (setOption) {
 			switch (menuSelection) {
 				case 0:
+					if(checkWifiStatus()){
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						updateTWiLight();
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
+					break;
 				default:
 					if(dspfirmfound) {
 						sfx_wrong->stop();
@@ -290,14 +319,14 @@ int main()
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						UpdateBootstrap();
+						updateBootstrap();
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
 							sfx_wrong->play();
 						}
 					}
-				break;
+					break;
 			}
 			setOption = false;
 		}
