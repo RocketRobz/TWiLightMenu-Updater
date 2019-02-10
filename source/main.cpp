@@ -88,6 +88,8 @@ int main()
 	hidInit();
 	acInit();
 
+	osSetSpeedupEnable(true);	// Enable speed-up for New 3DS users
+
 	snprintf(launcher_vertext, 13, "v%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
 
 	// make folders if they don't exist
