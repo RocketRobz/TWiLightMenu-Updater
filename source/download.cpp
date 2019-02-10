@@ -13,6 +13,8 @@ static char* result_buf = NULL;
 static size_t result_sz = 0;
 static size_t result_written = 0;
 
+extern void displayBottomMsg(const char* text);
+
 extern bool downloadNightlies;
 
 // following function is from 
@@ -252,43 +254,91 @@ bool checkWifiStatus(void) {
 	return res;
 }
 
+void downloadFailed(void) {
+	displayBottomMsg("Download failed!");
+	for (int i = 0; i < 60*2; i++) {
+		gspWaitForVBlank();
+	}
+}
+
+void doneMsg(void) {
+	displayBottomMsg("Done!");
+	for (int i = 0; i < 60*2; i++) {
+		gspWaitForVBlank();
+	}
+}
+
 void updateBootstrap(void) {
 	if(downloadNightlies) {
-		downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z");
+		displayBottomMsg("Downloading nds-bootstrap...\n"
+						"(Nightly)");
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
+			downloadFailed();
+			return;
+		}
 
+		displayBottomMsg("Extracting nds-bootstrap...\n"
+						"(Nightly)");
 		extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/", "/_nds/");
 
 		deleteFile("sdmc:/nds-bootstrap-nightly.7z");
 	} else {
-		downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip");
-		
+		displayBottomMsg("Downloading nds-bootstrap...\n"
+						"(Release)");
+		if (downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip") != 0) {
+			downloadFailed();
+			return;
+		}
+
+		displayBottomMsg("Extracting nds-bootstrap...\n"
+						"(Release)");
 		extractArchive("/nds-bootstrap-release.zip", "/", "/_nds/");
 
 		deleteFile("sdmc:/nds-bootstrap-release.zip");
 	}
+	doneMsg();
 }
 
 void updateTWiLight(void) {
 	if(downloadNightlies) {
-		downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z");
+		displayBottomMsg("Downloading TWiLight Menu++...\n"
+						"(Nightly)");
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
+			downloadFailed();
+			return;
+		}
 
+		displayBottomMsg("Extracting TWiLight Menu++...\n"
+						"(Nightly)");
 		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/", "/_nds/");
 		extractArchive("/TWiLightMenu-nightly.7z", "3DS - CFW users/", "/cia/");
 
+		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
+						"(Nightly)");
 		// installCia("/cia/TWiLight Menu.cia");
 		installCia("/cia/TWiLight Menu - Game booter.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-nightly.7z");
 	} else {
-		downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z");
-		
+		displayBottomMsg("Downloading TWiLight Menu++...\n"
+						"(Release)");
+		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z") != 0) {
+			downloadFailed();
+			return;
+		}
+
+		displayBottomMsg("Extracting TWiLight Menu++...\n"
+						"(Release)");
 		extractArchive("/TWiLightMenu-release.7z", "_nds/", "/_nds/");
 		extractArchive("/TWiLightMenu-release.7z", "3DS - CFW users/cia/", "/cia/");
 		extractArchive("/TWiLightMenu-release.7z", "DSi&3DS - SD card users/", "/");
 
+		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
+						"(Release)");
 		installCia("/cia/TWiLight Menu.cia");
 		installCia("/cia/TWiLight Menu - Game booter.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-release.7z");
 	}
+	doneMsg();
 }
