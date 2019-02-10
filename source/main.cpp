@@ -150,10 +150,6 @@ int main()
 	
 	int fadealpha = 255;
 	bool fadein = true;
-
-	if (checkWifiStatus()) {
-		// DownloadMissingFiles();
-	}
 	
 	// Loop as long as the status is not exit
 	while(aptMainLoop()) {
