@@ -284,6 +284,7 @@ void updateTWiLight(void) {
 		
 		extractArchive("/TWiLightMenu-release.7z", "_nds/", "/_nds/");
 		extractArchive("/TWiLightMenu-release.7z", "3DS - CFW users/cia/", "/cia/");
+		extractArchive("/TWiLightMenu-release.7z", "DSi&3DS - SD card users/", "/");
 
 		installCia("/cia/TWiLight Menu.cia");
 		installCia("/cia/TWiLight Menu - Game booter.cia");
