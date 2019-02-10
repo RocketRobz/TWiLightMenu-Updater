@@ -309,7 +309,7 @@ void updateTWiLight(void) {
 		}
 
 		displayBottomMsg("Extracting TWiLight Menu++...\n"
-						"(Nightly)");
+						"(Nightly)\n\nThis may take a while.");
 		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/", "/_nds/");
 		extractArchive("/TWiLightMenu-nightly.7z", "3DS - CFW users/", "/cia/");
 
@@ -328,7 +328,7 @@ void updateTWiLight(void) {
 		}
 
 		displayBottomMsg("Extracting TWiLight Menu++...\n"
-						"(Release)");
+						"(Release)\n\nThis may take a while.");
 		extractArchive("/TWiLightMenu-release.7z", "_nds/", "/_nds/");
 		extractArchive("/TWiLightMenu-release.7z", "3DS - CFW users/cia/", "/cia/");
 		extractArchive("/TWiLightMenu-release.7z", "DSi&3DS - SD card users/", "/");
