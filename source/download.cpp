@@ -254,12 +254,12 @@ bool checkWifiStatus(void) {
 	return res;
 }
 
-/*void downloadFailed(void) {
+void downloadFailed(void) {
 	displayBottomMsg("Download failed!");
 	for (int i = 0; i < 60*2; i++) {
 		gspWaitForVBlank();
 	}
-}*/
+}
 
 void doneMsg(void) {
 	displayBottomMsg("Done!");
@@ -273,8 +273,8 @@ void updateBootstrap(void) {
 		displayBottomMsg("Downloading nds-bootstrap...\n"
 						"(Nightly)");
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
-			//downloadFailed();
-			//return;
+			downloadFailed();
+			return;
 		}
 
 		displayBottomMsg("Extracting nds-bootstrap...\n"
@@ -286,8 +286,8 @@ void updateBootstrap(void) {
 		displayBottomMsg("Downloading nds-bootstrap...\n"
 						"(Release)");
 		if (downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip") != 0) {
-			//downloadFailed();
-			//return;
+			downloadFailed();
+			return;
 		}
 
 		displayBottomMsg("Extracting nds-bootstrap...\n"
@@ -304,8 +304,8 @@ void updateTWiLight(void) {
 		displayBottomMsg("Downloading TWiLight Menu++...\n"
 						"(Nightly)");
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
-			//downloadFailed();
-			//return;
+			downloadFailed();
+			return;
 		}
 
 		displayBottomMsg("Extracting TWiLight Menu++...\n"
@@ -323,8 +323,8 @@ void updateTWiLight(void) {
 		displayBottomMsg("Downloading TWiLight Menu++...\n"
 						"(Release)");
 		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z") != 0) {
-			//downloadFailed();
-			//return;
+			downloadFailed();
+			return;
 		}
 
 		displayBottomMsg("Extracting TWiLight Menu++...\n"
