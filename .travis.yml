@@ -2,11 +2,11 @@ language: cpp
 
 os: linux
 sudo: false
-dist: xenial
+dist: trusty
 
 env:
   global:
-    - DEVKITPRO=/opt/devkitpro
+    - DEVKITPRO=/opt/devkitpro    
     - DEVKITARM=/opt/devkitpro/devkitARM
     
 cache:
@@ -16,7 +16,6 @@ cache:
 
 before_install:
   - curl -L https://github.com/devkitPro/pacman/releases/download/devkitpro-pacman-1.0.1/devkitpro-pacman.deb -o pacman.deb
-  - curl -L https://github.com/Steveice10/bannertool/releases/download/1.1.0/bannertool.zip -o bannertool.zip
   - sudo apt-get install -y p7zip-full
 
 install:
@@ -24,16 +23,15 @@ install:
   - sudo dkp-pacman -Sy
   - sudo dkp-pacman -S devkitARM general-tools 3dstools picasso 3ds-curl 3ds-libarchive 3ds-liblzma 3ds-mbedtls 3ds-bzip2 3ds-zlib --noconfirm
   - 
+  - curl -L https://github.com/Steveice10/bannertool/releases/download/1.1.0/bannertool.zip -o bannertool.zip
   - sudo 7z e bannertool.zip linux-x86_64/bannertool
   - export PATH=$PATH:$(pwd)
-  - ls -a
-  - pwd
-  -
+  - 
   - export DEVKITPRO=/opt/devkitpro
   - export DEVKITARM=${DEVKITPRO}/devkitARM
 
 script:
-  # - sudo 7z x libctru.7z -o/opt/devkitpro/
+  - sudo 7z x libctru.7z -o/opt/devkitpro/
   # - curl -L https://github.com/Steveice10/bannertool/releases/download/1.1.0/bannertool.zip -o bannertool.zip
   # - sudo 7z e bannertool.zip linux-x86_64/bannertool -o/opt/devkitPro/tools/bin/
   # - rm bannertool.zip
