@@ -2,7 +2,7 @@ language: cpp
 
 os: linux
 sudo: false
-dist: trusty
+dist: xenial
 
 env:
   global:
