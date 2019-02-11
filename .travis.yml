@@ -35,10 +35,11 @@ install:
   - 
   - export DEVKITPRO=/opt/devkitpro
   - export DEVKITARM=${DEVKITPRO}/devkitARM
-
-script:
   - export COMMIT_TAG="$(git log --format=%h -1)"
   - export COMMIT_MESSAGE="$(git log --pretty=format:"%an - %s" -1)"
+  - export CURRENT_DATE=$(date +'%Y%m%d-%H%M%S')
+
+script:
   - make fail
   
 addons:
@@ -70,7 +71,6 @@ before_deploy:
   - git stage .
   - git commit -m "TWiLightMenu Updater | $COMMIT_TAG"
   - git push origin master
-  - export CURRENT_DATE=$(date +'%Y%m%d-%H%M%S')
   - git tag v$CURRENT_DATE
 
 deploy:
