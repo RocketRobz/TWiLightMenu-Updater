@@ -42,9 +42,8 @@ install:
 
 script:
   - make
-  - export CIA_URL=https://github.com/TWLBot/Builds/releases/download/v$CURRENT_DATE/TWiLight_Menu++_Updater.cia
-  - qrencode -o TWiLight_Menu++_Updater.png $CIA_URL
-  - export IMAGE="https://raw.githubusercontent.com/TWLBot/Builds/master/TWiLightMenu%20Updater/TWiLight_Menu%2B%2B_Updater.png"
+  - qrencode -o v$CURRENT_DATE.png https://github.com/TWLBot/Builds/releases/download/v$CURRENT_DATE/TWiLight_Menu++_Updater.cia
+  - export IMAGE=https://raw.githubusercontent.com/TWLBot/Builds/master/TWiLightMenu%20Updater/v$CURRENT_DATE.png
   
 addons:
   apt:
@@ -67,7 +66,8 @@ before_deploy:
   - cd Builds/TWiLightMenu\ Updater/
   - cp ../../TWiLight_Menu++_Updater.3dsx TWiLight_Menu++_Updater.3dsx
   - cp ../../TWiLight_Menu++_Updater.cia TWiLight_Menu++_Updater.cia
-  - cp ../../TWiLight_Menu++_Updater.png TWiLight_Menu++_Updater.png
+  - rm *.png
+  - cp ../../v$CURRENT_DATE.png v$CURRENT_DATE.png
   - git stage .
   - git commit -m "TWiLightMenu Updater | $COMMIT_TAG"
   - git push origin master
