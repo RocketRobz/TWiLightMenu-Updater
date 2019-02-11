@@ -17,6 +17,7 @@ cache:
 before_install:
   - curl -L https://github.com/devkitPro/pacman/releases/download/devkitpro-pacman-1.0.1/devkitpro-pacman.deb -o pacman.deb
   - sudo apt-get install -y p7zip-full
+  - sudo apt-get install -y qrencode
 
 install:
   - sudo dpkg -i pacman.deb
@@ -41,6 +42,8 @@ install:
 
 script:
   - make
+  - qrencode -o TWiLight_Menu++_Updater.png 'https://github.com/TWLBot/Builds/releases/download/v$CURRENT_DATE/TWiLight_Menu++_Updater.cia'
+  - export IMAGE="https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.png?raw=true"
   
 addons:
   apt:
@@ -68,6 +71,7 @@ before_deploy:
   - cd Builds/TWiLightMenu\ Updater/
   - cp ../../TWiLight_Menu++_Updater.3dsx TWiLight_Menu++_Updater.3dsx
   - cp ../../TWiLight_Menu++_Updater.cia TWiLight_Menu++_Updater.cia
+  - cp ../../TWiLight_Menu++_Updater.png TWiLight_Menu++_Updater.png
   - git stage .
   - git commit -m "TWiLightMenu Updater | $COMMIT_TAG"
   - git push origin master
