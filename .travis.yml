@@ -65,7 +65,9 @@ before_deploy:
   - git config --local user.name "TWLBot"
   - git clone https://$GITHUB_TOKEN@github.com/TWLBot/Builds.git
   - cd Builds/
-  - cp ../TWiLightMenu.7z TWiLightMenu.7z
+  - mkdir TWiLightMenu\ Updater/
+  - cp ../TWiLight_Menu++_Updater.3dsx TWiLightMenu\ Updater/TWiLight_Menu++_Updater.3dsx
+  - cp ../TWiLight_Menu++_Updater.cia TWiLightMenu\ Updater/TWiLight_Menu++_Updater.cia
   - git stage .
   - git commit -m "TWiLightMenu Updater | $COMMIT_TAG"
   - git push origin master
