@@ -28,7 +28,7 @@ install:
   - export DEVKITARM=${DEVKITPRO}/devkitARM
 
 script:
-  - sudo 7z x libctru.7z -o/opt/devkitpro/
+  # - sudo 7z x libctru.7z -o/opt/devkitpro/
   - curl -L https://github.com/Steveice10/bannertool/releases/download/1.1.0/bannertool.zip -o bannertool.zip
   - sudo 7z e bannertool.zip linux-x86_64/bannertool -o/opt/devkitPro/tools/bin/
   - rm bannertool.zip
