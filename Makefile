@@ -18,8 +18,8 @@ MAKEROM 	?= ../makerom.exe
 BANNERTOOL 	?= ../bannertool.exe
 
 else
-MAKEROM 	?= ../makerom
-BANNERTOOL 	?= ../bannertool
+MAKEROM 	?= makerom
+BANNERTOOL 	?= bannertool
 
 endif
 

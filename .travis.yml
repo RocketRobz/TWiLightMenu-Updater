@@ -25,6 +25,7 @@ install:
   - 
   - curl -L https://github.com/Steveice10/bannertool/releases/download/1.1.0/bannertool.zip -o bannertool.zip
   - sudo 7z e bannertool.zip linux-x86_64/bannertool
+  - export PATH=$PATH:./
   -
   - export DEVKITPRO=/opt/devkitpro
   - export DEVKITARM=${DEVKITPRO}/devkitARM
