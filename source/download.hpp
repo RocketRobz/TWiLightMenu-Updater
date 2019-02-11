@@ -38,6 +38,11 @@ void UpdateBootstrapRelease(void);
 void updateBootstrap(void);
 
 /**
- * Update nds-bootstrap to the latest build.
+ * Update TWiLight Menu++ to the latest build.
  */
 void updateTWiLight(void);
+
+/**
+ * Update the TWiLight Menu++ Updater to the latest build.
+ */
+void updateSelf(void);

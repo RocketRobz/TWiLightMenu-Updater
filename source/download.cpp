@@ -342,3 +342,34 @@ void updateTWiLight(void) {
 	}
 	doneMsg();
 }
+
+void updateSelf(void) {
+	if(downloadNightlies) {
+		displayBottomMsg("Downloading TWiLight Menu++ Updater...\n"
+						"(Nightly)");
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia?raw=true", "/TWiLightMenu-Updater-nightly.cia") != 0) {
+			downloadFailed();
+			return;
+		}
+
+		displayBottomMsg("Installing TWiLight Menu++ Updater CIA...\n"
+						"(Nightly)");
+		installCia("/TWiLightMenu-Updater-nightly.cia");
+
+		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
+	} else {
+		displayBottomMsg("Downloading TWiLight Menu++ Updater...\n"
+						"(Release)");
+		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-nightly.cia") != 0) {
+			downloadFailed();
+			return;
+		}
+
+		displayBottomMsg("Installing TWiLight Menu++ Updater CIA...\n"
+						"(Release)");
+		installCia("/TWiLightMenu-Updater-nightly.cia");
+
+		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
+	}
+	doneMsg();
+}
