@@ -64,15 +64,14 @@ addons:
 before_deploy:
   - git config --local user.name "TWLBot"
   - git clone https://$GITHUB_TOKEN@github.com/TWLBot/Builds.git
-  - cd Builds/
-  - cp ../TWiLight_Menu++_Updater.3dsx TWiLightMenu\ Updater/TWiLight_Menu++_Updater.3dsx
-  - cp ../TWiLight_Menu++_Updater.cia TWiLightMenu\ Updater/TWiLight_Menu++_Updater.cia
+  - cd Builds/TWiLightMenu\ Updater/
+  - cp ../../TWiLight_Menu++_Updater.3dsx TWiLight_Menu++_Updater.3dsx
+  - cp ../../TWiLight_Menu++_Updater.cia TWiLight_Menu++_Updater.cia
   - git stage .
   - git commit -m "TWiLightMenu Updater | $COMMIT_TAG"
   - git push origin master
   - export CURRENT_DATE=$(date +'%Y%m%d-%H%M%S')
   - git tag v$CURRENT_DATE
-  - cd ..
 
 deploy:
   provider: releases
