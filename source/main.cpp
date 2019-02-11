@@ -297,6 +297,9 @@ int main()
 			} else if (touch.py >= 136 && touch.py <= 166) {
 				menuSelection = 1;
 				setOption = true;
+			} else if (touch.py >= 167) {
+				menuSelection = 2;
+				setOption = true;
 			}
 		}
 
@@ -329,6 +332,20 @@ int main()
 							sfx_select->play();
 						}
 						updateBootstrap();
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
+					break;
+				case 2:
+					if(checkWifiStatus()){
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						updateSelf();
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
