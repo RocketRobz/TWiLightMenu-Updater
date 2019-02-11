@@ -65,6 +65,7 @@ before_deploy:
   - cd Builds/TWiLightMenu\ Updater/
   - cp ../../TWiLight_Menu++_Updater.3dsx TWiLight_Menu++_Updater.3dsx
   - cp ../../TWiLight_Menu++_Updater.cia TWiLight_Menu++_Updater.cia
+  - rm *.png
   - cp ../../TWiLight_Menu++_Updater.png TWiLight_Menu++_Updater.png
   - git stage .
   - git commit -m "TWiLightMenu Updater | $COMMIT_TAG"

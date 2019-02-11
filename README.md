@@ -1,4 +1,4 @@
-# TWiLightMenu-Updater
+# TWiLightMenu-Updater [![Build Status](https://travis-ci.org/Epicpkmn11/TWiLightMenu-Updater.svg?branch=master)](https://travis-ci.org/Epicpkmn11/TWiLightMenu-Updater)
 TWiLightMenu Updater is an open-source updater for TWiLightMenu++
 
 # Links
