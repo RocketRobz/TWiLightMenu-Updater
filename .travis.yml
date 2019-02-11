@@ -42,7 +42,8 @@ install:
 
 script:
   - make
-  - qrencode -o TWiLight_Menu++_Updater.png https://github.com/TWLBot/Builds/releases/download/v$CURRENT_DATE/TWiLight_Menu++_Updater.cia
+  - export CIA_URL=https://github.com/TWLBot/Builds/releases/download/v$CURRENT_DATE/TWiLight_Menu++_Updater.cia
+  - qrencode -o TWiLight_Menu++_Updater.png $CIA_URL
   - export IMAGE="https://raw.githubusercontent.com/TWLBot/Builds/master/TWiLightMenu%20Updater/TWiLight_Menu%2B%2B_Updater.png"
   
 addons:
