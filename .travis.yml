@@ -43,7 +43,7 @@ install:
 script:
   - make
   - qrencode -o TWiLight_Menu++_Updater.png 'https://github.com/TWLBot/Builds/releases/download/v$CURRENT_DATE/TWiLight_Menu++_Updater.cia'
-  - export IMAGE="https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.png?raw=true"
+  - export IMAGE="https://raw.githubusercontent.com/TWLBot/Builds/master/TWiLightMenu%20Updater/TWiLight_Menu%2B%2B_Updater.png"
   
 addons:
   apt:
@@ -56,14 +56,10 @@ addons:
     - lftp
 
 after_success:
-  - curl -o send.sh https://raw.githubusercontent.com/DS-Homebrew/travis-ci-discord-webhook/master/send.sh
-  - chmod +x send.sh
-  - ./send.sh success $WEBHOOK_URL
+  - export RESULT="success"
 
 after_failure:
-  - curl -o send.sh https://raw.githubusercontent.com/DS-Homebrew/travis-ci-discord-webhook/master/send.sh
-  - chmod +x send.sh
-  - ./send.sh failure $WEBHOOK_URL
+  - export RESULT="failure"
 
 before_deploy:
   - git config --local user.name "TWLBot"
@@ -89,3 +85,6 @@ deploy:
   prerelease: true
   name: TWiLightMenu Updater | $COMMIT_TAG
   body: $COMMIT_MESSAGE
+  - curl -o send.sh https://raw.githubusercontent.com/DS-Homebrew/travis-ci-discord-webhook/master/send.sh
+  - chmod +x send.sh
+  - ./send.sh $RESULT $WEBHOOK_URL
