@@ -28,7 +28,7 @@ install:
   - sudo 7z e bannertool.zip linux-x86_64/bannertool
   - rm bannertool.zip
   - curl -L https://github.com/profi200/Project_CTR/releases/download/0.15/makerom_015_ctrtool.zip -o makerom_015_ctrtool.zip
-  - sudo 7z e makerom_015_ctrtool.zip Linux_x86_64/makerom -o/opt/devkitpro/tools/bin/
+  - sudo 7z e makerom_015_ctrtool.zip Linux_x86_64/makerom
   - rm makerom_015_ctrtool.zip
   - export PATH=$PATH:$(pwd)
   - 
