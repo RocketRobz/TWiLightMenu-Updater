@@ -40,7 +40,7 @@ install:
   - export CURRENT_DATE=$(date +'%Y%m%d-%H%M%S')
 
 script:
-  - make fail
+  - make
   
 addons:
   apt:
