@@ -85,6 +85,8 @@ deploy:
   prerelease: true
   name: TWiLightMenu Updater | $COMMIT_TAG
   body: $COMMIT_MESSAGE
+
+after_deploy:
   - curl -o send.sh https://raw.githubusercontent.com/DS-Homebrew/travis-ci-discord-webhook/master/send.sh
   - chmod +x send.sh
   - ./send.sh $RESULT $WEBHOOK_URL
