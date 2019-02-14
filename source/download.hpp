@@ -23,26 +23,21 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 bool checkWifiStatus(void);
 
 /**
- * Update nds-bootstrap to the latest nightly build.
- */
-void UpdateBootstrapNightly(void);
-
-/**
- * Update nds-bootstrap to the latest release build.
- */
-void UpdateBootstrapRelease(void);
-
-/**
  * Update nds-bootstrap to the latest build.
  */
-void updateBootstrap(void);
+void updateBootstrap(bool nightly);
 
 /**
  * Update TWiLight Menu++ to the latest build.
  */
-void updateTWiLight(void);
+void updateTWiLight(bool nightly);
 
 /**
  * Update the TWiLight Menu++ Updater to the latest build.
  */
-void updateSelf(void);
+void updateSelf(bool nightly);
+
+/**
+ * Update DeadSkullzJr's cheat DB to the latest version.
+ */
+void updateCheats(void);

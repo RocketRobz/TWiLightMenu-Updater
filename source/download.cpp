@@ -268,8 +268,8 @@ void doneMsg(void) {
 	}
 }
 
-void updateBootstrap(void) {
-	if(downloadNightlies) {
+void updateBootstrap(bool nightly) {
+	if(nightly) {
 		displayBottomMsg("Downloading nds-bootstrap...\n"
 						"(Nightly)");
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
@@ -299,8 +299,8 @@ void updateBootstrap(void) {
 	doneMsg();
 }
 
-void updateTWiLight(void) {
-	if(downloadNightlies) {
+void updateTWiLight(bool nightly) {
+	if(nightly) {
 		displayBottomMsg("Downloading TWiLight Menu++...\n"
 						"(Nightly)");
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
@@ -343,8 +343,8 @@ void updateTWiLight(void) {
 	doneMsg();
 }
 
-void updateSelf(void) {
-	if(downloadNightlies) {
+void updateSelf(bool nightly) {
+	if(nightly) {
 		displayBottomMsg("Downloading TWiLight Menu++ Updater...\n"
 						"(Nightly)");
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia?raw=true", "/TWiLightMenu-Updater-nightly.cia") != 0) {
@@ -371,5 +371,22 @@ void updateSelf(void) {
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
 	}
+	doneMsg();
+}
+
+void updateCheats(void) {
+	displayBottomMsg("Downloading DSJ's cheat database v2.1.0...\n"
+					"\nThis may take a while.");
+	if (downloadToFile("https://s6.filetrip.net/p/37613/414613-DeadSkullzJr%27s%20Cheat%20Databases.7z", "/CheatsDB.7z") != 0) {
+		downloadFailed();
+		return;
+	}
+
+	displayBottomMsg("Extracting DSJ's cheat database v2.1.0...\n"
+					"\nThis may take a while.");
+	extractArchive("/CheatsDB.7z", "Cheats/usrcheat.dat", "/_nds/TWiLightMenu/extras/usrcheat.dat");
+
+	deleteFile("sdmc:/CheatsDB.7z");
+
 	doneMsg();
 }

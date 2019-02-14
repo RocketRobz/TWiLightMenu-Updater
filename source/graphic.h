@@ -10,6 +10,7 @@ extern size_t loadingbgtex;
 extern size_t topbgtex;
 extern size_t subbgtex;
 extern size_t buttontex;
+extern size_t extrasmallbuttontex;
 extern size_t smallbuttontex;
 extern size_t leftpagetex;
 extern size_t rightpagetex;
