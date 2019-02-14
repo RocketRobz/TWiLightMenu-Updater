@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 
 #include "extract.hpp"
+#include "inifile.h"
 
 extern "C" {
 	#include "cia.h"
@@ -268,8 +269,64 @@ void doneMsg(void) {
 	}
 }
 
+json getReleaseJson(std::string repo) {
+	Result ret = 0;
+	void *socubuf = memalign(0x1000, 0x100000);
+	std::stringstream apiurlStream;
+	apiurlStream << "https://api.github.com/repos/" << repo << "/releases/latest";
+	std::string apiurl = apiurlStream.str();
+	
+	CURL *hnd = curl_easy_init();
+	ret = setupContext(hnd, apiurl.c_str());
+	if (ret != 0) {
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return ret;
+	}
+
+	CURLcode cres = curl_easy_perform(hnd);
+	curl_easy_cleanup(hnd);
+	char* newbuf = (char*)realloc(result_buf, result_written + 1);
+	result_buf = newbuf;
+	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
+
+	if (cres != CURLE_OK) {
+		printf("Error in:\ncurl\n");
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return -1;
+	}
+
+	std::string assetUrl;
+	json parsedAPI = json::parse(result_buf);
+	socExit();
+	free(result_buf);
+	free(socubuf);
+	result_buf = NULL;
+	result_sz = 0;
+	result_written = 0;
+
+	return parsedAPI;
+}
+
 void updateBootstrap(bool nightly) {
 	if(nightly) {
+		json parsedAPI = getReleaseJson("ahezard/nds-bootstrap");
+		if (parsedAPI["tag_name"].is_string()) {
+			CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+			std::string latestVersion = parsedAPI["tag_name"];
+			ini.SetString("NDS-BOOTSTRAP", "NIGHTLY", latestVersion);
+			ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		}
+
 		displayBottomMsg("Downloading nds-bootstrap...\n"
 						"(Nightly)");
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
@@ -283,6 +340,13 @@ void updateBootstrap(bool nightly) {
 
 		deleteFile("sdmc:/nds-bootstrap-nightly.7z");
 	} else {
+		json parsedAPI = getReleaseJson("ahezard/nds-bootstrap");
+		if (parsedAPI["tag_name"].is_string()) {
+			CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+			std::string latestVersion = parsedAPI["tag_name"];
+			ini.SetString("NDS-BOOTSTRAP", "NIGHTLY", latestVersion);
+			ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		}
 		displayBottomMsg("Downloading nds-bootstrap...\n"
 						"(Release)");
 		if (downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip") != 0) {
@@ -375,18 +439,17 @@ void updateSelf(bool nightly) {
 }
 
 void updateCheats(void) {
-	displayBottomMsg("Downloading DSJ's cheat database v2.1.0...\n"
-					"\nThis may take a while.");
-	if (downloadToFile("https://s6.filetrip.net/p/37613/414613-DeadSkullzJr%27s%20Cheat%20Databases.7z", "/CheatsDB.7z") != 0) {
+	displayBottomMsg("Downloading DSJ's cheat database v2.1.0...\n");	// This needs to be manually changed when the usrcheat.dat in TWLBot get's updated
+	if (downloadToFile("https://github.com/TWLBot/Builds/raw/master/usrcheat.dat.7z", "/usrcheat.dat.7z") != 0) {
 		downloadFailed();
 		return;
 	}
 
 	displayBottomMsg("Extracting DSJ's cheat database v2.1.0...\n"
 					"\nThis may take a while.");
-	extractArchive("/CheatsDB.7z", "Cheats/usrcheat.dat", "/_nds/TWiLightMenu/extras/usrcheat.dat");
+	extractArchive("/usrcheat.dat.7z", "usrcheat.dat", "/_nds/TWiLightMenu/extras/usrcheat.dat");
 
-	deleteFile("sdmc:/CheatsDB.7z");
+	deleteFile("sdmc:/usrcheat.dat.7z");
 
 	doneMsg();
 }
