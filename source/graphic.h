@@ -21,6 +21,8 @@ extern size_t twinkletex3;
 extern size_t logotex;
 extern size_t arrowtex;
 extern size_t updatertex;
+extern size_t bluedot;
+extern size_t greendot;
 
 // Colors
 #define TRANSPARENT RGBA8(0, 0, 0, 0)

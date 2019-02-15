@@ -17,6 +17,7 @@ static size_t result_written = 0;
 extern void displayBottomMsg(const char* text);
 
 extern bool downloadNightlies;
+extern bool updateAvailable[];
 
 // following function is from 
 // https://github.com/angelsl/libctrfgh/blob/master/curl_test/src/main.c
@@ -269,9 +270,22 @@ void doneMsg(void) {
 	}
 }
 
-json getReleaseJson(std::string repo) {
+std::string getLatestRelease(std::string repo, std::string item)
+{
 	Result ret = 0;
-	void *socubuf = memalign(0x1000, 0x100000);
+    void *socubuf = memalign(0x1000, 0x100000);
+    if (!socubuf)
+    {
+        return "";
+    }
+
+	ret = socInit((u32*)socubuf, 0x100000);
+	if (R_FAILED(ret))
+    {
+		free(socubuf);
+        return "";
+    }
+	
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/releases/latest";
 	std::string apiurl = apiurlStream.str();
@@ -285,15 +299,15 @@ json getReleaseJson(std::string repo) {
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return ret;
+		return "";
 	}
 
 	CURLcode cres = curl_easy_perform(hnd);
-	curl_easy_cleanup(hnd);
+    curl_easy_cleanup(hnd);
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-
+	
 	if (cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
@@ -302,31 +316,90 @@ json getReleaseJson(std::string repo) {
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return -1;
+		return "";
 	}
-
-	std::string assetUrl;
+	
+	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
-	socExit();
-	free(result_buf);
-	free(socubuf);
+	if (parsedAPI[item].is_string()) {
+		jsonItem = parsedAPI[item];
+	}
+    socExit();
+    free(result_buf);
+    free(socubuf);
 	result_buf = NULL;
 	result_sz = 0;
 	result_written = 0;
 
-	return parsedAPI;
+	return jsonItem;
+}
+
+std::string getLatestCommit(std::string repo, std::string item)
+{
+	Result ret = 0;
+    void *socubuf = memalign(0x1000, 0x100000);
+    if (!socubuf)
+    {
+        return "";
+    }
+
+	ret = socInit((u32*)socubuf, 0x100000);
+	if (R_FAILED(ret))
+    {
+		free(socubuf);
+        return "";
+    }
+	
+	std::stringstream apiurlStream;
+	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
+	std::string apiurl = apiurlStream.str();
+	
+	CURL *hnd = curl_easy_init();
+	ret = setupContext(hnd, apiurl.c_str());
+	if (ret != 0) {
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return "";
+	}
+
+	CURLcode cres = curl_easy_perform(hnd);
+    curl_easy_cleanup(hnd);
+	char* newbuf = (char*)realloc(result_buf, result_written + 1);
+	result_buf = newbuf;
+	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
+	
+	if (cres != CURLE_OK) {
+		printf("Error in:\ncurl\n");
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return "";
+	}
+	
+	std::string jsonItem;
+	json parsedAPI = json::parse(result_buf);
+	if (parsedAPI[item].is_string()) {
+		jsonItem = parsedAPI[item];
+	}
+    socExit();
+    free(result_buf);
+    free(socubuf);
+	result_buf = NULL;
+	result_sz = 0;
+	result_written = 0;
+
+	return jsonItem;
 }
 
 void updateBootstrap(bool nightly) {
 	if(nightly) {
-		json parsedAPI = getReleaseJson("ahezard/nds-bootstrap");
-		if (parsedAPI["tag_name"].is_string()) {
-			CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-			std::string latestVersion = parsedAPI["tag_name"];
-			ini.SetString("NDS-BOOTSTRAP", "NIGHTLY", latestVersion);
-			ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		}
-
 		displayBottomMsg("Downloading nds-bootstrap...\n"
 						"(Nightly)");
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
@@ -339,14 +412,13 @@ void updateBootstrap(bool nightly) {
 		extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/", "/_nds/");
 
 		deleteFile("sdmc:/nds-bootstrap-nightly.7z");
-	} else {
-		json parsedAPI = getReleaseJson("ahezard/nds-bootstrap");
-		if (parsedAPI["tag_name"].is_string()) {
-			CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-			std::string latestVersion = parsedAPI["tag_name"];
-			ini.SetString("NDS-BOOTSTRAP", "NIGHTLY", latestVersion);
-			ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		}
+
+		std::string latestNightly = getLatestCommit("ahezard/nds-bootstrap", "sha").substr(0,7);
+		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		ini.SetString("NDS-BOOTSTRAP", "NIGHTLY", latestNightly);
+		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		updateAvailable[3] = false;
+	} else {	
 		displayBottomMsg("Downloading nds-bootstrap...\n"
 						"(Release)");
 		if (downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip") != 0) {
@@ -359,6 +431,12 @@ void updateBootstrap(bool nightly) {
 		extractArchive("/nds-bootstrap-release.zip", "/", "/_nds/");
 
 		deleteFile("sdmc:/nds-bootstrap-release.zip");
+
+		std::string latestVersion = getLatestRelease("ahezard/nds-bootstrap", "tag_name");
+		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		ini.SetString("NDS-BOOTSTRAP", "RELEASE", latestVersion);
+		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		updateAvailable[2] = false;
 	}
 	doneMsg();
 }
@@ -383,6 +461,15 @@ void updateTWiLight(bool nightly) {
 		installCia("/cia/TWiLight Menu - Game booter.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-nightly.7z");
+
+		std::string latestNightly = getLatestCommit("RocketRobz/TWiLightMenu", "sha").substr(0,7);
+		std::string latestVersion = getLatestRelease("RocketRobz/TWiLightMenu", "tag_name");
+		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		ini.SetString("TWILIGHTMENU", "NIGHTLY", latestNightly);
+		ini.SetString("TWILIGHTMENU", "RELEASE", latestVersion);
+		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		updateAvailable[0] = false;
+		updateAvailable[1] = false;
 	} else {
 		displayBottomMsg("Downloading TWiLight Menu++...\n"
 						"(Release)");
@@ -394,7 +481,7 @@ void updateTWiLight(bool nightly) {
 		displayBottomMsg("Extracting TWiLight Menu++...\n"
 						"(Release)\n\nThis may take a while.");
 		extractArchive("/TWiLightMenu-release.7z", "_nds/", "/_nds/");
-		extractArchive("/TWiLightMenu-release.7z", "3DS - CFW users/cia/", "/cia/");
+		extractArchive("/TWiLightMenu-release.7z", "3DS - CFW users/", "/cia/");
 		extractArchive("/TWiLightMenu-release.7z", "DSi&3DS - SD card users/", "/");
 
 		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
@@ -403,6 +490,12 @@ void updateTWiLight(bool nightly) {
 		installCia("/cia/TWiLight Menu - Game booter.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-release.7z");
+
+		std::string latestVersion = getLatestRelease("RocketRobz/TWiLightMenu", "tag_name");
+		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		ini.SetString("TWILIGHTMENU", "RELEASE", latestVersion);
+		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		updateAvailable[0] = false;
 	}
 	doneMsg();
 }

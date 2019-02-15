@@ -13,6 +13,7 @@
 #include "settings.h"
 #include "language.h"
 #include "download.hpp"
+#include "inifile.h"
 
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
 
@@ -63,7 +64,7 @@ const char *button_titles2[] = {
 	"Nightly",
 	"Release",
 	"Nightly",
-	"Box art",
+	"Boxart",
 	"Cheats",
 	"Release",
 	"Nightly",
@@ -74,6 +75,17 @@ const char *row_titles2[] = {
 	"nds-bootstrap",
 	"Downloads",
 	"Updater",
+};
+
+bool updateAvailable[] = {
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
 };
 
 void screenoff()
@@ -95,6 +107,19 @@ void displayBottomMsg(const char* text) {
 	pp2d_draw_texture(loadingbgtex, 0, 0);
 	pp2d_draw_text(24, 32, 0.5f, 0.5f, BLACK, text);
 	pp2d_end_draw();
+}
+
+void checkForUpdates(void) {
+	CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+	if(ini.GetString("TWILIGHTMENU", "RELEASE", "") != getLatestRelease("RocketRobz/TWiLightMenu", "tag_name"))
+		updateAvailable[0] = true;
+	if(ini.GetString("TWILIGHTMENU", "NIGHTLY", "") != getLatestCommit("RocketRobz/TWiLightMenu", "sha").substr(0,7))
+		updateAvailable[1] = true;
+
+	if(ini.GetString("NDS-BOOTSTRAP", "RELEASE", "") != getLatestRelease("ahezard/nds-bootstrap", "tag_name"))
+		updateAvailable[2] = true;
+	if(ini.GetString("NDS-BOOTSTRAP", "NIGHTLY", "") != getLatestCommit("ahezard/nds-bootstrap", "sha").substr(0,7))
+		updateAvailable[3] = true;
 }
 
 // Version numbers.
@@ -146,6 +171,8 @@ int main()
 	pp2d_load_texture_png(logotex, "romfs:/graphics/twlm_logo.png");
 	pp2d_load_texture_png(arrowtex, "romfs:/graphics/arrow.png");
 	pp2d_load_texture_png(updatertex, "romfs:/graphics/text_updater.png");
+	pp2d_load_texture_png(bluedot, "romfs:/graphics/dot_blue.png");
+	pp2d_load_texture_png(greendot, "romfs:/graphics/dot_green.png");
 	
  	if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
 		ndspInit();
@@ -184,6 +211,8 @@ int main()
 	
 	int fadealpha = 255;
 	bool fadein = true;
+
+	checkForUpdates();
 	
 	// Loop as long as the status is not exit
 	while(aptMainLoop()) {
@@ -241,6 +270,10 @@ int main()
 				} else {
 					pp2d_draw_texture(button_tex2[i], buttons2[i].x, buttons2[i].y);
 				}
+			}
+			// Draw a green dot if an update is availible
+			if(updateAvailable[i]) {
+				pp2d_draw_texture(greendot, buttons2[i].x+75, buttons2[i].y-6);
 			}
 
 			// Determine the text height.
@@ -369,7 +402,7 @@ int main()
 						}
 					}
 					break;
-				case 4:	// Box art
+				case 4:	// Boxart
 					// /* if(checkWifiStatus()){ */ if(1) {
 					// 	if(dspfirmfound) {
 					// 		sfx_select->stop();

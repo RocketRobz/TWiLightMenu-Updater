@@ -55,3 +55,5 @@ size_t twinkletex3 = 13;
 size_t logotex = 14;
 size_t arrowtex = 15;
 size_t updatertex = 16;
+size_t bluedot = 17;
+size_t greendot = 18;
