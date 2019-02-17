@@ -122,9 +122,9 @@ void checkForUpdates(void) {
 		updateAvailable[3] = true;
 
 	if(ini.GetString("TWILIGHTMENU-UPDATER", "RELEASE", "") != getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name"))
-		updateAvailable[0] = true;
+		updateAvailable[4] = true;
 	if(ini.GetString("TWILIGHTMENU-UPDATER", "NIGHTLY", "") != getLatestCommit("RocketRobz/TWiLightMenu-Updater", "sha").substr(0,7))
-		updateAvailable[1] = true;
+		updateAvailable[5] = true;
 }
 
 // Version numbers.
