@@ -10,6 +10,7 @@ extern size_t loadingbgtex;
 extern size_t topbgtex;
 extern size_t subbgtex;
 extern size_t buttontex;
+extern size_t extrasmallbuttontex;
 extern size_t smallbuttontex;
 extern size_t leftpagetex;
 extern size_t rightpagetex;
@@ -20,6 +21,8 @@ extern size_t twinkletex3;
 extern size_t logotex;
 extern size_t arrowtex;
 extern size_t updatertex;
+extern size_t bluedot;
+extern size_t greendot;
 
 // Colors
 #define TRANSPARENT RGBA8(0, 0, 0, 0)

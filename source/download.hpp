@@ -23,26 +23,70 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 bool checkWifiStatus(void);
 
 /**
- * Update nds-bootstrap to the latest nightly build.
+ * Get info from the GitHub API about a Release.
+ * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * item is that to get from the API. (Ex. "tag_name")
+ * @return the string from the API.
  */
-void UpdateBootstrapNightly(void);
+std::string getLatestRelease(std::string repo, std::string item);
 
 /**
- * Update nds-bootstrap to the latest release build.
+ * Get info from the GitHub API about a Commit.
+ * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * item is that to get from the API. (Ex. "sha")
+ * @return the string from the API.
  */
-void UpdateBootstrapRelease(void);
+std::string getLatestCommit(std::string repo, std::string item);
+
+/**
+ * Get info from the GitHub API about a Commit.
+ * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * array is the array the item is in. (Ex. "commit")
+ * item is that to get from the API. (Ex. "message")
+ * @return the string from the API.
+ */
+std::string getLatestCommit(std::string repo, std::string array, std::string item);
+
+/**
+ * Show the latest release's name and message.
+ * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ */
+void showReleaseInfo(std::string repo);
+
+/**
+ * Show the latest commit's name and message.
+ * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ */
+void showCommitInfo(std::string repo);
+
+/**
+ * Prepare text for showing a release/commit message.
+ * text is the text you want to show.
+ */
+void setMessageText(const std::string &text);
+
+/**
+ * Draw text prepared by setMessageText.
+ * position is which line start on.
+ */
+void drawMessageText(int position);
 
 /**
  * Update nds-bootstrap to the latest build.
  */
-void updateBootstrap(void);
+void updateBootstrap(bool nightly);
 
 /**
  * Update TWiLight Menu++ to the latest build.
  */
-void updateTWiLight(void);
+void updateTWiLight(bool nightly);
 
 /**
  * Update the TWiLight Menu++ Updater to the latest build.
  */
-void updateSelf(void);
+void updateSelf(bool nightly);
+
+/**
+ * Update DeadSkullzJr's cheat DB to the latest version.
+ */
+void updateCheats(void);

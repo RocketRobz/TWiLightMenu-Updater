@@ -2,6 +2,9 @@
 #include <sys/stat.h>
 
 #include "extract.hpp"
+#include "inifile.h"
+#include "graphic.h"
+#include "pp2d/pp2d.h"
 
 extern "C" {
 	#include "cia.h"
@@ -12,10 +15,13 @@ extern "C" {
 static char* result_buf = NULL;
 static size_t result_sz = 0;
 static size_t result_written = 0;
+std::vector<std::string> _topText;
+std::string jsonName;
 
 extern void displayBottomMsg(const char* text);
 
 extern bool downloadNightlies;
+extern bool updateAvailable[];
 
 // following function is from 
 // https://github.com/angelsl/libctrfgh/blob/master/curl_test/src/main.c
@@ -268,8 +274,332 @@ void doneMsg(void) {
 	}
 }
 
-void updateBootstrap(void) {
-	if(downloadNightlies) {
+std::string getLatestRelease(std::string repo, std::string item)
+{
+	Result ret = 0;
+    void *socubuf = memalign(0x1000, 0x100000);
+    if (!socubuf)
+    {
+        return "";
+    }
+
+	ret = socInit((u32*)socubuf, 0x100000);
+	if (R_FAILED(ret))
+    {
+		free(socubuf);
+        return "";
+    }
+	
+	std::stringstream apiurlStream;
+	apiurlStream << "https://api.github.com/repos/" << repo << "/releases/latest";
+	std::string apiurl = apiurlStream.str();
+	
+	CURL *hnd = curl_easy_init();
+	ret = setupContext(hnd, apiurl.c_str());
+	if (ret != 0) {
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return "";
+	}
+
+	CURLcode cres = curl_easy_perform(hnd);
+    curl_easy_cleanup(hnd);
+	char* newbuf = (char*)realloc(result_buf, result_written + 1);
+	result_buf = newbuf;
+	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
+	
+	if (cres != CURLE_OK) {
+		printf("Error in:\ncurl\n");
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return "";
+	}
+	
+	std::string jsonItem;
+	json parsedAPI = json::parse(result_buf);
+	if (parsedAPI[item].is_string()) {
+		jsonItem = parsedAPI[item];
+	}
+    socExit();
+    free(result_buf);
+    free(socubuf);
+	result_buf = NULL;
+	result_sz = 0;
+	result_written = 0;
+
+	return jsonItem;
+}
+
+std::string getLatestCommit(std::string repo, std::string item)
+{
+	Result ret = 0;
+    void *socubuf = memalign(0x1000, 0x100000);
+    if (!socubuf)
+    {
+        return "";
+    }
+
+	ret = socInit((u32*)socubuf, 0x100000);
+	if (R_FAILED(ret))
+    {
+		free(socubuf);
+        return "";
+    }
+	
+	std::stringstream apiurlStream;
+	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
+	std::string apiurl = apiurlStream.str();
+	
+	CURL *hnd = curl_easy_init();
+	ret = setupContext(hnd, apiurl.c_str());
+	if (ret != 0) {
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return "";
+	}
+
+	CURLcode cres = curl_easy_perform(hnd);
+    curl_easy_cleanup(hnd);
+	char* newbuf = (char*)realloc(result_buf, result_written + 1);
+	result_buf = newbuf;
+	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
+	
+	if (cres != CURLE_OK) {
+		printf("Error in:\ncurl\n");
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return "";
+	}
+	
+	std::string jsonItem;
+	json parsedAPI = json::parse(result_buf);
+	if (parsedAPI[item].is_string()) {
+		jsonItem = parsedAPI[item];
+	}
+    socExit();
+    free(result_buf);
+    free(socubuf);
+	result_buf = NULL;
+	result_sz = 0;
+	result_written = 0;
+
+	return jsonItem;
+}
+
+std::string getLatestCommit(std::string repo, std::string array, std::string item)
+{
+	Result ret = 0;
+    void *socubuf = memalign(0x1000, 0x100000);
+    if (!socubuf)
+    {
+        return "";
+    }
+
+	ret = socInit((u32*)socubuf, 0x100000);
+	if (R_FAILED(ret))
+    {
+		free(socubuf);
+        return "";
+    }
+	
+	std::stringstream apiurlStream;
+	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
+	std::string apiurl = apiurlStream.str();
+	
+	CURL *hnd = curl_easy_init();
+	ret = setupContext(hnd, apiurl.c_str());
+	if (ret != 0) {
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return "";
+	}
+
+	CURLcode cres = curl_easy_perform(hnd);
+    curl_easy_cleanup(hnd);
+	char* newbuf = (char*)realloc(result_buf, result_written + 1);
+	result_buf = newbuf;
+	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
+	
+	if (cres != CURLE_OK) {
+		printf("Error in:\ncurl\n");
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		return "";
+	}
+	
+	std::string jsonItem;
+	json parsedAPI = json::parse(result_buf);
+	if (parsedAPI[array][item].is_string()) {
+		jsonItem = parsedAPI[array][item];
+	}
+    socExit();
+    free(result_buf);
+    free(socubuf);
+	result_buf = NULL;
+	result_sz = 0;
+	result_written = 0;
+
+	return jsonItem;
+}
+
+void showReleaseInfo(std::string repo)
+{
+	jsonName = getLatestRelease(repo, "name");
+	std::string jsonBody = getLatestRelease(repo, "body");
+	
+	setMessageText(jsonBody);
+	int textPosition = 0;
+	bool redrawText = true;
+
+	while(1) {
+		if(redrawText) {
+			drawMessageText(textPosition);
+			redrawText = false;
+		}
+
+		gspWaitForVBlank();
+		hidScanInput();
+		const u32 hDown = hidKeysDown();
+		const u32 hHeld = hidKeysHeld();
+
+		if(hHeld & KEY_UP || hHeld & KEY_DOWN) {
+			for(int i=0;i<9;i++)
+				gspWaitForVBlank();
+		}
+		
+		if (hDown & KEY_A || hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
+			break;
+		} else if (hHeld & KEY_UP) {
+			if(textPosition > 0) {
+				textPosition--;
+				redrawText = true;
+			}
+		} else if (hHeld & KEY_DOWN) {
+			if(textPosition < (int)(_topText.size() - 10)) {
+				textPosition++;
+				redrawText = true;
+			}
+		}
+	}
+}
+
+void showCommitInfo(std::string repo)
+{
+	jsonName = getLatestCommit(repo, "sha").substr(0,7);
+	std::string jsonBody = getLatestCommit(repo, "commit", "message");
+	setMessageText(jsonBody);
+	int textPosition = 0;
+	bool redrawText = true;
+
+	while(1) {
+		if(redrawText) {
+			drawMessageText(textPosition);
+			redrawText = false;
+		}
+
+		gspWaitForVBlank();
+		hidScanInput();
+		const u32 hDown = hidKeysDown();
+		const u32 hHeld = hidKeysHeld();
+
+		if(hHeld & KEY_UP || hHeld & KEY_DOWN) {
+			for(int i=0;i<9;i++)
+				gspWaitForVBlank();
+		}
+		
+		if (hDown & KEY_A || hDown & KEY_B || hDown & KEY_Y) {
+			break;
+		} else if (hHeld & KEY_UP) {
+			if(textPosition > 0) {
+				textPosition--;
+				redrawText = true;
+			}
+		} else if (hHeld & KEY_DOWN) {
+			if(textPosition < (int)(_topText.size() - 10)) {
+				textPosition++;
+				redrawText = true;
+			}
+		}
+	}
+}
+
+void setMessageText(const std::string &text)
+{
+	std::string _topTextStr(text);
+	std::vector<std::string> words;
+	std::size_t pos;
+	// std::replace( _topTextStr.begin(), _topTextStr.end(), '\n', ' ');
+	_topTextStr.erase(std::remove(_topTextStr.begin(), _topTextStr.end(), '\r'), _topTextStr.end());
+	while((pos = _topTextStr.find(' ')) != std::string::npos) {
+		words.push_back(_topTextStr.substr(0, pos));
+		_topTextStr = _topTextStr.substr(pos + 1);
+	}
+	if(_topTextStr.size())
+		words.push_back(_topTextStr);
+	std::string temp;
+	_topText.clear();
+	for(auto word : words)
+	{
+		int width = pp2d_get_text_width((temp + " " + word).c_str(), 0.5f, 0.5f);
+		if(word.find('\n') != -1u)
+		{
+			word.erase(std::remove(word.begin(), word.end(), '\n'), word.end());
+			temp += " " + word;
+			_topText.push_back(temp);
+			temp = "";
+		}
+		else if(width > 256)
+		{
+			_topText.push_back(temp);
+			temp = word;
+		}
+		else
+		{
+			temp += " " + word;
+		}
+	}
+	if(temp.size())
+	   _topText.push_back(temp);
+}
+
+void drawMessageText(int position)
+{
+	pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
+	pp2d_draw_texture(loadingbgtex, 0, 0);
+	pp2d_draw_text(18, 24, .7, .7, BLACK, jsonName.c_str());
+    for (int i = 0; i < (int)_topText.size() && i < 10; i++)
+    {
+		pp2d_draw_text(24, ((i * 16) + 48), 0.5f, 0.5f, BLACK, _topText[i+position].c_str());
+    }
+	pp2d_end_draw();
+}
+
+void updateBootstrap(bool nightly) {
+	if(nightly) {
 		displayBottomMsg("Downloading nds-bootstrap...\n"
 						"(Nightly)");
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
@@ -282,7 +612,13 @@ void updateBootstrap(void) {
 		extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/", "/_nds/");
 
 		deleteFile("sdmc:/nds-bootstrap-nightly.7z");
-	} else {
+
+		std::string latestNightly = getLatestCommit("ahezard/nds-bootstrap", "sha").substr(0,7);
+		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		ini.SetString("NDS-BOOTSTRAP", "NIGHTLY", latestNightly);
+		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		updateAvailable[3] = false;
+	} else {	
 		displayBottomMsg("Downloading nds-bootstrap...\n"
 						"(Release)");
 		if (downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip") != 0) {
@@ -295,12 +631,18 @@ void updateBootstrap(void) {
 		extractArchive("/nds-bootstrap-release.zip", "/", "/_nds/");
 
 		deleteFile("sdmc:/nds-bootstrap-release.zip");
+
+		std::string latestVersion = getLatestRelease("ahezard/nds-bootstrap", "tag_name");
+		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		ini.SetString("NDS-BOOTSTRAP", "RELEASE", latestVersion);
+		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		updateAvailable[2] = false;
 	}
 	doneMsg();
 }
 
-void updateTWiLight(void) {
-	if(downloadNightlies) {
+void updateTWiLight(bool nightly) {
+	if(nightly) {
 		displayBottomMsg("Downloading TWiLight Menu++...\n"
 						"(Nightly)");
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
@@ -311,14 +653,25 @@ void updateTWiLight(void) {
 		displayBottomMsg("Extracting TWiLight Menu++...\n"
 						"(Nightly)\n\nThis may take a while.");
 		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/", "/_nds/");
-		extractArchive("/TWiLightMenu-nightly.7z", "3DS - CFW users/", "/cia/");
+		extractArchive("/TWiLightMenu-nightly.7z", "3DS - CFW users/", "/");
 
 		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
 						"(Nightly)");
-		// installCia("/cia/TWiLight Menu.cia");
-		installCia("/cia/TWiLight Menu - Game booter.cia");
+		// installCia("/TWiLight Menu.cia");
+		installCia("/TWiLight Menu - Game booter.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-nightly.7z");
+		deleteFile("sdmc:/TWiLight Menu.cia");
+		deleteFile("sdmc:/TWiLight Menu - Game booter.cia");
+
+		std::string latestNightly = getLatestCommit("RocketRobz/TWiLightMenu", "sha").substr(0,7);
+		std::string latestVersion = getLatestRelease("RocketRobz/TWiLightMenu", "tag_name");
+		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		ini.SetString("TWILIGHTMENU", "NIGHTLY", latestNightly);
+		ini.SetString("TWILIGHTMENU", "RELEASE", latestVersion);
+		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		updateAvailable[0] = false;
+		updateAvailable[1] = false;
 	} else {
 		displayBottomMsg("Downloading TWiLight Menu++...\n"
 						"(Release)");
@@ -330,21 +683,29 @@ void updateTWiLight(void) {
 		displayBottomMsg("Extracting TWiLight Menu++...\n"
 						"(Release)\n\nThis may take a while.");
 		extractArchive("/TWiLightMenu-release.7z", "_nds/", "/_nds/");
-		extractArchive("/TWiLightMenu-release.7z", "3DS - CFW users/cia/", "/cia/");
+		extractArchive("/TWiLightMenu-release.7z", "3DS - CFW users/", "/");
 		extractArchive("/TWiLightMenu-release.7z", "DSi&3DS - SD card users/", "/");
 
 		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
 						"(Release)");
-		installCia("/cia/TWiLight Menu.cia");
-		installCia("/cia/TWiLight Menu - Game booter.cia");
+		installCia("/TWiLight Menu.cia");
+		installCia("/TWiLight Menu - Game booter.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-release.7z");
+		deleteFile("sdmc:/TWiLight Menu.cia");
+		deleteFile("sdmc:/TWiLight Menu - Game booter.cia");
+
+		std::string latestVersion = getLatestRelease("RocketRobz/TWiLightMenu", "tag_name");
+		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		ini.SetString("TWILIGHTMENU", "RELEASE", latestVersion);
+		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		updateAvailable[0] = false;
 	}
 	doneMsg();
 }
 
-void updateSelf(void) {
-	if(downloadNightlies) {
+void updateSelf(bool nightly) {
+	if(nightly) {
 		displayBottomMsg("Downloading TWiLight Menu++ Updater...\n"
 						"(Nightly)");
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia?raw=true", "/TWiLightMenu-Updater-nightly.cia") != 0) {
@@ -357,19 +718,50 @@ void updateSelf(void) {
 		installCia("/TWiLightMenu-Updater-nightly.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
+
+		std::string latestNightly = getLatestCommit("RocketRobz/TWiLightMenu-Updater", "sha").substr(0,7);
+		std::string latestVersion = getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name");
+		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		ini.SetString("TWILIGHTMENU-UPDATER", "NIGHTLY", latestNightly);
+		ini.SetString("TWILIGHTMENU-UPDATER", "RELEASE", latestVersion);
+		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		updateAvailable[4] = false;
+		updateAvailable[5] = false;
 	} else {
 		displayBottomMsg("Downloading TWiLight Menu++ Updater...\n"
 						"(Release)");
-		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-nightly.cia") != 0) {
+		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-release.cia") != 0) {
 			downloadFailed();
 			return;
 		}
 
 		displayBottomMsg("Installing TWiLight Menu++ Updater CIA...\n"
 						"(Release)");
-		installCia("/TWiLightMenu-Updater-nightly.cia");
+		installCia("/TWiLightMenu-Updater-release.cia");
 
-		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
+		deleteFile("sdmc:/TWiLightMenu-Updater-release.cia");
+
+		std::string latestVersion = getLatestRelease("RocketRobz/TWiLightMenu", "tag_name");
+		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		ini.SetString("TWILIGHTMENU", "RELEASE", latestVersion);
+		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		updateAvailable[0] = false;
 	}
+	doneMsg();
+}
+
+void updateCheats(void) {
+	displayBottomMsg("Downloading DSJ's cheat database v2.1.0...\n");	// This needs to be manually changed when the usrcheat.dat in TWLBot get's updated
+	if (downloadToFile("https://github.com/TWLBot/Builds/raw/master/usrcheat.dat.7z", "/usrcheat.dat.7z") != 0) {
+		downloadFailed();
+		return;
+	}
+
+	displayBottomMsg("Extracting DSJ's cheat database v2.1.0...\n"
+					"\nThis may take a while.");
+	extractArchive("/usrcheat.dat.7z", "usrcheat.dat", "/_nds/TWiLightMenu/extras/usrcheat.dat");
+
+	deleteFile("sdmc:/usrcheat.dat.7z");
+
 	doneMsg();
 }

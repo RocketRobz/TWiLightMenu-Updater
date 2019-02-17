@@ -13,6 +13,7 @@
 #include "settings.h"
 #include "language.h"
 #include "download.hpp"
+#include "inifile.h"
 
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
 
@@ -20,7 +21,6 @@ static touchPosition touch;
 
 bool dspfirmfound = false;
 static bool musicPlaying = false;
-bool downloadNightlies = false;
 
 // Music and sound effects.
 sound *mus_settings = NULL;
@@ -38,18 +38,54 @@ struct {
 	int x;
 	int y;
 } buttons2[] = {
-	{ 42,  88},
-	{ 42,  136},
+	{ 129, 48},
+	{ 220, 48},
+	{ 129, 88},
+	{ 220, 88},
+	{ 129, 128},
+	{ 220, 128},
+	{ 129, 168},
+	{ 220, 168},
 };
 
 size_t button_tex2[] = {
-	buttontex,
-	buttontex,
+	extrasmallbuttontex,
+	extrasmallbuttontex,
+	extrasmallbuttontex,
+	extrasmallbuttontex,
+	extrasmallbuttontex,
+	extrasmallbuttontex,
+	extrasmallbuttontex,
+	extrasmallbuttontex,
 };
 
 const char *button_titles2[] = {
-	"Update TWiLight Menu++",
-	"Update nds-bootstrap",
+	"Release",
+	"Nightly",
+	"Release",
+	"Nightly",
+	"Release",
+	"Nightly",
+	"Boxart",
+	"Cheats",
+};
+
+const char *row_titles2[] = {
+	"TWL Menu++",
+	"nds-bootstrap",
+	"Updater",
+	"Downloads",
+};
+
+bool updateAvailable[] = {
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
 };
 
 void screenoff()
@@ -71,6 +107,24 @@ void displayBottomMsg(const char* text) {
 	pp2d_draw_texture(loadingbgtex, 0, 0);
 	pp2d_draw_text(24, 32, 0.5f, 0.5f, BLACK, text);
 	pp2d_end_draw();
+}
+
+void checkForUpdates(void) {
+	CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+	if(ini.GetString("TWILIGHTMENU", "RELEASE", "") != getLatestRelease("RocketRobz/TWiLightMenu", "tag_name"))
+		updateAvailable[0] = true;
+	if(ini.GetString("TWILIGHTMENU", "NIGHTLY", "") != getLatestCommit("RocketRobz/TWiLightMenu", "sha").substr(0,7))
+		updateAvailable[1] = true;
+
+	if(ini.GetString("NDS-BOOTSTRAP", "RELEASE", "") != getLatestRelease("ahezard/nds-bootstrap", "tag_name"))
+		updateAvailable[2] = true;
+	if(ini.GetString("NDS-BOOTSTRAP", "NIGHTLY", "") != getLatestCommit("ahezard/nds-bootstrap", "sha").substr(0,7))
+		updateAvailable[3] = true;
+
+	if(ini.GetString("TWILIGHTMENU-UPDATER", "RELEASE", "") != getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name"))
+		updateAvailable[0] = true;
+	if(ini.GetString("TWILIGHTMENU-UPDATER", "NIGHTLY", "") != getLatestCommit("RocketRobz/TWiLightMenu-Updater", "sha").substr(0,7))
+		updateAvailable[1] = true;
 }
 
 // Version numbers.
@@ -111,6 +165,7 @@ int main()
 	pp2d_load_texture_png(topbgtex, "romfs:/graphics/top_bg.png");
 	pp2d_load_texture_png(subbgtex, "romfs:/graphics/BS_background.png");
 	pp2d_load_texture_png(buttontex, "romfs:/graphics/BS_1_2page_button.png");
+	pp2d_load_texture_png(extrasmallbuttontex, "romfs:/graphics/BS_2page_extra_small_button.png");
 	pp2d_load_texture_png(smallbuttontex, "romfs:/graphics/BS_2page_small_button.png");
 	pp2d_load_texture_png(leftpagetex, "romfs:/graphics/BS_Left_page_button.png");
 	pp2d_load_texture_png(rightpagetex, "romfs:/graphics/BS_Rigt_page_button.png");
@@ -121,6 +176,8 @@ int main()
 	pp2d_load_texture_png(logotex, "romfs:/graphics/twlm_logo.png");
 	pp2d_load_texture_png(arrowtex, "romfs:/graphics/arrow.png");
 	pp2d_load_texture_png(updatertex, "romfs:/graphics/text_updater.png");
+	pp2d_load_texture_png(bluedot, "romfs:/graphics/dot_blue.png");
+	pp2d_load_texture_png(greendot, "romfs:/graphics/dot_green.png");
 	
  	if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
 		ndspInit();
@@ -156,9 +213,12 @@ int main()
 	
 	bool buttonShading = false;
 	bool setOption = false;
+	bool showMessage = false;
 	
 	int fadealpha = 255;
 	bool fadein = true;
+
+	checkForUpdates();
 	
 	// Loop as long as the status is not exit
 	while(aptMainLoop()) {
@@ -217,6 +277,10 @@ int main()
 					pp2d_draw_texture(button_tex2[i], buttons2[i].x, buttons2[i].y);
 				}
 			}
+			// Draw a green dot if an update is availible
+			if(updateAvailable[i]) {
+				pp2d_draw_texture(greendot, buttons2[i].x+75, buttons2[i].y-6);
+			}
 
 			// Determine the text height.
 			// NOTE: Button texture size is 132x34.
@@ -224,14 +288,12 @@ int main()
 
 			// Draw the title.
 			int y = buttons2[i].y + ((40 - h) / 2);
-			int text_width = pp2d_get_text_width(button_titles2[i], 0.75, 0.75);
-			int x_from_width = (320-text_width)/2;
-			if (button_tex2[i] == smallbuttontex) {
-				x_from_width += 40;
-			}
+			int x_from_width = buttons2[i].x + 10;
 			pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles2[i]);
 
-			y += 16;
+			if(!(i%2)) {
+				pp2d_draw_text(5, y, 0.7, 0.7, WHITE, row_titles2[i/2]);
+			}
 		}
 		const wchar_t *home_text = TR(STR_RETURN_TO_HOME_MENU);
 		const int home_width = pp2d_get_wtext_width(home_text, 0.50, 0.50) + 16;
@@ -250,9 +312,13 @@ int main()
 		}
 
 		if (hDown & KEY_UP) {
-			if (buttonShading) menuSelection--;
+			if (buttonShading) menuSelection -= 2;
 		} else if (hDown & KEY_DOWN) {
-			if (buttonShading) menuSelection++;
+			if (buttonShading) menuSelection += 2;
+		} else if (hDown & KEY_LEFT) {
+			if (buttonShading && menuSelection%2) menuSelection--;
+		} else if (hDown & KEY_RIGHT) {
+			if (buttonShading && !(menuSelection%2)) menuSelection++;
 		}
 		if (hDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
 			buttonShading = true;
@@ -266,52 +332,196 @@ int main()
 			buttonShading = false;
 		}
 
-		if (menuSelection > 2) menuSelection = 0;
-		if (menuSelection < 0) menuSelection = 1;
+		if (menuSelection > 8) menuSelection = 1;
+		else if (menuSelection > 7) menuSelection = 0;
+		else if (menuSelection < -1) menuSelection = 6;
+		else if (menuSelection < 0) menuSelection = 7;
 
 		if (hDown & KEY_A) {
 			setOption = true;
 		}
 
-		// For testing
-		if (hDown & KEY_X) {
-			if(dspfirmfound) {
-				sfx_select->stop();
-				sfx_select->play();
+		if (hDown & KEY_TOUCH) {
+			for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
+				if(updateAvailable[i]){
+					if (touch.py >= (buttons2[i].y-6) && touch.py <= (buttons2[i].y+10) && touch.px >= (buttons2[i].x+75) && touch.px <= (buttons2[i].x+91)) {
+						menuSelection = i;
+						showMessage = true;
+					}
+				}
+			}
+			if(!showMessage) {
+				for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
+					if (touch.py >= buttons2[i].y && touch.py <= (buttons2[i].y+33) && touch.px >= buttons2[i].x && touch.px <= (buttons2[i].x+87)) {
+						menuSelection = i;
+						setOption = true;
+					}
+				}
 			}
 		}
 
-		// For testing
-		if (hDown & KEY_Y) {
-			if(dspfirmfound) {
-				sfx_select->stop();
-				sfx_select->play();
+		if (hDown & KEY_Y || showMessage) {
+			switch (menuSelection)
+			{
+				case 0:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showReleaseInfo("RocketRobz/TWiLightMenu");
+					break;
+				case 1:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showCommitInfo("RocketRobz/TWiLightMenu");
+					break;
+				case 2:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showReleaseInfo("ahezard/nds-bootstrap");
+					break;
+				case 3:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showCommitInfo("ahezard/nds-bootstrap");
+					break;
+				case 4:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showReleaseInfo("RocketRobz/TWiLightMenu-Updater");
+					break;
+				case 5:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showCommitInfo("RocketRobz/TWiLightMenu-Updater");
+					break;
+				default:
+					if(dspfirmfound) {
+						sfx_wrong->stop();
+						sfx_wrong->play();
+					}
+					break;
 			}
-			downloadNightlies = !downloadNightlies;
-		}
-
-		if ((hDown & KEY_TOUCH) && touch.px >= 42 && touch.px <= 275) {
-			if (touch.py >= 88 && touch.py <= 118) {
-				menuSelection = 0;
-				setOption = true;
-			} else if (touch.py >= 136 && touch.py <= 166) {
-				menuSelection = 1;
-				setOption = true;
-			} else if (touch.py >= 167) {
-				menuSelection = 2;
-				setOption = true;
-			}
+			showMessage = false;
 		}
 
 		if (setOption) {
 			switch (menuSelection) {
-				case 0:
-					if(checkWifiStatus()){
+				case 0:	// TWiLight release
+					/* if(checkWifiStatus()){ */ if(1) { // For testing
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						updateTWiLight();
+						updateTWiLight(false);
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
+					break;
+				case 1:	// TWiLight nightly
+					/* if(checkWifiStatus()){ */ if(1) { // For testing
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						updateTWiLight(true);
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
+					break;
+				case 2:	// nds-bootstrap release
+					/* if(checkWifiStatus()){ */ if(1) {
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						updateBootstrap(false);
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
+					break;
+				case 3:	// nds-bootstrap nightly
+					/* if(checkWifiStatus()){ */ if(1) {
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						updateBootstrap(true);
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
+					break;
+				case 4:	// Updater release
+					/* if(checkWifiStatus()){ */ if(1) {
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						updateSelf(false);
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
+					break;
+				case 5:	// Updater nightly
+					/* if(checkWifiStatus()){ */ if(1) {
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						updateSelf(true);
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
+					break;
+				case 6:	// Boxart
+					// /* if(checkWifiStatus()){ */ if(1) {
+					// 	if(dspfirmfound) {
+					// 		sfx_select->stop();
+					// 		sfx_select->play();
+					// 	}
+					// 	updateBootstrap(false);
+					// } else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					// }
+					break;
+				case 7:	// usrcheat.dat
+					/* if(checkWifiStatus()){ */ if(1) {
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						updateCheats();
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
@@ -323,34 +533,6 @@ int main()
 					if(dspfirmfound) {
 						sfx_wrong->stop();
 						sfx_wrong->play();
-					}
-					break;
-				case 1:
-					if(checkWifiStatus()){
-						if(dspfirmfound) {
-							sfx_select->stop();
-							sfx_select->play();
-						}
-						updateBootstrap();
-					} else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
-					}
-					break;
-				case 2:
-					if(checkWifiStatus()){
-						if(dspfirmfound) {
-							sfx_select->stop();
-							sfx_select->play();
-						}
-						updateSelf();
-					} else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
 					}
 					break;
 			}
