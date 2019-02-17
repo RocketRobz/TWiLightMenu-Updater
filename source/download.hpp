@@ -39,6 +39,39 @@ std::string getLatestRelease(std::string repo, std::string item);
 std::string getLatestCommit(std::string repo, std::string item);
 
 /**
+ * Get info from the GitHub API about a Commit.
+ * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * array is the array the item is in. (Ex. "commit")
+ * item is that to get from the API. (Ex. "message")
+ * @return the string from the API.
+ */
+std::string getLatestCommit(std::string repo, std::string array, std::string item);
+
+/**
+ * Show the latest release's name and message.
+ * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ */
+void showReleaseInfo(std::string repo);
+
+/**
+ * Show the latest commit's name and message.
+ * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ */
+void showCommitInfo(std::string repo);
+
+/**
+ * Prepare text for showing a release/commit message.
+ * text is the text you want to show.
+ */
+void setMessageText(const std::string &text);
+
+/**
+ * Draw text prepared by setMessageText.
+ * position is which line start on.
+ */
+void drawMessageText(int position);
+
+/**
  * Update nds-bootstrap to the latest build.
  */
 void updateBootstrap(bool nightly);

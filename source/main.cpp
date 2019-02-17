@@ -64,17 +64,17 @@ const char *button_titles2[] = {
 	"Nightly",
 	"Release",
 	"Nightly",
-	"Boxart",
-	"Cheats",
 	"Release",
 	"Nightly",
+	"Boxart",
+	"Cheats",
 };
 
 const char *row_titles2[] = {
 	"TWL Menu++",
 	"nds-bootstrap",
-	"Downloads",
 	"Updater",
+	"Downloads",
 };
 
 bool updateAvailable[] = {
@@ -120,6 +120,11 @@ void checkForUpdates(void) {
 		updateAvailable[2] = true;
 	if(ini.GetString("NDS-BOOTSTRAP", "NIGHTLY", "") != getLatestCommit("ahezard/nds-bootstrap", "sha").substr(0,7))
 		updateAvailable[3] = true;
+
+	if(ini.GetString("TWILIGHTMENU-UPDATER", "RELEASE", "") != getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name"))
+		updateAvailable[0] = true;
+	if(ini.GetString("TWILIGHTMENU-UPDATER", "NIGHTLY", "") != getLatestCommit("RocketRobz/TWiLightMenu-Updater", "sha").substr(0,7))
+		updateAvailable[1] = true;
 }
 
 // Version numbers.
@@ -335,6 +340,60 @@ int main()
 			setOption = true;
 		}
 
+		if (hDown & KEY_Y) {
+			switch (menuSelection)
+			{
+				case 0:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showReleaseInfo("RocketRobz/TWiLightMenu");
+					break;
+				case 1:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showCommitInfo("RocketRobz/TWiLightMenu");
+					break;
+				case 2:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showReleaseInfo("ahezard/nds-bootstrap");
+					break;
+				case 3:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showCommitInfo("ahezard/nds-bootstrap");
+					break;
+				case 4:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showReleaseInfo("RocketRobz/TWiLightMenu-Updater");
+					break;
+				case 5:
+					if(dspfirmfound) {
+						sfx_select->stop();
+						sfx_select->play();
+					}
+					showCommitInfo("RocketRobz/TWiLightMenu-Updater");
+					break;
+				default:
+					if(dspfirmfound) {
+						sfx_wrong->stop();
+						sfx_wrong->play();
+					}
+					break;
+			}
+		}
+
 		if (hDown & KEY_TOUCH) {
 			for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
 				if (touch.py >= buttons2[i].y && touch.py <= (buttons2[i].y+33) && touch.px >= buttons2[i].x && touch.px <= (buttons2[i].x+87)) {
@@ -402,35 +461,7 @@ int main()
 						}
 					}
 					break;
-				case 4:	// Boxart
-					// /* if(checkWifiStatus()){ */ if(1) {
-					// 	if(dspfirmfound) {
-					// 		sfx_select->stop();
-					// 		sfx_select->play();
-					// 	}
-					// 	updateBootstrap(false);
-					// } else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
-					// }
-					break;
-				case 5:	// usrcheat.dat
-					/* if(checkWifiStatus()){ */ if(1) {
-						if(dspfirmfound) {
-							sfx_select->stop();
-							sfx_select->play();
-						}
-						updateCheats();
-					} else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
-					}
-					break;
-				case 6:	// Updater release
+				case 4:	// Updater release
 					/* if(checkWifiStatus()){ */ if(1) {
 						if(dspfirmfound) {
 							sfx_select->stop();
@@ -444,13 +475,41 @@ int main()
 						}
 					}
 					break;
-				case 7:	// Updater nightly
+				case 5:	// Updater nightly
 					/* if(checkWifiStatus()){ */ if(1) {
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
 						updateSelf(true);
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
+					break;
+				case 6:	// Boxart
+					// /* if(checkWifiStatus()){ */ if(1) {
+					// 	if(dspfirmfound) {
+					// 		sfx_select->stop();
+					// 		sfx_select->play();
+					// 	}
+					// 	updateBootstrap(false);
+					// } else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					// }
+					break;
+				case 7:	// usrcheat.dat
+					/* if(checkWifiStatus()){ */ if(1) {
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						updateCheats();
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
