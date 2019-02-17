@@ -213,6 +213,7 @@ int main()
 	
 	bool buttonShading = false;
 	bool setOption = false;
+	bool showMessage = false;
 	
 	int fadealpha = 255;
 	bool fadein = true;
@@ -340,7 +341,26 @@ int main()
 			setOption = true;
 		}
 
-		if (hDown & KEY_Y) {
+		if (hDown & KEY_TOUCH) {
+			for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
+				if(updateAvailable[i]){
+					if (touch.py >= (buttons2[i].y-6) && touch.py <= (buttons2[i].y+10) && touch.px >= (buttons2[i].x+75) && touch.px <= (buttons2[i].x+91)) {
+						menuSelection = i;
+						showMessage = true;
+					}
+				}
+			}
+			if(!showMessage) {
+				for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
+					if (touch.py >= buttons2[i].y && touch.py <= (buttons2[i].y+33) && touch.px >= buttons2[i].x && touch.px <= (buttons2[i].x+87)) {
+						menuSelection = i;
+						setOption = true;
+					}
+				}
+			}
+		}
+
+		if (hDown & KEY_Y || showMessage) {
 			switch (menuSelection)
 			{
 				case 0:
@@ -392,15 +412,7 @@ int main()
 					}
 					break;
 			}
-		}
-
-		if (hDown & KEY_TOUCH) {
-			for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
-				if (touch.py >= buttons2[i].y && touch.py <= (buttons2[i].y+33) && touch.px >= buttons2[i].x && touch.px <= (buttons2[i].x+87)) {
-					menuSelection = i;
-					setOption = true;
-				}
-			}
+			showMessage = false;
 		}
 
 		if (setOption) {

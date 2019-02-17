@@ -453,13 +453,6 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 	
 	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
-	// if (parsedAPI[array].is_array()) {
-	// 	for (auto jsonAsset : parsedAPI[array]) {
-	// 		if (jsonAsset[item].is_string()) {
-	// 			jsonItem = jsonAsset[item];
-	// 		}
-	// 	}
-	// }
 	if (parsedAPI[array][item].is_string()) {
 		jsonItem = parsedAPI[array][item];
 	}
@@ -498,7 +491,7 @@ void showReleaseInfo(std::string repo)
 				gspWaitForVBlank();
 		}
 		
-		if (hDown & KEY_A || hDown & KEY_B || hDown & KEY_Y) {
+		if (hDown & KEY_A || hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
 			break;
 		} else if (hHeld & KEY_UP) {
 			if(textPosition > 0) {
