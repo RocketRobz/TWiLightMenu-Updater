@@ -13,8 +13,16 @@ struct DirEntry
 	string name;
 	bool isDirectory;
 	char tid[5];
+	off_t size;
 };
 
-void findNdsFiles(vector<DirEntry>& sdContents);
+typedef struct {
+	char gameTitle[12];			//!< 12 characters for the game title.
+	char gameCode[4];			//!< 4 characters for the game code.
+} sNDSHeadertitlecodeonly;
+
+void findNdsFiles(vector<DirEntry>& dirContents);
+
+void getDirectoryContents (vector<DirEntry>& dirContents);
 
 #endif //FILE_BROWSE_H

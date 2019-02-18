@@ -769,7 +769,7 @@ void updateCheats(void) {
 	doneMsg();
 }
 
-char* getBoxartRegion(char tid_region) {
+const char* getBoxartRegion(char tid_region) {
 	// European boxart languages.
 	static const char *const ba_langs_eur[] = {
 		"EN",	// Japanese (English used in place)
@@ -842,6 +842,9 @@ char* getBoxartRegion(char tid_region) {
 		case 'S':
 			ba_region = "ES";	// Spanish
 			break;
+		case '#':
+			ba_region = "HB"; // Homebrew
+			break;
 	}
 	return ba_region;
 }
@@ -850,20 +853,18 @@ void downloadBoxart(void) {
 
 	vector<DirEntry> dirContents;
 
-	displayBottomMsg("Scanning SD card for nds roms...\n");
+	displayBottomMsg("Scanning SD card for DS roms...\n");
 
-	chdir("sdmc:/!roms/");
+	chdir("sdmc:/");
 	findNdsFiles(dirContents);
 
-	displayBottomMsg("Downloading boxart...\n");
-
-	for(int i=0;i<dirContents.size();i++) {
+	for(int i=0;i<(int)dirContents.size();i++) {
 		char downloadMessage[50];
 		snprintf(downloadMessage, sizeof(downloadMessage), "Downloading \"%s.bmp\"...\n", dirContents[i].tid);
 		displayBottomMsg(downloadMessage);
 
-		char* ba_region = getBoxartRegion(dirContents[i].tid[3]);
-
+		const char *ba_region = getBoxartRegion(dirContents[i].tid[3]);
+		
 		char boxartUrl[256];
 		snprintf(boxartUrl, sizeof(boxartUrl), "https://art.gametdb.com/ds/coverDS/%s/%s.bmp", ba_region, dirContents[i].tid);
 		char boxartPath[256];
@@ -871,4 +872,17 @@ void downloadBoxart(void) {
 		
 		downloadToFile(boxartUrl, boxartPath);
 	}
+
+	chdir("sdmc:/_nds/TWiLightMenu/boxart/");
+	getDirectoryContents(dirContents);
+
+	displayBottomMsg("Deleting blank files...");
+	for(int i=0;i<(int)dirContents.size();i++) {
+		if(dirContents[i].size == 0) {
+			char path[256];
+			snprintf(path, sizeof(path), "%s%s", "sdmc:/_nds/TWiLightMenu/boxart/", dirContents[i].name.c_str());
+			deleteFile(path);
+		}
+	}
+	doneMsg();
 }

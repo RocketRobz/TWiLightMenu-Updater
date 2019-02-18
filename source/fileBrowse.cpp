@@ -4,11 +4,6 @@
 #include <vector>
 #include <unistd.h>
 
-#include "extract.hpp"
-#include "inifile.h"
-#include "graphic.h"
-#include "ndsheaderbanner.h"
-#include "pp2d/pp2d.h"
 
 using namespace std;
 
@@ -16,27 +11,21 @@ int file_count = 0;
 
 extern void displayBottomMsg(const char* text);
 
-bool dirEntryPredicate(const DirEntry& lhs, const DirEntry& rhs)
+/**
+ * Get the title ID.
+ * @param ndsFile DS ROM image.
+ * @param buf Output buffer for title ID. (Must be at least 4 characters.)
+ * @return 0 on success; non-zero on error.
+ */
+int grabTID(FILE *ndsFile, char *buf)
 {
-
-	if (!lhs.isDirectory && rhs.isDirectory)
-	{
-		return false;
-	}
-	if (lhs.isDirectory && !rhs.isDirectory)
-	{
-		return true;
-	}
-	return strcasecmp(lhs.name.c_str(), rhs.name.c_str()) < 0;
+	fseek(ndsFile, offsetof(sNDSHeadertitlecodeonly, gameCode), SEEK_SET);
+	size_t read = fread(buf, 1, 4, ndsFile);
+	return !(read == 4);
 }
 
 void findNdsFiles(vector<DirEntry>& dirContents)
-{
-
-	// dirContents.clear();
-
-	// file_count = 0;
-	
+{	
 	struct stat st;
 	DIR *pdir = opendir(".");
 
@@ -58,42 +47,78 @@ void findNdsFiles(vector<DirEntry>& dirContents)
 			stat(pent->d_name, &st);
 			dirEntry.name = pent->d_name;
 			dirEntry.isDirectory = (st.st_mode & S_IFDIR) ? true : false;
+				if(!(dirEntry.isDirectory) && dirEntry.name.length() >= 3) {
+					if (strcasecmp(dirEntry.name.substr(dirEntry.name.length()-3, 3).c_str(), "nds") == 0) {
+						// Get game's TID
+						FILE *f_nds_file = fopen(dirEntry.name.c_str(), "rb");
+						// char game_TID[5];
+						grabTID(f_nds_file, dirEntry.tid);
+						dirEntry.tid[4] = 0;
+						fclose(f_nds_file);
 
-			displayBottomMsg(dirEntry.name.c_str());
-			// for(int i=0;i<30;i++)
-			// 	gspWaitForVBlank();
+						// dirEntry.tid = game_TID;
 
-			// if (showDirectories) {
-				// if (dirEntry.name.compare(".") != 0 && dirEntry.name.compare("_nds") && dirEntry.name.compare("saves") != 0 && (dirEntry.isDirectory || strcasecmp(dirEntry.name.substr(dirEntry.name.length()-3, 3).c_str(), "nds"))) {
-				// 	dirContents.push_back(dirEntry);
-				// 	file_count++;
-				// }
-				if (strcasecmp(dirEntry.name.substr(dirEntry.name.length()-3, 3).c_str(), "nds") == 0) {
-					// Get game's TID
-					FILE *f_nds_file = fopen(dirEntry.name.c_str(), "rb");
-					// char game_TID[5];
-					grabTID(f_nds_file, dirEntry.tid);
-					dirEntry.tid[4] = 0;
-					fclose(f_nds_file);
-
-					// dirEntry.tid = game_TID;
-
-					dirContents.push_back(dirEntry);
-					file_count++;
+						dirContents.push_back(dirEntry);
+						file_count++;
+					}
 				} else if (dirEntry.isDirectory) {
-					// char path[256];
-					// getcwd(path, sizeof(path));
-					// snprintf(path, sizeof(path), "%s%s", path, dirEntry.name.c_str());
-					// displayBottomMsg(path);
-					// for(int i=0;i<60;i++)
-					// 		gspWaitForVBlank();
 					chdir(dirEntry.name.c_str());
 					findNdsFiles(dirContents);
 					chdir("..");
 				}
 		}
-		// sort(dirContents.begin(), dirContents.end(), dirEntryPredicate);
-
 		closedir(pdir);
 	}
+}
+
+off_t getFileSize(const char *fileName)
+{
+    FILE* fp = fopen(fileName, "rb");
+    off_t fsize = 0;
+    if (fp) {
+        fseek(fp, 0, SEEK_END);
+        fsize = ftell(fp);			// Get source file's size
+		fseek(fp, 0, SEEK_SET);
+	}
+	fclose(fp);
+
+	return fsize;
+}
+
+void getDirectoryContents (vector<DirEntry>& dirContents) {
+	struct stat st;
+
+	dirContents.clear();
+
+	DIR *pdir = opendir ("."); 
+	
+	if (pdir == NULL) {
+		displayBottomMsg("Unable to open the directory.");
+		for(int i=0;i<120;i++)
+			gspWaitForVBlank();
+	} else {
+
+		while(true) {
+			DirEntry dirEntry;
+
+			struct dirent* pent = readdir(pdir);
+			if(pent == NULL) break;
+
+			stat(pent->d_name, &st);
+			if (strcmp(pent->d_name, "..") != 0) {
+				dirEntry.name = pent->d_name;
+				dirEntry.isDirectory = (st.st_mode & S_IFDIR) ? true : false;
+				if (!dirEntry.isDirectory) {
+					dirEntry.size = getFileSize(dirEntry.name.c_str());
+				}
+
+				if (dirEntry.name.compare(".") != 0) {
+					dirContents.push_back (dirEntry);
+				}
+			}
+
+		}
+		
+		closedir(pdir);
+	}	
 }
