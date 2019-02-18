@@ -418,7 +418,7 @@ int main()
 		if (setOption) {
 			switch (menuSelection) {
 				case 0:	// TWiLight release
-					/* if(checkWifiStatus()){ */ if(1) { // For testing
+					if(checkWifiStatus()){ // For testing
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -432,7 +432,7 @@ int main()
 					}
 					break;
 				case 1:	// TWiLight nightly
-					/* if(checkWifiStatus()){ */ if(1) { // For testing
+					if(checkWifiStatus()){ // For testing
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -446,7 +446,7 @@ int main()
 					}
 					break;
 				case 2:	// nds-bootstrap release
-					/* if(checkWifiStatus()){ */ if(1) {
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -460,7 +460,7 @@ int main()
 					}
 					break;
 				case 3:	// nds-bootstrap nightly
-					/* if(checkWifiStatus()){ */ if(1) {
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -474,7 +474,7 @@ int main()
 					}
 					break;
 				case 4:	// Updater release
-					/* if(checkWifiStatus()){ */ if(1) {
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -488,7 +488,7 @@ int main()
 					}
 					break;
 				case 5:	// Updater nightly
-					/* if(checkWifiStatus()){ */ if(1) {
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -502,21 +502,21 @@ int main()
 					}
 					break;
 				case 6:	// Boxart
-					// /* if(checkWifiStatus()){ */ if(1) {
-					// 	if(dspfirmfound) {
-					// 		sfx_select->stop();
-					// 		sfx_select->play();
-					// 	}
-					// 	updateBootstrap(false);
-					// } else {
+					// if(checkWifiStatus()){
 						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
+							sfx_select->stop();
+							sfx_select->play();
 						}
+						downloadBoxart();
+					// } else {
+					// 	if(dspfirmfound) {
+					// 		sfx_wrong->stop();
+					// 		sfx_wrong->play();
+					// 	}
 					// }
 					break;
 				case 7:	// usrcheat.dat
-					/* if(checkWifiStatus()){ */ if(1) {
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();

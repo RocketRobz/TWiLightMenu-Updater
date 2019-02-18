@@ -1,9 +1,12 @@
 #include "download.hpp"
 #include <sys/stat.h>
+#include <vector>
+#include <unistd.h>
 
 #include "extract.hpp"
 #include "inifile.h"
 #include "graphic.h"
+#include "fileBrowse.h"
 #include "pp2d/pp2d.h"
 
 extern "C" {
@@ -764,4 +767,106 @@ void updateCheats(void) {
 	deleteFile("sdmc:/usrcheat.dat.7z");
 
 	doneMsg();
+}
+
+char* getBoxartRegion(char tid_region) {
+	// European boxart languages.
+	static const char *const ba_langs_eur[] = {
+		"EN",	// Japanese (English used in place)
+		"EN",	// English
+		"FR",	// French
+		"DE",	// German
+		"IT",	// Italian
+		"ES",	// Spanish
+		"ZHCN",	// Simplified Chinese
+		"KO",	// Korean
+	};
+	CIniFile ini("sdmc:/_nds/TWiLightMenu/settings.ini");
+	int language = ini.GetInt("SRLOADER", "LANGUAGE", -1);
+	const char *ba_region;
+
+	switch (tid_region) {
+		case 'E':
+		case 'T':
+			ba_region = "US";	// USA
+			break;
+		case 'J':
+			ba_region = "JA";	// Japanese
+			break;
+		case 'K':
+			ba_region = "KO";	// Korean
+			break;
+
+		case 'O':			// USA/Europe
+			// if (region == CFG_REGION_USA) {
+				// System is USA region.
+				// Get the USA boxart if it's available.
+				ba_region = "EN";
+				break;
+			// }
+			// fall-through
+		case 'P':			// Europe
+		default:
+			// System is not USA region.
+			// Get the European boxart that matches the system's language.
+			// TODO: Check country code for Australia.
+			// This requires parsing the Config savegame. (GetConfigInfoBlk2())
+			// Reference: https://3dbrew.org/wiki/Config_Savegame
+			if(language == -1)
+				ba_region = "EN";	// TODO: make this actually set to the console's language
+			else
+				ba_region = ba_langs_eur[language];
+			break;
+
+		case 'U':
+			// Alternate country code for Australia.
+			ba_region = "AU";
+			break;
+
+		// European country-specific localizations.
+		case 'D':
+			ba_region = "DE";	// German
+			break;
+		case 'F':
+			ba_region = "FR";	// French
+			break;
+		case 'H':
+			ba_region = "NL";	// Dutch
+			break;
+		case 'I':
+			ba_region = "IT";	// Italian
+			break;
+		case 'R':
+			ba_region = "RU";	// Russian
+			break;
+		case 'S':
+			ba_region = "ES";	// Spanish
+			break;
+	}
+	return ba_region;
+}
+
+void downloadBoxart(void) {
+
+	vector<DirEntry> dirContents;
+
+	displayBottomMsg("Scanning SD card for nds roms...\n");
+
+	chdir("sdmc:/!roms/DS/");
+	findNdsFiles(dirContents);
+
+	displayBottomMsg("Downloading boxart...\n");
+
+	for(int i=0;i<dirContents.size();i++) {
+		char* ba_region = getBoxartRegion(dirContents[i].tid[3]);
+
+		displayBottomMsg(ba_region);
+
+		char boxartUrl[256];
+		snprintf(boxartUrl, sizeof(boxartUrl), "https://art.gametdb.com/ds/coverDS/%s/%s.bmp", ba_region, dirContents[i].tid);
+		char boxartPath[256];
+		snprintf(boxartPath, sizeof(boxartPath), "/_nds/TWiLightMenu/boxart/%s.bmp", dirContents[i].tid);
+		
+		downloadToFile(boxartUrl, boxartPath);
+	}
 }
