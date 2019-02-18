@@ -852,15 +852,17 @@ void downloadBoxart(void) {
 
 	displayBottomMsg("Scanning SD card for nds roms...\n");
 
-	chdir("sdmc:/!roms/DS/");
+	chdir("sdmc:/!roms/");
 	findNdsFiles(dirContents);
 
 	displayBottomMsg("Downloading boxart...\n");
 
 	for(int i=0;i<dirContents.size();i++) {
-		char* ba_region = getBoxartRegion(dirContents[i].tid[3]);
+		char downloadMessage[50];
+		snprintf(downloadMessage, sizeof(downloadMessage), "Downloading \"%s.bmp\"...\n", dirContents[i].tid);
+		displayBottomMsg(downloadMessage);
 
-		displayBottomMsg(ba_region);
+		char* ba_region = getBoxartRegion(dirContents[i].tid[3]);
 
 		char boxartUrl[256];
 		snprintf(boxartUrl, sizeof(boxartUrl), "https://art.gametdb.com/ds/coverDS/%s/%s.bmp", ba_region, dirContents[i].tid);

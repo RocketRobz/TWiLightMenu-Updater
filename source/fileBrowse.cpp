@@ -42,7 +42,9 @@ void findNdsFiles(vector<DirEntry>& dirContents)
 
 	if (pdir == NULL)
 	{
-		// iprintf("Unable to open the directory.\n");
+		displayBottomMsg("Unable to open the directory.");
+		for(int i=0;i<120;i++)
+			gspWaitForVBlank();
 	}
 	else
 	{
@@ -79,6 +81,12 @@ void findNdsFiles(vector<DirEntry>& dirContents)
 					dirContents.push_back(dirEntry);
 					file_count++;
 				} else if (dirEntry.isDirectory) {
+					// char path[256];
+					// getcwd(path, sizeof(path));
+					// snprintf(path, sizeof(path), "%s%s", path, dirEntry.name.c_str());
+					// displayBottomMsg(path);
+					// for(int i=0;i<60;i++)
+					// 		gspWaitForVBlank();
 					chdir(dirEntry.name.c_str());
 					findNdsFiles(dirContents);
 					chdir("..");
