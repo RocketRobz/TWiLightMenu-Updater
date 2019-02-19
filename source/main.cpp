@@ -20,6 +20,7 @@
 static touchPosition touch;
 
 bool dspfirmfound = false;
+bool updatingSelf = false;
 static bool musicPlaying = false;
 
 // Music and sound effects.
@@ -490,7 +491,9 @@ int main()
 							sfx_select->stop();
 							sfx_select->play();
 						}
+						updatingSelf = true;
 						updateSelf(false);
+						updatingSelf = false;
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
@@ -504,7 +507,9 @@ int main()
 							sfx_select->stop();
 							sfx_select->play();
 						}
+						updatingSelf = true;
 						updateSelf(true);
+						updatingSelf = false;
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
