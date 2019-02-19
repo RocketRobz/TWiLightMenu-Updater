@@ -70,6 +70,17 @@ const char *button_titles2[] = {
 	"Cheats",
 };
 
+const int title_spacing[] = {
+	6,
+	10,
+	6,
+	10,
+	6,
+	10,
+	14,
+	10,
+};
+
 const char *row_titles2[] = {
 	"TWL Menu++",
 	"nds-bootstrap",
@@ -288,7 +299,7 @@ int main()
 
 			// Draw the title.
 			int y = buttons2[i].y + ((40 - h) / 2);
-			int x_from_width = buttons2[i].x + 10;
+			int x_from_width = buttons2[i].x + title_spacing[i];
 			pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles2[i]);
 
 			if(!(i%2)) {

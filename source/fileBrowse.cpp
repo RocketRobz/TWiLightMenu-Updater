@@ -46,6 +46,9 @@ void findNdsFiles(vector<DirEntry>& dirContents)
 
 			stat(pent->d_name, &st);
 			dirEntry.name = pent->d_name;
+			char scanningMessage[512];
+			snprintf(scanningMessage, sizeof(scanningMessage), "Scanning SD card for DS roms...\n\nThis may take a while.\n\n\n\n\n\n\n\n\n%s", dirEntry.name.c_str());
+			displayBottomMsg(scanningMessage);
 			dirEntry.isDirectory = (st.st_mode & S_IFDIR) ? true : false;
 				if(!(dirEntry.isDirectory) && dirEntry.name.length() >= 3) {
 					if (strcasecmp(dirEntry.name.substr(dirEntry.name.length()-3, 3).c_str(), "nds") == 0) {
@@ -61,7 +64,16 @@ void findNdsFiles(vector<DirEntry>& dirContents)
 						dirContents.push_back(dirEntry);
 						file_count++;
 					}
-				} else if (dirEntry.isDirectory) {
+				} else if (dirEntry.isDirectory
+				&& dirEntry.name.compare(".") != 0
+				&& dirEntry.name.compare("_nds") != 0
+				&& dirEntry.name.compare("3ds") != 0
+				&& dirEntry.name.compare("DCIM") != 0
+				&& dirEntry.name.compare("gm9") != 0
+				&& dirEntry.name.compare("luma") != 0
+				&& dirEntry.name.compare("Nintendo 3DS") != 0
+				&& dirEntry.name.compare("private") != 0
+				&& dirEntry.name.compare("retroarch") != 0) {
 					chdir(dirEntry.name.c_str());
 					findNdsFiles(dirContents);
 					chdir("..");
