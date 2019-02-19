@@ -717,7 +717,8 @@ void updateSelf(bool nightly) {
 		}
 
 		displayBottomMsg("Installing TWiLight Menu++ Updater CIA...\n"
-						"(Nightly)");
+						"(Nightly)\n\n\n\n\n\n\n\n\n\n"
+						"The app will reboot when done.");
 		installCia("/TWiLightMenu-Updater-nightly.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
@@ -739,7 +740,8 @@ void updateSelf(bool nightly) {
 		}
 
 		displayBottomMsg("Installing TWiLight Menu++ Updater CIA...\n"
-						"(Release)");
+						"(Release)\n\n\n\n\n\n\n\n\n\n"
+						"The app will reboot when done.");
 		installCia("/TWiLightMenu-Updater-release.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-release.cia");

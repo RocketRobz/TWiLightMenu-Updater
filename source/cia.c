@@ -1,5 +1,25 @@
 #include "cia.h"
 
+extern bool updatingSelf;
+
+
+static Result CIA_LaunchTitle(u64 titleId, FS_MediaType mediaType) {
+	Result ret = 0;
+	u8 param[0x300];
+	u8 hmac[0x20];
+	
+	if (R_FAILED(ret = APT_PrepareToDoApplicationJump(0, titleId, mediaType))) {
+		printf("Error In:\nAPT_PrepareToDoApplicationJump");
+		return ret;
+	}
+	if (R_FAILED(ret = APT_DoApplicationJump(param, sizeof(param), hmac))) {
+		printf("Error In:\nAPT_DoApplicationJump");
+		return ret;
+	}
+
+	return 0;
+}
+
 Result deletePrevious(u64 titleid, FS_MediaType media)
 {
 	Result ret = 0;
@@ -71,9 +91,11 @@ Result installCia(const char * ciaPath)
 
 	media = getTitleDestination(info.titleID);
 	
-	ret = deletePrevious(info.titleID, media);
-	if (R_FAILED(ret))
-		return ret;
+	if(!updatingSelf) {
+		ret = deletePrevious(info.titleID, media);
+		if (R_FAILED(ret))
+			return ret;
+	}
 	
 	ret = FSFILE_GetSize(fileHandle, &size);
 	if (R_FAILED(ret)) {
@@ -104,6 +126,11 @@ Result installCia(const char * ciaPath)
 	if (R_FAILED(ret)) {
 		printf("Error in:\nFSFILE_Close\n");
 		return ret;
+	}
+
+	if (updatingSelf) {
+		if (R_FAILED(ret = CIA_LaunchTitle(info.titleID, MEDIATYPE_SD)))
+			return ret;
 	}
 	
 	return 0;
