@@ -70,6 +70,17 @@ const char *button_titles2[] = {
 	"Cheats",
 };
 
+const int title_spacing[] = {
+	6,
+	10,
+	6,
+	10,
+	6,
+	10,
+	14,
+	10,
+};
+
 const char *row_titles2[] = {
 	"TWL Menu++",
 	"nds-bootstrap",
@@ -288,7 +299,7 @@ int main()
 
 			// Draw the title.
 			int y = buttons2[i].y + ((40 - h) / 2);
-			int x_from_width = buttons2[i].x + 10;
+			int x_from_width = buttons2[i].x + title_spacing[i];
 			pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles2[i]);
 
 			if(!(i%2)) {
@@ -418,7 +429,7 @@ int main()
 		if (setOption) {
 			switch (menuSelection) {
 				case 0:	// TWiLight release
-					/* if(checkWifiStatus()){ */ if(1) { // For testing
+					if(checkWifiStatus()){ // For testing
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -432,7 +443,7 @@ int main()
 					}
 					break;
 				case 1:	// TWiLight nightly
-					/* if(checkWifiStatus()){ */ if(1) { // For testing
+					if(checkWifiStatus()){ // For testing
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -446,7 +457,7 @@ int main()
 					}
 					break;
 				case 2:	// nds-bootstrap release
-					/* if(checkWifiStatus()){ */ if(1) {
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -460,7 +471,7 @@ int main()
 					}
 					break;
 				case 3:	// nds-bootstrap nightly
-					/* if(checkWifiStatus()){ */ if(1) {
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -474,7 +485,7 @@ int main()
 					}
 					break;
 				case 4:	// Updater release
-					/* if(checkWifiStatus()){ */ if(1) {
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -488,7 +499,7 @@ int main()
 					}
 					break;
 				case 5:	// Updater nightly
-					/* if(checkWifiStatus()){ */ if(1) {
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -502,21 +513,21 @@ int main()
 					}
 					break;
 				case 6:	// Boxart
-					// /* if(checkWifiStatus()){ */ if(1) {
-					// 	if(dspfirmfound) {
-					// 		sfx_select->stop();
-					// 		sfx_select->play();
-					// 	}
-					// 	updateBootstrap(false);
-					// } else {
+					// if(checkWifiStatus()){
 						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
+							sfx_select->stop();
+							sfx_select->play();
 						}
+						downloadBoxart();
+					// } else {
+					// 	if(dspfirmfound) {
+					// 		sfx_wrong->stop();
+					// 		sfx_wrong->play();
+					// 	}
 					// }
 					break;
 				case 7:	// usrcheat.dat
-					/* if(checkWifiStatus()){ */ if(1) {
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();

@@ -90,3 +90,8 @@ void updateSelf(bool nightly);
  * Update DeadSkullzJr's cheat DB to the latest version.
  */
 void updateCheats(void);
+
+/**
+ * Download boxart from gametdb for all roms found on SD.
+ */
+void downloadBoxart(void);
