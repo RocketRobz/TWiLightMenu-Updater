@@ -190,7 +190,7 @@ all: $(OUTPUT).cia $(OUTPUT).elf $(OUTPUT).3dsx
 $(OUTPUT).elf	:	$(OFILES)
 
 $(OUTPUT).cia	:	$(OUTPUT).elf $(OUTPUT).smdh
-	$(BANNERTOOL) makebanner -i "../app/banner.png" -a "../app/BannerAudio.wav" -o "../app/banner.bin"
+	$(BANNERTOOL) makebanner -ci "../app/banner.cgfx" -a "../app/BannerAudio.wav" -o "../app/banner.bin"
 
 	$(BANNERTOOL) makesmdh -i "../app/icon.png" -s "TWiLight Menu++ Updater" -l "TWiLight Menu++ Updater" -p "$(APP_AUTHOR)" -o "../app/icon.bin"
 
