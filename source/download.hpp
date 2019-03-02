@@ -72,6 +72,11 @@ void setMessageText(const std::string &text);
 void drawMessageText(int position);
 
 /**
+ * Check for updates.
+ */
+void checkForUpdates(void);
+
+/**
  * Update nds-bootstrap to the latest build.
  */
 void updateBootstrap(bool nightly);

@@ -20,6 +20,13 @@ static size_t result_sz = 0;
 static size_t result_written = 0;
 std::vector<std::string> _topText;
 std::string jsonName;
+CIniFile versionsFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersionsV2.ini");
+std::string latestMenuReleaseCache = "";
+std::string latestMenuNightlyCache = "";
+std::string latestBootstrapReleaseCache = "";
+std::string latestBootstrapNightlyCache = "";
+std::string latestUpdaterReleaseCache = "";
+std::string latestUpdaterNightlyCache = "";
 
 extern void displayBottomMsg(const char* text);
 
@@ -601,6 +608,91 @@ void drawMessageText(int position)
 	pp2d_end_draw();
 }
 
+std::string latestMenuRelease(void) {
+	if (latestMenuReleaseCache == "")
+		latestMenuReleaseCache = getLatestRelease("RocketRobz/TWiLightMenu", "tag_name");
+	return latestMenuReleaseCache;
+}
+
+std::string latestMenuNightly(void) {
+	if (latestMenuNightlyCache == "")
+		latestMenuNightlyCache = getLatestCommit("RocketRobz/TWiLightMenu", "sha").substr(0,7);
+	return latestMenuNightlyCache;
+}
+
+std::string latestBootstrapRelease(void) {
+	if (latestBootstrapReleaseCache == "")
+		latestBootstrapReleaseCache = getLatestRelease("ahezard/nds-bootstrap", "tag_name");
+	return latestBootstrapReleaseCache;
+}
+
+std::string latestBootstrapNightly(void) {
+	if (latestBootstrapNightlyCache == "")
+		latestBootstrapNightlyCache = getLatestCommit("ahezard/nds-bootstrap", "sha").substr(0,7);
+	return latestBootstrapNightlyCache;
+}
+
+std::string latestUpdaterRelease(void) {
+	if (latestUpdaterReleaseCache == "")
+		latestUpdaterReleaseCache = getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name");
+	return latestUpdaterReleaseCache;
+}
+
+std::string latestUpdaterNightly(void) {
+	if (latestUpdaterNightlyCache == "")
+		latestUpdaterNightlyCache = getLatestCommit("RocketRobz/TWiLightMenu-Updater", "sha").substr(0,7);
+	return latestUpdaterNightlyCache;
+}
+
+void saveUpdateData(void) {
+	versionsFile.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersionsV2.ini");
+}
+
+std::string getInstalledVersion(std::string component) {
+	return versionsFile.GetString(component, "VERSION", "");
+}
+
+std::string getInstalledChannel(std::string component) {
+	return versionsFile.GetString(component, "CHANNEL", "");
+}
+
+void setInstalledVersion(std::string component, std::string version) {
+	versionsFile.SetString(component, "VERSION", version);
+}
+
+void setInstalledChannel(std::string component, std::string channel) {
+	versionsFile.SetString(component, "CHANNEL", channel);
+}
+
+void checkForUpdates() {
+	// First remove the old versions file
+	unlink("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+
+	std::string menuChannel = getInstalledChannel("TWILIGHTMENU");
+	std::string menuVersion = getInstalledVersion("TWILIGHTMENU");
+	std::string updaterChannel = getInstalledChannel("TWILIGHTMENU-UPDATER");
+	std::string updaterVersion = getInstalledVersion("TWILIGHTMENU-UPDATER");
+	std::string bootstrapRelease = getInstalledVersion("NDS-BOOTSTRAP-RELEASE");
+	std::string boostrapNightly = getInstalledVersion("NDS-BOOTSTRAP-NIGHTLY");
+
+	if (menuChannel == "release")
+		updateAvailable[0] = menuVersion != latestMenuRelease();
+	else if (menuChannel == "nightly")
+		updateAvailable[1] = menuVersion != latestMenuNightly();
+	else
+		updateAvailable[0] = updateAvailable[1] = true;
+
+	updateAvailable[2] = bootstrapRelease != latestBootstrapRelease();
+	updateAvailable[3] = boostrapNightly != latestBootstrapNightly();
+
+	if (updaterChannel == "release")
+		updateAvailable[4] = updaterVersion != latestUpdaterRelease();
+	else if (updaterChannel == "nightly")
+		updateAvailable[5] = updaterVersion != latestUpdaterNightly();
+	else
+		updateAvailable[4] = updateAvailable[5] = true;
+}
+
 void updateBootstrap(bool nightly) {
 	if(nightly) {
 		displayBottomMsg("Downloading nds-bootstrap...\n"
@@ -616,10 +708,8 @@ void updateBootstrap(bool nightly) {
 
 		deleteFile("sdmc:/nds-bootstrap-nightly.7z");
 
-		std::string latestNightly = getLatestCommit("ahezard/nds-bootstrap", "sha").substr(0,7);
-		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		ini.SetString("NDS-BOOTSTRAP", "NIGHTLY", latestNightly);
-		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		setInstalledVersion("NDS-BOOTSTRAP-NIGHTLY", latestBootstrapNightly());
+		saveUpdateData();
 		updateAvailable[3] = false;
 	} else {	
 		displayBottomMsg("Downloading nds-bootstrap...\n"
@@ -635,10 +725,8 @@ void updateBootstrap(bool nightly) {
 
 		deleteFile("sdmc:/nds-bootstrap-release.zip");
 
-		std::string latestVersion = getLatestRelease("ahezard/nds-bootstrap", "tag_name");
-		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		ini.SetString("NDS-BOOTSTRAP", "RELEASE", latestVersion);
-		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		setInstalledVersion("NDS-BOOTSTRAP-RELEASE", latestBootstrapRelease());
+		saveUpdateData();
 		updateAvailable[2] = false;
 	}
 	doneMsg();
@@ -667,13 +755,9 @@ void updateTWiLight(bool nightly) {
 		deleteFile("sdmc:/TWiLight Menu.cia");
 		deleteFile("sdmc:/TWiLight Menu - Game booter.cia");
 
-		std::string latestNightly = getLatestCommit("RocketRobz/TWiLightMenu", "sha").substr(0,7);
-		std::string latestVersion = getLatestRelease("RocketRobz/TWiLightMenu", "tag_name");
-		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		ini.SetString("TWILIGHTMENU", "NIGHTLY", latestNightly);
-		ini.SetString("TWILIGHTMENU", "RELEASE", latestVersion);
-		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		updateAvailable[0] = false;
+		setInstalledChannel("TWILIGHTMENU", "nightly");
+		setInstalledVersion("TWILIGHTMENU", latestMenuNightly());
+		saveUpdateData();
 		updateAvailable[1] = false;
 	} else {
 		displayBottomMsg("Downloading TWiLight Menu++...\n"
@@ -698,10 +782,9 @@ void updateTWiLight(bool nightly) {
 		deleteFile("sdmc:/TWiLight Menu.cia");
 		deleteFile("sdmc:/TWiLight Menu - Game booter.cia");
 
-		std::string latestVersion = getLatestRelease("RocketRobz/TWiLightMenu", "tag_name");
-		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		ini.SetString("TWILIGHTMENU", "RELEASE", latestVersion);
-		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
+		setInstalledChannel("TWILIGHTMENU", "release");
+		setInstalledVersion("TWILIGHTMENU", latestMenuRelease());
+		saveUpdateData();
 		updateAvailable[0] = false;
 	}
 	doneMsg();
@@ -723,13 +806,9 @@ void updateSelf(bool nightly) {
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
 
-		std::string latestNightly = getLatestCommit("RocketRobz/TWiLightMenu-Updater", "sha").substr(0,7);
-		std::string latestVersion = getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name");
-		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		ini.SetString("TWILIGHTMENU-UPDATER", "NIGHTLY", latestNightly);
-		ini.SetString("TWILIGHTMENU-UPDATER", "RELEASE", latestVersion);
-		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		updateAvailable[4] = false;
+		setInstalledChannel("TWILIGHTMENU-UPDATER", "nightly");
+		setInstalledVersion("TWILIGHTMENU-UPDATER", latestUpdaterNightly());
+		saveUpdateData();
 		updateAvailable[5] = false;
 	} else {
 		displayBottomMsg("Downloading TWiLight Menu++ Updater...\n"
@@ -746,11 +825,10 @@ void updateSelf(bool nightly) {
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-release.cia");
 
-		std::string latestVersion = getLatestRelease("RocketRobz/TWiLightMenu", "tag_name");
-		CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		ini.SetString("TWILIGHTMENU", "RELEASE", latestVersion);
-		ini.SaveIniFile("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-		updateAvailable[0] = false;
+		setInstalledChannel("TWILIGHTMENU-UPDATER", "release");
+		setInstalledVersion("TWILIGHTMENU-UPDATER", latestUpdaterRelease());
+		saveUpdateData();
+		updateAvailable[4] = false;
 	}
 	doneMsg();
 }
