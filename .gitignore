@@ -14,3 +14,7 @@ build/*
 
 # VS Code files
 .vscode/*
+
+# Build artifacts
+app/banner.bin
+app/icon.bin
