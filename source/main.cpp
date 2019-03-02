@@ -121,24 +121,6 @@ void displayBottomMsg(const char* text) {
 	pp2d_end_draw();
 }
 
-void checkForUpdates(void) {
-	CIniFile ini("sdmc:/_nds/TWiLightMenu/extras/updater/currentVersions.ini");
-	if(ini.GetString("TWILIGHTMENU", "RELEASE", "") != getLatestRelease("RocketRobz/TWiLightMenu", "tag_name"))
-		updateAvailable[0] = true;
-	if(ini.GetString("TWILIGHTMENU", "NIGHTLY", "") != getLatestCommit("RocketRobz/TWiLightMenu", "sha").substr(0,7))
-		updateAvailable[1] = true;
-
-	if(ini.GetString("NDS-BOOTSTRAP", "RELEASE", "") != getLatestRelease("ahezard/nds-bootstrap", "tag_name"))
-		updateAvailable[2] = true;
-	if(ini.GetString("NDS-BOOTSTRAP", "NIGHTLY", "") != getLatestCommit("ahezard/nds-bootstrap", "sha").substr(0,7))
-		updateAvailable[3] = true;
-
-	if(ini.GetString("TWILIGHTMENU-UPDATER", "RELEASE", "") != getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name"))
-		updateAvailable[4] = true;
-	if(ini.GetString("TWILIGHTMENU-UPDATER", "NIGHTLY", "") != getLatestCommit("RocketRobz/TWiLightMenu-Updater", "sha").substr(0,7))
-		updateAvailable[5] = true;
-}
-
 // Version numbers.
 char launcher_vertext[13];
 
