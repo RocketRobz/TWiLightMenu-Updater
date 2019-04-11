@@ -44,6 +44,7 @@ script:
   - make
   - qrencode -o TWiLight_Menu++_Updater.png https://github.com/TWLBot/Builds/releases/download/v$CURRENT_DATE/TWiLight_Menu++_Updater.cia
   - export IMAGE=https://raw.githubusercontent.com/TWLBot/Builds/v$CURRENT_DATE/TWiLightMenu%20Updater/TWiLight_Menu%2B%2B_Updater.png
+  - 7z a TWiLightMenu-Updater.7z ../TWiLightMenu-Updater
 addons:
   apt:
     sources:
@@ -58,6 +59,15 @@ after_failure:
   - curl -o send.sh https://raw.githubusercontent.com/DS-Homebrew/travis-ci-discord-webhook/master/send.sh
   - chmod +x send.sh
   - ./send.sh failure $WEBHOOK_URL
+  - git config --local user.name "TWLBot"
+  - git clone https://$GITHUB_TOKEN@github.com/TWLBot/overflow-builds.git
+  - cd overflow-builds/
+  - cp ../TWiLightMenu-Updater.7z TWiLightMenu-Updater.7z
+  - git stage .
+  - git commit -m "Failed... | $COMMIT_TAG"
+  - git push origin master
+  - export CURRENT_DATE=$(date +'%Y%m%d-%H%M%S')
+  - git tag v$CURRENT_DATE
 
 before_deploy:
   - git config --local user.name "TWLBot"
