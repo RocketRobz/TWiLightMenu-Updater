@@ -362,7 +362,7 @@ int main()
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					showReleaseInfo("RocketRobz/TWiLightMenu");
+					showReleaseInfo("RocketRobz/TWiLightMenu", false);
 					break;
 				case 1:
 					if(dspfirmfound) {
@@ -376,7 +376,7 @@ int main()
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					showReleaseInfo("ahezard/nds-bootstrap");
+					showReleaseInfo("ahezard/nds-bootstrap", false);
 					break;
 				case 3:
 					if(dspfirmfound) {
@@ -390,7 +390,7 @@ int main()
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					showReleaseInfo("RocketRobz/TWiLightMenu-Updater");
+					showReleaseInfo("RocketRobz/TWiLightMenu-Updater", false);
 					break;
 				case 5:
 					if(dspfirmfound) {
@@ -412,12 +412,14 @@ int main()
 		if (setOption) {
 			switch (menuSelection) {
 				case 0:	// TWiLight release
-					if(checkWifiStatus()){ // For testing
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						updateTWiLight(false);
+						displayBottomMsg("Loading release notes...");
+						if(showReleaseInfo("RocketRobz/TWiLightMenu", true))
+							updateTWiLight(false);
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
@@ -426,7 +428,7 @@ int main()
 					}
 					break;
 				case 1:	// TWiLight nightly
-					if(checkWifiStatus()){ // For testing
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -440,18 +442,20 @@ int main()
 					}
 					break;
 				case 2:	// nds-bootstrap release
-					if(checkWifiStatus()){
+					// if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						updateBootstrap(false);
-					} else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
-					}
+						displayBottomMsg("Loading release notes...");
+						if(showReleaseInfo("ahezard/nds-bootstrap", true))
+							updateBootstrap(false);
+					// } else {
+					// 	if(dspfirmfound) {
+					// 		sfx_wrong->stop();
+					// 		sfx_wrong->play();
+					// 	}
+					// }
 					break;
 				case 3:	// nds-bootstrap nightly
 					if(checkWifiStatus()){
@@ -473,9 +477,12 @@ int main()
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						updatingSelf = true;
-						updateSelf(false);
-						updatingSelf = false;
+						displayBottomMsg("Loading release notes...");
+						if(showReleaseInfo("RocketRobz/TWiLightMenu-Updater", true)) {
+							updatingSelf = true;
+							updateSelf(false);
+							updatingSelf = false;
+						}
 					} else {
 						if(dspfirmfound) {
 							sfx_wrong->stop();
