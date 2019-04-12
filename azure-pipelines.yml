@@ -27,6 +27,7 @@ steps:
      sudo 7z x libctru.7z -o/opt/devkitpro/ -y
      curl -L https://github.com/Steveice10/bannertool/releases/download/1.1.0/bannertool.zip -o bannertool.zip
      sudo 7z e bannertool.zip linux-x86_64/bannertool
+     sudo chmod +x bannertool
      rm bannertool.zip
      curl -L https://github.com/profi200/Project_CTR/releases/download/0.15/makerom_015_ctrtool.zip -o makerom_015_ctrtool.zip
      sudo 7z e makerom_015_ctrtool.zip Linux_x86_64/makerom
@@ -57,18 +58,18 @@ steps:
     echo '##vso[task.setvariable variable=TWLBOT_COMMIT]'$(git log -1 --format="%H")
   displayName: "Commit to TWLBot/Builds"
 
-- task: GitHubRelease@0
-  displayName: "Release to TWLBot/Builds"
-  inputs:
-    gitHubConnection: TWLBot
-    repositoryName: TWLBot/Builds
-    action: create
-    target: $(TWLBOT_COMMIT)
-    tagSource: 'manual'
-    tag: v$(CURRENT_DATE)
-    title: TWiLightMenu-Updater | $(COMMIT_TAG)
-    releaseNotesSource: input
-    releaseNotes: $(COMMIT_MESSAGE)
-    assets: '$(Build.ArtifactStagingDirectory)/*'
-    isPreRelease: true
-    addChangeLog: false
+#- task: GitHubRelease@0
+#  displayName: "Release to TWLBot/Builds"
+#  inputs:
+#    gitHubConnection: TWLBot
+#    repositoryName: TWLBot/Builds
+#    action: create
+#    target: $(TWLBOT_COMMIT)
+#    tagSource: 'manual'
+#    tag: v$(CURRENT_DATE)
+#    title: TWiLightMenu-Updater | $(COMMIT_TAG)
+#    releaseNotesSource: input
+#    releaseNotes: $(COMMIT_MESSAGE)
+#    assets: '$(Build.ArtifactStagingDirectory)/*'
+#    isPreRelease: true
+#    addChangeLog: false
