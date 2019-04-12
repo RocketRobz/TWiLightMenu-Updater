@@ -38,7 +38,6 @@ steps:
      export DEVKITPRO="/opt/devkitpro"
      export DEVKITARM="/opt/devkitpro/devkitARM"
      make
-     qrencode -o TWiLight_Menu++_Updater.png https://github.com/TWLBot/Builds/releases/download/v$CURRENT_DATE/TWiLight_Menu++_Updater.cia
      export IMAGE=https://raw.githubusercontent.com/TWLBot/Builds/v$CURRENT_DATE/TWiLightMenu%20Updater/TWiLight_Menu%2B%2B_Updater.png
   displayName: 'Build TWiLightMenu-Updater'
 
@@ -51,7 +50,6 @@ steps:
     cd Builds/TWiLightMenu\ Updater/
     cp ../../TWiLight_Menu++_Updater.3dsx TWiLight_Menu++_Updater.3dsx
     cp ../../TWiLight_Menu++_Updater.cia TWiLight_Menu++_Updater.cia
-    cp ../../TWiLight_Menu++_Updater.png TWiLight_Menu++_Updater.png
     git stage .
     git commit -m "TWiLightMenu-Updater | $(COMMIT_TAG)"
     git push origin master
@@ -74,17 +72,3 @@ steps:
     assets: '$(Build.ArtifactStagingDirectory)/*'
     isPreRelease: true
     addChangeLog: false
-  
-- script: |
-    curl -o send.sh https://raw.githubusercontent.com/DS-Homebrew/discord-webhooks/master/send-azure.sh
-    chmod +x send.sh
-    ./send.sh success $WEBHOOK_URL
-  condition: succeded()
-  displayName: 'Send success webhook'
-
-- script: |
-    curl -o send.sh https://raw.githubusercontent.com/DS-Homebrew/discord-webhooks/master/send-azure.sh
-    chmod +x send.sh
-    ./send.sh failure $WEBHOOK_URL
-  condition: failed()
-  displayName: 'Send failure webhook'
