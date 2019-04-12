@@ -51,7 +51,7 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
  * Show the latest release's name and message.
  * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
  */
-void showReleaseInfo(std::string repo);
+bool showReleaseInfo(std::string repo, bool drawMessageText);
 
 /**
  * Show the latest commit's name and message.
@@ -69,7 +69,7 @@ void setMessageText(const std::string &text);
  * Draw text prepared by setMessageText.
  * position is which line start on.
  */
-void drawMessageText(int position);
+void drawMessageText(int position, bool drawMessageText);
 
 /**
  * Check for updates.

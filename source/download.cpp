@@ -476,7 +476,7 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 	return jsonItem;
 }
 
-void showReleaseInfo(std::string repo)
+bool showReleaseInfo(std::string repo, bool showExitText)
 {
 	jsonName = getLatestRelease(repo, "name");
 	std::string jsonBody = getLatestRelease(repo, "body");
@@ -487,7 +487,7 @@ void showReleaseInfo(std::string repo)
 
 	while(1) {
 		if(redrawText) {
-			drawMessageText(textPosition);
+			drawMessageText(textPosition, showExitText);
 			redrawText = false;
 		}
 
@@ -501,8 +501,10 @@ void showReleaseInfo(std::string repo)
 				gspWaitForVBlank();
 		}
 		
-		if (hDown & KEY_A || hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
-			break;
+		if (hDown & KEY_A || hDown & KEY_Y || hDown & KEY_TOUCH) {
+			return true;
+		} else if (hDown & KEY_B) {
+			return false;
 		} else if (hHeld & KEY_UP) {
 			if(textPosition > 0) {
 				textPosition--;
@@ -527,7 +529,7 @@ void showCommitInfo(std::string repo)
 
 	while(1) {
 		if(redrawText) {
-			drawMessageText(textPosition);
+			drawMessageText(textPosition, false);
 			redrawText = false;
 		}
 
@@ -596,15 +598,16 @@ void setMessageText(const std::string &text)
 	   _topText.push_back(temp);
 }
 
-void drawMessageText(int position)
+void drawMessageText(int position, bool showExitText)
 {
 	pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
 	pp2d_draw_texture(loadingbgtex, 0, 0);
 	pp2d_draw_text(18, 24, .7, .7, BLACK, jsonName.c_str());
-    for (int i = 0; i < (int)_topText.size() && i < 10; i++)
-    {
-		pp2d_draw_text(24, ((i * 16) + 48), 0.5f, 0.5f, BLACK, _topText[i+position].c_str());
-    }
+	for (int i = 0; i < (int)_topText.size() && i < (showExitText ? 9 : 10); i++) {
+			pp2d_draw_text(24, ((i * 16) + 48), 0.5f, 0.5f, BLACK, _topText[i+position].c_str());
+	}
+	if(showExitText)
+		pp2d_draw_text(24, 200, 0.5f, 0.5f, BLACK, "B: Cancel   A: Update");
 	pp2d_end_draw();
 }
 
@@ -932,10 +935,81 @@ const char* getBoxartRegion(char tid_region) {
 void downloadBoxart(void) {
 
 	vector<DirEntry> dirContents;
+	std::string scanDir;
+
+	displayBottomMsg("Would you like to choose a directory, or scan\nthe full card?\n\n\n\n\n\n\n\n\n\nB: Cancel   A: Full SD   X: Choose Directory");
+
+	while(1) {
+		gspWaitForVBlank();
+		hidScanInput();
+		const u32 hDown = hidKeysDown();
+
+		if(hDown & KEY_A) {
+			scanDir = "sdmc:/";
+			break;
+		} else if(hDown & KEY_X) {
+			chdir("sdmc:/");
+			bool dirChosen = false;
+			uint selectedDir = 0;
+			while(!dirChosen) {
+				getDirectoryContents(dirContents);
+				for(uint i=0;i<dirContents.size();i++) {
+					if(!dirContents[i].isDirectory) {
+						dirContents.erase(dirContents.begin()+i);
+					}
+				}
+				while(1) {
+					gspWaitForVBlank();
+					hidScanInput();
+					const u32 hDown = hidKeysDown();
+					if(hDown & KEY_A) {
+						chdir(dirContents[selectedDir].name.c_str());
+						selectedDir = 0;
+						break;
+					} else if(hDown & KEY_B) {
+						chdir("..");
+						selectedDir = 0;
+						break;
+					}	else if(hDown & KEY_X) {
+						chdir(dirContents[selectedDir].name.c_str());
+						char path[1024];
+						getcwd(path, sizeof(path));
+						scanDir = path;
+						dirChosen = true;
+						break;
+					} else if(hDown & KEY_UP) {
+						if(selectedDir > 0) {
+							selectedDir--;
+						}
+					} else if(hDown & KEY_DOWN) {
+						if(selectedDir < dirContents.size()-1) {
+							selectedDir++;
+						}
+					}
+					std::string dirs;
+					for(uint i=(selectedDir<10) ? 0 : selectedDir-10;i<dirContents.size()&&i<((selectedDir<10) ? 11 : selectedDir+1);i++) {
+						if(i == selectedDir) {
+							dirs += "> " + dirContents[i].name + "\n";
+						} else {
+							dirs += "  " + dirContents[i].name + "\n";
+						}
+					}
+					for(uint i=0;i<((dirContents.size()<10) ? 11-dirContents.size() : 0);i++) {
+						dirs += "\n";
+					}
+					dirs += "B: Back   A: Open   X: Choose";
+					displayBottomMsg(dirs.c_str());
+				}
+			}
+			break;
+		} else if(hDown & KEY_B) {
+			return;
+		}
+	}
 
 	displayBottomMsg("Scanning SD card for DS roms...\n");
 
-	chdir("sdmc:/");
+	chdir(scanDir.c_str());
 	findNdsFiles(dirContents);
 
 	for(int i=0;i<(int)dirContents.size();i++) {
