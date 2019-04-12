@@ -66,7 +66,7 @@ steps:
     target: $(TWLBOT_COMMIT)
     tagSource: 'manual'
     tag: v$(CURRENT_DATE)
-    title: nds-bootstrap | $(COMMIT_TAG)
+    title: TWiLightMenu-Updater | $(COMMIT_TAG)
     releaseNotesSource: input
     releaseNotes: $(COMMIT_MESSAGE)
     assets: '$(Build.ArtifactStagingDirectory)/*'
