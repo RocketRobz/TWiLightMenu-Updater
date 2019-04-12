@@ -442,7 +442,7 @@ int main()
 					}
 					break;
 				case 2:	// nds-bootstrap release
-					// if(checkWifiStatus()){
+					if(checkWifiStatus()){
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -450,12 +450,12 @@ int main()
 						displayBottomMsg("Loading release notes...");
 						if(showReleaseInfo("ahezard/nds-bootstrap", true))
 							updateBootstrap(false);
-					// } else {
-					// 	if(dspfirmfound) {
-					// 		sfx_wrong->stop();
-					// 		sfx_wrong->play();
-					// 	}
-					// }
+					} else {
+						if(dspfirmfound) {
+							sfx_wrong->stop();
+							sfx_wrong->play();
+						}
+					}
 					break;
 				case 3:	// nds-bootstrap nightly
 					if(checkWifiStatus()){
