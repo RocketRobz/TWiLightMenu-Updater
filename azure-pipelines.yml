@@ -76,7 +76,7 @@ steps:
     curl -o send.sh https://raw.githubusercontent.com/DS-Homebrew/discord-webhooks/master/send-azure.sh
     chmod +x send.sh
     ./send.sh success $WEBHOOK_URL
-  condition: suceeded()
+  condition: succeeded()
   displayName: 'Send success webhook'
 
 - script: |
