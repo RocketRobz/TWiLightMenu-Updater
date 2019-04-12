@@ -22,8 +22,8 @@ steps:
      sudo dkp-pacman -Sy
      sudo dkp-pacman -S 3ds-dev --noconfirm
      
-     #sudo dkp-pacman -S 3ds-curl 3ds-libarchive 3ds-liblzma 3ds-mbedtls 3ds-bzip2 3ds-zlib
-     #
+     sudo dkp-pacman -S 3ds-curl 3ds-libarchive 3ds-liblzma 3ds-mbedtls 3ds-bzip2 3ds-zlib --noconfirm
+     
      sudo 7z x libctru.7z -o/opt/devkitpro/ -y
      curl -L https://github.com/Steveice10/bannertool/releases/download/1.1.0/bannertool.zip -o bannertool.zip
      sudo 7z e bannertool.zip linux-x86_64/bannertool
