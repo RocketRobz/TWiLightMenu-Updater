@@ -932,10 +932,81 @@ const char* getBoxartRegion(char tid_region) {
 void downloadBoxart(void) {
 
 	vector<DirEntry> dirContents;
+	std::string scanDir;
+
+	displayBottomMsg("Would you like to choose a directory, or scan\nthe full card?\n\n\n\n\n\n\n\n\n\nB: Cancel   A: Full SD   X: Choose Directory");
+
+	while(1) {
+		gspWaitForVBlank();
+		hidScanInput();
+		const u32 hDown = hidKeysDown();
+
+		if(hDown & KEY_A) {
+			scanDir = "sdmc:/";
+			break;
+		} else if(hDown & KEY_X) {
+			chdir("sdmc:/");
+			bool dirChosen = false;
+			uint selectedDir = 0;
+			while(!dirChosen) {
+				getDirectoryContents(dirContents);
+				for(uint i=0;i<dirContents.size();i++) {
+					if(!dirContents[i].isDirectory) {
+						dirContents.erase(dirContents.begin()+i);
+					}
+				}
+				while(1) {
+					gspWaitForVBlank();
+					hidScanInput();
+					const u32 hDown = hidKeysDown();
+					if(hDown & KEY_A) {
+						chdir(dirContents[selectedDir].name.c_str());
+						selectedDir = 0;
+						break;
+					} else if(hDown & KEY_B) {
+						chdir("..");
+						selectedDir = 0;
+						break;
+					}	else if(hDown & KEY_X) {
+						chdir(dirContents[selectedDir].name.c_str());
+						char path[1024];
+						getcwd(path, sizeof(path));
+						scanDir = path;
+						dirChosen = true;
+						break;
+					} else if(hDown & KEY_UP) {
+						if(selectedDir > 0) {
+							selectedDir--;
+						}
+					} else if(hDown & KEY_DOWN) {
+						if(selectedDir < dirContents.size()-1) {
+							selectedDir++;
+						}
+					}
+					std::string dirs;
+					for(uint i=(selectedDir<10) ? 0 : selectedDir-10;i<dirContents.size()&&i<((selectedDir<10) ? 11 : selectedDir+1);i++) {
+						if(i == selectedDir) {
+							dirs += "> " + dirContents[i].name + "\n";
+						} else {
+							dirs += "  " + dirContents[i].name + "\n";
+						}
+					}
+					for(uint i=0;i<((dirContents.size()<10) ? 11-dirContents.size() : 0);i++) {
+						dirs += "\n";
+					}
+					dirs += "B: Back   A: Open   X: Choose";
+					displayBottomMsg(dirs.c_str());
+				}
+			}
+			break;
+		} else if(hDown & KEY_B) {
+			return;
+		}
+	}
 
 	displayBottomMsg("Scanning SD card for DS roms...\n");
 
-	chdir("sdmc:/");
+	chdir(scanDir.c_str());
 	findNdsFiles(dirContents);
 
 	for(int i=0;i<(int)dirContents.size();i++) {
