@@ -1,8 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
   branches:
     include:
@@ -28,6 +23,7 @@ steps:
      sudo dkp-pacman -S 3ds-dev --noconfirm
      
      sudo dkp-pacman -S 3ds-curl 3ds-libarchive 3ds-liblzma 3ds-mbedtls 3ds-bzip2 3ds-zlib
+     
      sudo 7z x libctru.7z -o/opt/devkitpro/ -y
      curl -L https://github.com/Steveice10/bannertool/releases/download/1.1.0/bannertool.zip -o bannertool.zip
      sudo 7z e bannertool.zip linux-x86_64/bannertool
@@ -83,7 +79,7 @@ steps:
     curl -o send.sh https://raw.githubusercontent.com/DS-Homebrew/discord-webhooks/master/send-azure.sh
     chmod +x send.sh
     ./send.sh success $WEBHOOK_URL
-  condition: succeeded()
+  condition: succeded()
   displayName: 'Send success webhook'
 
 - script: |
