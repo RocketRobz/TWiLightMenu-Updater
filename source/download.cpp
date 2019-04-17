@@ -33,7 +33,7 @@ extern void displayBottomMsg(const char* text);
 extern bool downloadNightlies;
 extern bool updateAvailable[];
 
-// following function is from 
+// following function is from
 // https://github.com/angelsl/libctrfgh/blob/master/curl_test/src/main.c
 static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata)
 {
@@ -47,7 +47,7 @@ static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata)
     }
 
     bool need_realloc = false;
-    while (result_written + bsz > result_sz) 
+    while (result_written + bsz > result_sz)
     {
         result_sz <<= 1;
         need_realloc = true;
@@ -92,7 +92,7 @@ static Result setupContext(CURL *hnd, const char * url)
 
 Result downloadToFile(std::string url, std::string path)
 {
-	Result ret = 0;	
+	Result ret = 0;
 	printf("Downloading from:\n%s\nto:\n%s\n", url.c_str(), path.c_str());
 
     void *socubuf = memalign(0x1000, 0x100000);
@@ -123,7 +123,7 @@ Result downloadToFile(std::string url, std::string path)
 	Handle fileHandle;
 	u64 offset = 0;
 	u32 bytesWritten = 0;
-	
+
 	ret = openFile(&fileHandle, path.c_str(), true);
 	if (R_FAILED(ret)) {
 		printf("Error: couldn't open file to write.\n");
@@ -135,7 +135,7 @@ Result downloadToFile(std::string url, std::string path)
 		result_written = 0;
 		return DL_ERROR_WRITEFILE;
 	}
-	
+
 	u64 startTime = osGetTime();
 
 	CURLcode cres = curl_easy_perform(hnd);
@@ -151,7 +151,7 @@ Result downloadToFile(std::string url, std::string path)
 		result_written = 0;
 		return -1;
 	}
-	
+
 	FSFILE_Write(fileHandle, &bytesWritten, offset, result_buf, result_written, 0);
 
 	u64 endTime = osGetTime();
@@ -187,16 +187,16 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	std::regex parseUrl("github\\.com\\/(.+)\\/(.+)");
 	std::smatch result;
 	regex_search(url, result, parseUrl);
-	
+
 	std::string repoOwner = result[1].str(), repoName = result[2].str();
-	
+
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repoOwner << "/" << repoName << "/releases/latest";
 	std::string apiurl = apiurlStream.str();
-	
+
 	printf("Downloading latest release from repo:\n%s\nby:\n%s\n", repoName.c_str(), repoOwner.c_str());
 	printf("Crafted API url:\n%s\n", apiurl.c_str());
-	
+
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
 	if (ret != 0) {
@@ -214,7 +214,7 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-	
+
 	if (cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
@@ -225,7 +225,7 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 		result_written = 0;
 		return -1;
 	}
-	
+
 	printf("Looking for asset with name matching:\n%s\n", asset.c_str());
 	std::string assetUrl;
 	json parsedAPI = json::parse(result_buf);
@@ -246,12 +246,12 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	result_buf = NULL;
 	result_sz = 0;
 	result_written = 0;
-	
+
 	if (assetUrl.empty())
 		ret = DL_ERROR_GIT;
 	else
 		ret = downloadToFile(assetUrl, path);
-	
+
 	return ret;
 }
 
@@ -266,7 +266,7 @@ bool checkWifiStatus(void) {
 	if (R_SUCCEEDED(ACU_GetWifiStatus(&wifiStatus)) && wifiStatus) {
 		res = true;
 	}
-	
+
 	return res;
 }
 
@@ -299,11 +299,11 @@ std::string getLatestRelease(std::string repo, std::string item)
 		free(socubuf);
         return "";
     }
-	
+
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/releases/latest";
 	std::string apiurl = apiurlStream.str();
-	
+
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
 	if (ret != 0) {
@@ -321,7 +321,7 @@ std::string getLatestRelease(std::string repo, std::string item)
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-	
+
 	if (cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
@@ -332,7 +332,7 @@ std::string getLatestRelease(std::string repo, std::string item)
 		result_written = 0;
 		return "";
 	}
-	
+
 	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
 	if (parsedAPI[item].is_string()) {
@@ -363,11 +363,11 @@ std::string getLatestCommit(std::string repo, std::string item)
 		free(socubuf);
         return "";
     }
-	
+
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
 	std::string apiurl = apiurlStream.str();
-	
+
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
 	if (ret != 0) {
@@ -385,7 +385,7 @@ std::string getLatestCommit(std::string repo, std::string item)
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-	
+
 	if (cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
@@ -396,7 +396,7 @@ std::string getLatestCommit(std::string repo, std::string item)
 		result_written = 0;
 		return "";
 	}
-	
+
 	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
 	if (parsedAPI[item].is_string()) {
@@ -427,11 +427,11 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 		free(socubuf);
         return "";
     }
-	
+
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
 	std::string apiurl = apiurlStream.str();
-	
+
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
 	if (ret != 0) {
@@ -449,7 +449,7 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-	
+
 	if (cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
@@ -460,7 +460,7 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 		result_written = 0;
 		return "";
 	}
-	
+
 	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
 	if (parsedAPI[array][item].is_string()) {
@@ -480,7 +480,7 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 {
 	jsonName = getLatestRelease(repo, "name");
 	std::string jsonBody = getLatestRelease(repo, "body");
-	
+
 	setMessageText(jsonBody);
 	int textPosition = 0;
 	bool redrawText = true;
@@ -500,7 +500,7 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 			for(int i=0;i<9;i++)
 				gspWaitForVBlank();
 		}
-		
+
 		if (hDown & KEY_A || hDown & KEY_Y || hDown & KEY_TOUCH) {
 			return true;
 		} else if (hDown & KEY_B) {
@@ -542,7 +542,7 @@ void showCommitInfo(std::string repo)
 			for(int i=0;i<9;i++)
 				gspWaitForVBlank();
 		}
-		
+
 		if (hDown & KEY_A || hDown & KEY_B || hDown & KEY_Y) {
 			break;
 		} else if (hHeld & KEY_UP) {
@@ -613,13 +613,13 @@ void drawMessageText(int position, bool showExitText)
 
 std::string latestMenuRelease(void) {
 	if (latestMenuReleaseCache == "")
-		latestMenuReleaseCache = getLatestRelease("RocketRobz/TWiLightMenu", "tag_name");
+		latestMenuReleaseCache = getLatestRelease("DS-Homebrew/TWiLightMenu", "tag_name");
 	return latestMenuReleaseCache;
 }
 
 std::string latestMenuNightly(void) {
 	if (latestMenuNightlyCache == "")
-		latestMenuNightlyCache = getLatestCommit("RocketRobz/TWiLightMenu", "sha").substr(0,7);
+		latestMenuNightlyCache = getLatestCommit("DS-Homebrew/TWiLightMenu", "sha").substr(0,7);
 	return latestMenuNightlyCache;
 }
 
@@ -714,7 +714,7 @@ void updateBootstrap(bool nightly) {
 		setInstalledVersion("NDS-BOOTSTRAP-NIGHTLY", latestBootstrapNightly());
 		saveUpdateData();
 		updateAvailable[3] = false;
-	} else {	
+	} else {
 		displayBottomMsg("Downloading nds-bootstrap...\n"
 						"(Release)");
 		if (downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip") != 0) {
@@ -765,7 +765,7 @@ void updateTWiLight(bool nightly) {
 	} else {
 		displayBottomMsg("Downloading TWiLight Menu++...\n"
 						"(Release)");
-		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z") != 0) {
+		if (downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -1018,12 +1018,12 @@ void downloadBoxart(void) {
 		displayBottomMsg(downloadMessage);
 
 		const char *ba_region = getBoxartRegion(dirContents[i].tid[3]);
-		
+
 		char boxartUrl[256];
 		snprintf(boxartUrl, sizeof(boxartUrl), "https://art.gametdb.com/ds/coverDS/%s/%s.bmp", ba_region, dirContents[i].tid);
 		char boxartPath[256];
 		snprintf(boxartPath, sizeof(boxartPath), "/_nds/TWiLightMenu/boxart/%s.bmp", dirContents[i].tid);
-		
+
 		downloadToFile(boxartUrl, boxartPath);
 	}
 
