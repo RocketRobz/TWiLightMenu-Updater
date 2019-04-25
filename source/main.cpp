@@ -102,16 +102,16 @@ bool updateAvailable[] = {
 
 void screenoff()
 {
-    gspLcdInit();\
-    GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTH);\
-    gspLcdExit();
+	gspLcdInit();\
+	GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTH);\
+	gspLcdExit();
 }
 
 void screenon()
 {
-    gspLcdInit();\
-    GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTH);\
-    gspLcdExit();
+	gspLcdInit();\
+	GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTH);\
+	gspLcdExit();
 }
 
 void displayBottomMsg(const char* text) {
@@ -565,5 +565,5 @@ int main()
 	sdmcExit();
 	aptExit();
 
-    return 0;
+	return 0;
 }

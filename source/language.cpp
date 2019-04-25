@@ -56,7 +56,7 @@ static wchar_t *lang_cache[STR_MAX] = { };
 void langInit(void)
 {
 	if (R_FAILED(CFGU_GetSystemLanguage(&sys_language)) ||
-	    (sys_language < 0 || sys_language >= 12))
+		(sys_language < 0 || sys_language >= 12))
 	{
 		// Invalid system language ID.
 		// Default to English.

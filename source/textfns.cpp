@@ -214,7 +214,7 @@ static int utf8_to_wchar_internal(wchar_t *wstr, const char *str)
 		} else if ((*str & 0xF0) == 0xE0) {
 			// Three-byte UTF-8.
 			if ((str[1] & 0xC0) != 0x80 ||
-			    (str[2] & 0xC0) != 0x80)
+				(str[2] & 0xC0) != 0x80)
 			{
 				// Invalid sequence.
 				*wstr = (wchar_t)0xFFFD;
@@ -228,8 +228,8 @@ static int utf8_to_wchar_internal(wchar_t *wstr, const char *str)
 		} else if ((*str & 0xF8) == 0xF0) {
 			// Four-byte UTF-8.
 			if ((str[1] & 0xC0) != 0x80 ||
-			    (str[2] & 0xC0) != 0x80 ||
-			    (str[3] & 0xC0) != 0x80)
+				(str[2] & 0xC0) != 0x80 ||
+				(str[3] & 0xC0) != 0x80)
 			{
 				// Invalid sequence.
 				*wstr = (wchar_t)0xFFFD;

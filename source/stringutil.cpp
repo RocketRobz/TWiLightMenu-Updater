@@ -20,9 +20,9 @@
 
 std::u16string u8tou16(const char* src)
 {
-    char16_t tmp[256] = {0};
-    utf8_to_utf16((uint16_t *)tmp, (uint8_t *)src, 256);
-    return std::u16string(tmp);
+	char16_t tmp[256] = {0};
+	utf8_to_utf16((uint16_t *)tmp, (uint8_t *)src, 256);
+	return std::u16string(tmp);
 }
 
 std::string u16tou8(std::u16string src)
