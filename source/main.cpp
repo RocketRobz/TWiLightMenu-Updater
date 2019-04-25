@@ -233,7 +233,6 @@ int main()
 		hidScanInput();
 		
 		const u32 hDown = hidKeysDown();
-		const u32 hHeld = hidKeysHeld();
 
 		hidTouchRead(&touch);
 

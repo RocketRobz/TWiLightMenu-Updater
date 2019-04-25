@@ -8,6 +8,7 @@
 #include "graphic.h"
 #include "fileBrowse.h"
 #include "pp2d/pp2d.h"
+#include "thread.h"
 
 extern "C" {
 	#include "cia.h"
@@ -32,8 +33,15 @@ extern void displayBottomMsg(const char* text);
 
 extern bool downloadNightlies;
 extern bool updateAvailable[];
+extern int filesExtracted;
+extern std::string extractingFile;
 
-// following function is from
+char progressBarMsg[64] = "";
+bool showProgressBar = false;
+bool progressBarType = 0; // 0 = Download | 1 = Extract
+bool continueNdsScan = true;
+
+// following function is from 
 // https://github.com/angelsl/libctrfgh/blob/master/curl_test/src/main.c
 static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata)
 {
@@ -47,7 +55,7 @@ static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata)
     }
 
     bool need_realloc = false;
-    while (result_written + bsz > result_sz)
+    while (result_written + bsz > result_sz) 
     {
         result_sz <<= 1;
         need_realloc = true;
@@ -92,7 +100,7 @@ static Result setupContext(CURL *hnd, const char * url)
 
 Result downloadToFile(std::string url, std::string path)
 {
-	Result ret = 0;
+	Result ret = 0;	
 	printf("Downloading from:\n%s\nto:\n%s\n", url.c_str(), path.c_str());
 
     void *socubuf = memalign(0x1000, 0x100000);
@@ -123,7 +131,7 @@ Result downloadToFile(std::string url, std::string path)
 	Handle fileHandle;
 	u64 offset = 0;
 	u32 bytesWritten = 0;
-
+	
 	ret = openFile(&fileHandle, path.c_str(), true);
 	if (R_FAILED(ret)) {
 		printf("Error: couldn't open file to write.\n");
@@ -135,7 +143,7 @@ Result downloadToFile(std::string url, std::string path)
 		result_written = 0;
 		return DL_ERROR_WRITEFILE;
 	}
-
+	
 	u64 startTime = osGetTime();
 
 	CURLcode cres = curl_easy_perform(hnd);
@@ -151,7 +159,7 @@ Result downloadToFile(std::string url, std::string path)
 		result_written = 0;
 		return -1;
 	}
-
+	
 	FSFILE_Write(fileHandle, &bytesWritten, offset, result_buf, result_written, 0);
 
 	u64 endTime = osGetTime();
@@ -187,16 +195,16 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	std::regex parseUrl("github\\.com\\/(.+)\\/(.+)");
 	std::smatch result;
 	regex_search(url, result, parseUrl);
-
+	
 	std::string repoOwner = result[1].str(), repoName = result[2].str();
-
+	
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repoOwner << "/" << repoName << "/releases/latest";
 	std::string apiurl = apiurlStream.str();
-
+	
 	printf("Downloading latest release from repo:\n%s\nby:\n%s\n", repoName.c_str(), repoOwner.c_str());
 	printf("Crafted API url:\n%s\n", apiurl.c_str());
-
+	
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
 	if (ret != 0) {
@@ -214,7 +222,7 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-
+	
 	if (cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
@@ -225,7 +233,7 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 		result_written = 0;
 		return -1;
 	}
-
+	
 	printf("Looking for asset with name matching:\n%s\n", asset.c_str());
 	std::string assetUrl;
 	json parsedAPI = json::parse(result_buf);
@@ -246,12 +254,12 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	result_buf = NULL;
 	result_sz = 0;
 	result_written = 0;
-
+	
 	if (assetUrl.empty())
 		ret = DL_ERROR_GIT;
 	else
 		ret = downloadToFile(assetUrl, path);
-
+	
 	return ret;
 }
 
@@ -266,7 +274,7 @@ bool checkWifiStatus(void) {
 	if (R_SUCCEEDED(ACU_GetWifiStatus(&wifiStatus)) && wifiStatus) {
 		res = true;
 	}
-
+	
 	return res;
 }
 
@@ -299,11 +307,11 @@ std::string getLatestRelease(std::string repo, std::string item)
 		free(socubuf);
         return "";
     }
-
+	
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/releases/latest";
 	std::string apiurl = apiurlStream.str();
-
+	
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
 	if (ret != 0) {
@@ -321,7 +329,7 @@ std::string getLatestRelease(std::string repo, std::string item)
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-
+	
 	if (cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
@@ -332,7 +340,7 @@ std::string getLatestRelease(std::string repo, std::string item)
 		result_written = 0;
 		return "";
 	}
-
+	
 	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
 	if (parsedAPI[item].is_string()) {
@@ -363,11 +371,11 @@ std::string getLatestCommit(std::string repo, std::string item)
 		free(socubuf);
         return "";
     }
-
+	
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
 	std::string apiurl = apiurlStream.str();
-
+	
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
 	if (ret != 0) {
@@ -385,7 +393,7 @@ std::string getLatestCommit(std::string repo, std::string item)
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-
+	
 	if (cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
@@ -396,7 +404,7 @@ std::string getLatestCommit(std::string repo, std::string item)
 		result_written = 0;
 		return "";
 	}
-
+	
 	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
 	if (parsedAPI[item].is_string()) {
@@ -427,11 +435,11 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 		free(socubuf);
         return "";
     }
-
+	
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
 	std::string apiurl = apiurlStream.str();
-
+	
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
 	if (ret != 0) {
@@ -449,7 +457,7 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-
+	
 	if (cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
@@ -460,7 +468,7 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 		result_written = 0;
 		return "";
 	}
-
+	
 	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
 	if (parsedAPI[array][item].is_string()) {
@@ -480,7 +488,7 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 {
 	jsonName = getLatestRelease(repo, "name");
 	std::string jsonBody = getLatestRelease(repo, "body");
-
+	
 	setMessageText(jsonBody);
 	int textPosition = 0;
 	bool redrawText = true;
@@ -500,7 +508,7 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 			for(int i=0;i<9;i++)
 				gspWaitForVBlank();
 		}
-
+		
 		if (hDown & KEY_A || hDown & KEY_Y || hDown & KEY_TOUCH) {
 			return true;
 		} else if (hDown & KEY_B) {
@@ -542,7 +550,7 @@ void showCommitInfo(std::string repo)
 			for(int i=0;i<9;i++)
 				gspWaitForVBlank();
 		}
-
+		
 		if (hDown & KEY_A || hDown & KEY_B || hDown & KEY_Y) {
 			break;
 		} else if (hHeld & KEY_UP) {
@@ -609,6 +617,15 @@ void drawMessageText(int position, bool showExitText)
 	if(showExitText)
 		pp2d_draw_text(24, 200, 0.5f, 0.5f, BLACK, "B: Cancel   A: Update");
 	pp2d_end_draw();
+}
+
+void displayProgressBar() {
+	char str[256];
+	while(showProgressBar) {
+		snprintf(str, sizeof(str), "%s\n%s%s\n%i %s", progressBarMsg, (!progressBarType ? "" : "\nCurrently extracting:\n"), (!progressBarType ? "" : extractingFile.c_str()), (!progressBarType ? (int)round(result_written/1000) : filesExtracted), (!progressBarType ? "KB downloaded." : (filesExtracted == 1 ? "file extracted." :"files extracted.")));
+		displayBottomMsg(str);
+		gspWaitForVBlank();
+	}
 }
 
 std::string latestMenuRelease(void) {
@@ -698,33 +715,44 @@ void checkForUpdates() {
 
 void updateBootstrap(bool nightly) {
 	if(nightly) {
-		displayBottomMsg("Downloading nds-bootstrap...\n"
-						"(Nightly)");
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading nds-bootstrap...\n(Nightly)");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
+			showProgressBar = false;
 			downloadFailed();
 			return;
 		}
 
-		displayBottomMsg("Extracting nds-bootstrap...\n"
-						"(Nightly)");
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Extracting nds-bootstrap...\n(Nightly)");
+		filesExtracted = 0;
+		progressBarType = 1;
 		extractArchive("/nds-bootstrap-nightly.7z", "nds-bootstrap/", "/_nds/");
+		showProgressBar = false;
 
 		deleteFile("sdmc:/nds-bootstrap-nightly.7z");
 
 		setInstalledVersion("NDS-BOOTSTRAP-NIGHTLY", latestBootstrapNightly());
 		saveUpdateData();
 		updateAvailable[3] = false;
-	} else {
-		displayBottomMsg("Downloading nds-bootstrap...\n"
-						"(Release)");
+	} else {	
+		displayBottomMsg("Downloading nds-bootstrap...\n(Release)");
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading nds-bootstrap...\n(Release)");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
 		if (downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip") != 0) {
+			showProgressBar = false;
 			downloadFailed();
 			return;
 		}
 
-		displayBottomMsg("Extracting nds-bootstrap...\n"
-						"(Release)");
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Extracting nds-bootstrap...\n(Release)");
+		filesExtracted = 0;
+		progressBarType = 1;
 		extractArchive("/nds-bootstrap-release.zip", "/", "/_nds/");
+		showProgressBar = false;
 
 		deleteFile("sdmc:/nds-bootstrap-release.zip");
 
@@ -737,17 +765,22 @@ void updateBootstrap(bool nightly) {
 
 void updateTWiLight(bool nightly) {
 	if(nightly) {
-		displayBottomMsg("Downloading TWiLight Menu++...\n"
-						"(Nightly)");
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++...\n(Nightly)");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
+			showProgressBar = false;
 			downloadFailed();
 			return;
 		}
 
-		displayBottomMsg("Extracting TWiLight Menu++...\n"
-						"(Nightly)\n\nThis may take a while.");
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Extracting TWiLight Menu++...\n(Nightly)");
+		filesExtracted = 0;
+		progressBarType = 1;
 		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/_nds/", "/_nds/");
 		extractArchive("/TWiLightMenu-nightly.7z", "3DS - CFW users/", "/");
+		showProgressBar = false;
 
 		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
 						"(Nightly)");
@@ -763,18 +796,23 @@ void updateTWiLight(bool nightly) {
 		saveUpdateData();
 		updateAvailable[1] = false;
 	} else {
-		displayBottomMsg("Downloading TWiLight Menu++...\n"
-						"(Release)");
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++...\n(Release)");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
 		if (downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z") != 0) {
+			showProgressBar = false;
 			downloadFailed();
 			return;
 		}
 
-		displayBottomMsg("Extracting TWiLight Menu++...\n"
-						"(Release)\n\nThis may take a while.");
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Extracting TWiLight Menu++...\n(Release)");
+		filesExtracted = 0;
+		progressBarType = 1;
 		extractArchive("/TWiLightMenu-release.7z", "_nds/", "/_nds/");
 		extractArchive("/TWiLightMenu-release.7z", "3DS - CFW users/", "/");
 		extractArchive("/TWiLightMenu-release.7z", "DSi&3DS - SD card users/", "/");
+		showProgressBar = false;
 
 		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
 						"(Release)");
@@ -795,12 +833,21 @@ void updateTWiLight(bool nightly) {
 
 void updateSelf(bool nightly) {
 	if(nightly) {
-		displayBottomMsg("Downloading TWiLight Menu++ Updater...\n"
-						"(Nightly)");
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Nightly)");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
 		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia?raw=true", "/TWiLightMenu-Updater-nightly.cia") != 0) {
 			downloadFailed();
 			return;
 		}
+		showProgressBar = false;
+
+		// Before the cia install because rebooting the app might've been causing this file to get cleared
+		setInstalledChannel("TWILIGHTMENU-UPDATER", "nightly");
+		setInstalledVersion("TWILIGHTMENU-UPDATER", latestUpdaterNightly());
+		saveUpdateData();
+		updateAvailable[5] = false;
 
 		displayBottomMsg("Installing TWiLight Menu++ Updater CIA...\n"
 						"(Nightly)\n\n\n\n\n\n\n\n\n\n"
@@ -808,18 +855,22 @@ void updateSelf(bool nightly) {
 		installCia("/TWiLightMenu-Updater-nightly.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
-
-		setInstalledChannel("TWILIGHTMENU-UPDATER", "nightly");
-		setInstalledVersion("TWILIGHTMENU-UPDATER", latestUpdaterNightly());
-		saveUpdateData();
-		updateAvailable[5] = false;
 	} else {
-		displayBottomMsg("Downloading TWiLight Menu++ Updater...\n"
-						"(Release)");
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Release)");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
 		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-release.cia") != 0) {
 			downloadFailed();
 			return;
 		}
+		showProgressBar = false;
+
+		// Before the cia install because rebooting the app might've been causing this file to get cleared
+		setInstalledChannel("TWILIGHTMENU-UPDATER", "release");
+		setInstalledVersion("TWILIGHTMENU-UPDATER", latestUpdaterRelease());
+		saveUpdateData();
+		updateAvailable[4] = false;
 
 		displayBottomMsg("Installing TWiLight Menu++ Updater CIA...\n"
 						"(Release)\n\n\n\n\n\n\n\n\n\n"
@@ -827,25 +878,26 @@ void updateSelf(bool nightly) {
 		installCia("/TWiLightMenu-Updater-release.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-release.cia");
-
-		setInstalledChannel("TWILIGHTMENU-UPDATER", "release");
-		setInstalledVersion("TWILIGHTMENU-UPDATER", latestUpdaterRelease());
-		saveUpdateData();
-		updateAvailable[4] = false;
 	}
 	doneMsg();
 }
 
 void updateCheats(void) {
-	displayBottomMsg("Downloading DSJ's cheat database v2.1.0...\n");	// This needs to be manually changed when the usrcheat.dat in TWLBot get's updated
+	// This needs to be manually changed when the usrcheat.dat in TWLBot/Builds gets updated
+	snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading DSJ's cheat database v2.1.0...");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
 	if (downloadToFile("https://github.com/TWLBot/Builds/raw/master/usrcheat.dat.7z", "/usrcheat.dat.7z") != 0) {
 		downloadFailed();
 		return;
 	}
 
-	displayBottomMsg("Extracting DSJ's cheat database v2.1.0...\n"
-					"\nThis may take a while.");
+	snprintf(progressBarMsg, sizeof(progressBarMsg), "Extracting DSJ's cheat database v2.1.0...");
+	filesExtracted = 0;
+	progressBarType = 1;
 	extractArchive("/usrcheat.dat.7z", "usrcheat.dat", "/_nds/TWiLightMenu/extras/usrcheat.dat");
+	showProgressBar = false;
 
 	deleteFile("sdmc:/usrcheat.dat.7z");
 
@@ -932,6 +984,16 @@ const char* getBoxartRegion(char tid_region) {
 	return ba_region;
 }
 
+void scanToCancelBoxArt(void) {
+	while(continueNdsScan) {
+		hidScanInput();
+		if(hidKeysDown() & KEY_B) {
+			continueNdsScan = false;
+		}
+		gspWaitForVBlank();
+	}
+}
+
 void downloadBoxart(void) {
 
 	vector<DirEntry> dirContents;
@@ -1007,10 +1069,13 @@ void downloadBoxart(void) {
 		}
 	}
 
-	displayBottomMsg("Scanning SD card for DS roms...\n");
+	displayBottomMsg("Scanning SD card for DS roms...\n\n(Press B to cancel)");
 
 	chdir(scanDir.c_str());
+	continueNdsScan = true;
+	createThread((ThreadFunc)scanToCancelBoxArt);
 	findNdsFiles(dirContents);
+	continueNdsScan = false;
 
 	for(int i=0;i<(int)dirContents.size();i++) {
 		char downloadMessage[50];
@@ -1018,12 +1083,12 @@ void downloadBoxart(void) {
 		displayBottomMsg(downloadMessage);
 
 		const char *ba_region = getBoxartRegion(dirContents[i].tid[3]);
-
+		
 		char boxartUrl[256];
 		snprintf(boxartUrl, sizeof(boxartUrl), "https://art.gametdb.com/ds/coverDS/%s/%s.bmp", ba_region, dirContents[i].tid);
 		char boxartPath[256];
 		snprintf(boxartPath, sizeof(boxartPath), "/_nds/TWiLightMenu/boxart/%s.bmp", dirContents[i].tid);
-
+		
 		downloadToFile(boxartUrl, boxartPath);
 	}
 
