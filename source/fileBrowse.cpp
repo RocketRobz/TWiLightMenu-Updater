@@ -9,6 +9,8 @@ using namespace std;
 
 int file_count = 0;
 
+extern bool continueNdsScan;
+
 extern void displayBottomMsg(const char* text);
 
 /**
@@ -37,7 +39,7 @@ void findNdsFiles(vector<DirEntry>& dirContents)
 	}
 	else
 	{
-		while (true)
+		while (continueNdsScan)
 		{
 			DirEntry dirEntry;
 
@@ -47,7 +49,7 @@ void findNdsFiles(vector<DirEntry>& dirContents)
 			stat(pent->d_name, &st);
 			dirEntry.name = pent->d_name;
 			char scanningMessage[512];
-			snprintf(scanningMessage, sizeof(scanningMessage), "Scanning SD card for DS roms...\n\nThis may take a while.\n\n\n\n\n\n\n\n\n%s", dirEntry.name.c_str());
+			snprintf(scanningMessage, sizeof(scanningMessage), "Scanning SD card for DS roms...\n\n(Press B to cancel)\n\n\n\n\n\n\n\n\n%s", dirEntry.name.c_str());
 			displayBottomMsg(scanningMessage);
 			dirEntry.isDirectory = (st.st_mode & S_IFDIR) ? true : false;
 				if(!(dirEntry.isDirectory) && dirEntry.name.length() >= 3) {
@@ -85,11 +87,11 @@ void findNdsFiles(vector<DirEntry>& dirContents)
 
 off_t getFileSize(const char *fileName)
 {
-    FILE* fp = fopen(fileName, "rb");
-    off_t fsize = 0;
-    if (fp) {
-        fseek(fp, 0, SEEK_END);
-        fsize = ftell(fp);			// Get source file's size
+	FILE* fp = fopen(fileName, "rb");
+	off_t fsize = 0;
+	if (fp) {
+		fseek(fp, 0, SEEK_END);
+		fsize = ftell(fp);			// Get source file's size
 		fseek(fp, 0, SEEK_SET);
 	}
 	fclose(fp);

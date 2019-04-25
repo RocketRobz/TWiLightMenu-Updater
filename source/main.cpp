@@ -102,16 +102,16 @@ bool updateAvailable[] = {
 
 void screenoff()
 {
-    gspLcdInit();\
-    GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTH);\
-    gspLcdExit();
+	gspLcdInit();\
+	GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTH);\
+	gspLcdExit();
 }
 
 void screenon()
 {
-    gspLcdInit();\
-    GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTH);\
-    gspLcdExit();
+	gspLcdInit();\
+	GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTH);\
+	gspLcdExit();
 }
 
 void displayBottomMsg(const char* text) {
@@ -233,7 +233,6 @@ int main()
 		hidScanInput();
 		
 		const u32 hDown = hidKeysDown();
-		const u32 hHeld = hidKeysHeld();
 
 		hidTouchRead(&touch);
 
@@ -566,5 +565,5 @@ int main()
 	sdmcExit();
 	aptExit();
 
-    return 0;
+	return 0;
 }

@@ -18,30 +18,30 @@ static Handle ptmsysmHandle = 0;
 
 static inline Result ptmsysmInit(void)
 {
-    return srvGetServiceHandle(&ptmsysmHandle, "ptm:sysm");
+	return srvGetServiceHandle(&ptmsysmHandle, "ptm:sysm");
 }
 
 static inline Result ptmsysmExit(void)
 {
-    return svcCloseHandle(ptmsysmHandle);
+	return svcCloseHandle(ptmsysmHandle);
 }
 
 typedef struct
 {
-    u32 ani;
-    u8 r[32];
-    u8 g[32];
-    u8 b[32];
+	u32 ani;
+	u8 r[32];
+	u8 g[32];
+	u8 b[32];
 } RGBLedPattern;
 
 static Result ptmsysmSetInfoLedPattern(const RGBLedPattern* pattern)
 {
-    u32* ipc = getThreadCommandBuffer();
-    ipc[0] = 0x8010640;
-    memcpy(&ipc[1], pattern, 0x64);
-    Result ret = svcSendSyncRequest(ptmsysmHandle);
-    if(ret < 0) return ret;
-    return ipc[1];
+	u32* ipc = getThreadCommandBuffer();
+	ipc[0] = 0x8010640;
+	memcpy(&ipc[1], pattern, 0x64);
+	Result ret = svcSendSyncRequest(ptmsysmHandle);
+	if(ret < 0) return ret;
+	return ipc[1];
 }
 
 int rainbowLed(void) {

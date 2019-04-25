@@ -24,42 +24,42 @@ TitleInfo titles[] = {
 };
 
 const void *memmem(
-  const void *haystack, size_t haystacklen, 
-  const void *needle,   size_t needlelen )
+	const void *haystack, size_t haystacklen, 
+	const void *needle,   size_t needlelen )
 {
-  // Sanity check
-  if (needlelen > haystacklen) return NULL;
+	// Sanity check
+	if (needlelen > haystacklen) return NULL;
 
-  // Void is useless -- we must treat our data as bytes (== unsigned chars)
-  typedef const unsigned char* p;
+	// Void is useless -- we must treat our data as bytes (== unsigned chars)
+	typedef const unsigned char* p;
 
-  // We'll stop searching at the last possible position for a match, 
-  // which is haystack[ haystacklen - needlelen + 1 ]
-  haystacklen -= needlelen - 1;
+	// We'll stop searching at the last possible position for a match, 
+	// which is haystack[ haystacklen - needlelen + 1 ]
+	haystacklen -= needlelen - 1;
 
-  while (haystacklen)
-  {
-    // Find the first byte in a potential match
-    p z = (p)memchr( haystack, *(p)needle, haystacklen ); 
-    if (!z) return NULL;
+	while (haystacklen)
+	{
+		// Find the first byte in a potential match
+		p z = (p)memchr( haystack, *(p)needle, haystacklen ); 
+		if (!z) return NULL;
 
-    // Is there enough space for there to actually be a match?
-    ptrdiff_t delta = z - (p)haystack;
-    ptrdiff_t remaining = (ptrdiff_t)haystacklen - delta;
-    if (remaining < 1) return NULL;
+		// Is there enough space for there to actually be a match?
+		ptrdiff_t delta = z - (p)haystack;
+		ptrdiff_t remaining = (ptrdiff_t)haystacklen - delta;
+		if (remaining < 1) return NULL;
 
-    // Advance our pointer and update the amount of haystack remaining
-    haystacklen -= delta;
-    haystack = z;
+		// Advance our pointer and update the amount of haystack remaining
+		haystacklen -= delta;
+		haystack = z;
 
-    // Did we find a match?
-    if (!memcmp( haystack, needle, needlelen )) return haystack;
-    
-    // Ready for next loop
-    haystack = (p)haystack + 1;
-    haystacklen -= 1;
-  }
-  return NULL;
+		// Did we find a match?
+		if (!memcmp( haystack, needle, needlelen )) return haystack;
+		
+		// Ready for next loop
+		haystack = (p)haystack + 1;
+		haystacklen -= 1;
+	}
+	return NULL;
 }
 
 // decompression code stolen from ctrtool
@@ -184,13 +184,13 @@ u32 u8to32(u8 *input){  //workaround for weird < 9.0 bug in built-in sha functio
 
 int sha_quick(uint8_t *dest, uint8_t *src, size_t src_len) //thanks to wolfvak https://github.com/Wolfvak/makefirm
 {
-    SHA256_CTX *ctx = (SHA256_CTX*)malloc(sizeof(SHA256_CTX));
-    if (!ctx) return 1;
-    sha256_init(ctx);
-    sha256_update(ctx, src, src_len);
-    sha256_final(ctx, dest);
-    free(ctx);
-    return 0;
+		SHA256_CTX *ctx = (SHA256_CTX*)malloc(sizeof(SHA256_CTX));
+		if (!ctx) return 1;
+		sha256_init(ctx);
+		sha256_update(ctx, src, src_len);
+		sha256_final(ctx, dest);
+		free(ctx);
+		return 0;
 }
 
 int checkHashes(u8 *base){

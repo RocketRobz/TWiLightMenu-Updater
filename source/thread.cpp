@@ -16,36 +16,25 @@
 >   See LICENSE for information.
 */
 
-#include "stringutil.h"
+#include <3ds.h>
+#include <vector>
+#include "thread.h"
 
-std::u16string u8tou16(const char* src)
+static std::vector<Thread> threads;
+
+void createThread(ThreadFunc entrypoint)
 {
-	char16_t tmp[256] = {0};
-	utf8_to_utf16((uint16_t *)tmp, (uint8_t *)src, 256);
-	return std::u16string(tmp);
+	s32 prio = 0;
+	svcGetThreadPriority(&prio, CUR_THREAD_HANDLE);
+	Thread thread = threadCreate((ThreadFunc)entrypoint, NULL, 4*1024, prio-1, -2, false);
+	threads.push_back(thread);
 }
 
-std::string u16tou8(std::u16string src)
+void destroyThreads(void)
 {
-	static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
-	std::string dst = convert.to_bytes(src);
-	return dst;
-}
-
-std::u16string removeForbiddenCharacters(std::u16string src)
-{
-	static const std::u16string illegalChars = u8tou16(".,!\\/:?*\"<>|");
-	for (size_t i = 0; i < src.length(); i++)
+	for (u32 i = 0; i < threads.size(); i++)
 	{
-		if (illegalChars.find(src[i]) != std::string::npos)
-		{
-			src[i] = ' ';
-		}
+		threadJoin(threads.at(i), U64_MAX);
+		threadFree(threads.at(i));
 	}
-	
-	size_t i;
-	for (i = src.length() - 1; i > 0 && src[i] == L' '; i--);
-	src.erase(i + 1, src.length() - i);
-
-	return src;
 }

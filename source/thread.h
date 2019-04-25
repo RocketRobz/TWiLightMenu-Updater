@@ -16,36 +16,10 @@
 >   See LICENSE for information.
 */
 
-#include "stringutil.h"
+#ifndef THREAD_H
+#define THREAD_H
 
-std::u16string u8tou16(const char* src)
-{
-	char16_t tmp[256] = {0};
-	utf8_to_utf16((uint16_t *)tmp, (uint8_t *)src, 256);
-	return std::u16string(tmp);
-}
+void createThread(ThreadFunc entrypoint);
+void destroyThreads(void);
 
-std::string u16tou8(std::u16string src)
-{
-	static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
-	std::string dst = convert.to_bytes(src);
-	return dst;
-}
-
-std::u16string removeForbiddenCharacters(std::u16string src)
-{
-	static const std::u16string illegalChars = u8tou16(".,!\\/:?*\"<>|");
-	for (size_t i = 0; i < src.length(); i++)
-	{
-		if (illegalChars.find(src[i]) != std::string::npos)
-		{
-			src[i] = ' ';
-		}
-	}
-	
-	size_t i;
-	for (i = src.length() - 1; i > 0 && src[i] == L' '; i--);
-	src.erase(i + 1, src.length() - i);
-
-	return src;
-}
+#endif
