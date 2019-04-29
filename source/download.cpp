@@ -884,7 +884,7 @@ void updateSelf(bool nightly) {
 
 void updateCheats(void) {
 	// This needs to be manually changed when the usrcheat.dat in TWLBot/Builds gets updated
-	snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading DSJ's cheat database v2.1.0...");
+	snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading DSJ's cheat database...");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
@@ -893,7 +893,7 @@ void updateCheats(void) {
 		return;
 	}
 
-	snprintf(progressBarMsg, sizeof(progressBarMsg), "Extracting DSJ's cheat database v2.1.0...");
+	snprintf(progressBarMsg, sizeof(progressBarMsg), "Extracting DSJ's cheat database...");
 	filesExtracted = 0;
 	progressBarType = 1;
 	extractArchive("/usrcheat.dat.7z", "usrcheat.dat", "/_nds/TWiLightMenu/extras/usrcheat.dat");
