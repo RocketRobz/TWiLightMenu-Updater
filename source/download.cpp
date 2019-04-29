@@ -33,6 +33,7 @@ extern void displayBottomMsg(const char* text);
 
 extern bool downloadNightlies;
 extern bool updateAvailable[];
+extern bool updated3dsx;
 extern int filesExtracted;
 extern std::string extractingFile;
 
@@ -832,8 +833,8 @@ void updateTWiLight(bool nightly) {
 }
 
 void updateSelf(bool nightly) {
-	if(nightly) {
-		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Nightly)");
+	if(nightly && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) != 0)) {
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Nightly (cia))");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
@@ -855,8 +856,8 @@ void updateSelf(bool nightly) {
 		installCia("/TWiLightMenu-Updater-nightly.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
-	} else {
-		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Release)");
+	} else if(!nightly && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) != 0)) {
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Release (cia))");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
@@ -878,8 +879,41 @@ void updateSelf(bool nightly) {
 		installCia("/TWiLightMenu-Updater-release.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-release.cia");
+	} else if(nightly && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) == 0)) {
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Nightly (3dsx))");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.3dsx?raw=true", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
+			downloadFailed();
+			return;
+		}
+		showProgressBar = false;
+
+		setInstalledChannel("TWILIGHTMENU-UPDATER", "nightly");
+		setInstalledVersion("TWILIGHTMENU-UPDATER", latestUpdaterNightly());
+		saveUpdateData();
+		updateAvailable[5] = false;
+	} else {
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Release (3dsx))");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
+		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.3dsx", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
+			downloadFailed();
+			return;
+		}
+		showProgressBar = false;
+
+		setInstalledChannel("TWILIGHTMENU-UPDATER", "release");
+		setInstalledVersion("TWILIGHTMENU-UPDATER", latestUpdaterRelease());
+		saveUpdateData();
+		updateAvailable[4] = false;
 	}
 	doneMsg();
+	if(access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) == 0) {
+		updated3dsx = true;
+	}
 }
 
 void updateCheats(void) {

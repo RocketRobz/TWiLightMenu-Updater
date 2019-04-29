@@ -21,6 +21,7 @@ static touchPosition touch;
 
 bool dspfirmfound = false;
 bool updatingSelf = false;
+bool updated3dsx = false;
 static bool musicPlaying = false;
 
 // Music and sound effects.
@@ -542,7 +543,9 @@ int main()
 			}
 			setOption = false;
 		}
-
+		if(hDown & KEY_START || updated3dsx) {
+			break;
+		}
 	}
 
 	
