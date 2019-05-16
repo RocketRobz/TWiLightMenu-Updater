@@ -13,6 +13,13 @@ enum DownloadError {
 	DL_ERROR_GIT,
 };
 
+struct ThemeEntry {
+	std::string downloadUrl;
+	std::string name;
+	std::string path;
+	std::string sdPath;
+};
+
 Result downloadToFile(std::string url, std::string path);
 Result downloadFromRelease(std::string url, std::string asset, std::string path);
 
@@ -21,6 +28,10 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
  * @return True if Wi-Fi is connected; false if not.
  */
 bool checkWifiStatus(void);
+/**
+ * Display "Please connect to Wi-Fi" for 2s
+ */
+void notConnectedMsg(void);
 
 /**
  * Get info from the GitHub API about a Release.
@@ -46,6 +57,14 @@ std::string getLatestCommit(std::string repo, std::string item);
  * @return the string from the API.
  */
 std::string getLatestCommit(std::string repo, std::string array, std::string item);
+
+/**
+ * Get a GitHub directory's contents with the GitHub API.
+ * repo is where to get from. (Ex. "DS-Homebrew/twlmenu-extras")
+ * path is the path within the repo (Ex. "contents/_nds/TWiLightMenu/dsimenu/themes")
+ * @return the string from the API.
+ */
+std::vector<ThemeEntry> getThemeList(std::string repo, std::string path);
 
 /**
  * Show the latest release's name and message.
@@ -97,6 +116,16 @@ void updateSelf(bool nightly);
 void updateCheats(void);
 
 /**
+ * Display a menu to choose to download boxart or themes.
+ */
+void downloadArt(void);
+
+/**
  * Download boxart from gametdb for all roms found on SD.
  */
 void downloadBoxart(void);
+
+/**
+ * Download themes from DS-Homebrew/twlmenu-extras.
+ */
+void downloadThemes(void);

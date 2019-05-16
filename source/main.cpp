@@ -68,7 +68,7 @@ const char *button_titles2[] = {
 	"Nightly",
 	"Release",
 	"Nightly",
-	"Boxart",
+	"Art",
 	"Cheats",
 };
 
@@ -79,7 +79,7 @@ const int title_spacing[] = {
 	10,
 	6,
 	10,
-	14,
+	30,
 	10,
 };
 
@@ -410,9 +410,9 @@ int main()
 		}
 
 		if (setOption) {
-			switch (menuSelection) {
-				case 0:	// TWiLight release
-					if(checkWifiStatus()){
+			if(checkWifiStatus()) {
+				switch (menuSelection) {
+					case 0:	// TWiLight release
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -420,29 +420,15 @@ int main()
 						displayBottomMsg("Loading release notes...");
 						if(showReleaseInfo("RocketRobz/TWiLightMenu", true))
 							updateTWiLight(false);
-					} else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
-					}
-					break;
-				case 1:	// TWiLight nightly
-					if(checkWifiStatus()){
+						break;
+					case 1:	// TWiLight nightly
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
 						updateTWiLight(true);
-					} else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
-					}
-					break;
-				case 2:	// nds-bootstrap release
-					if(checkWifiStatus()){
+						break;
+					case 2:	// nds-bootstrap release
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -450,29 +436,15 @@ int main()
 						displayBottomMsg("Loading release notes...");
 						if(showReleaseInfo("ahezard/nds-bootstrap", true))
 							updateBootstrap(false);
-					} else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
-					}
-					break;
-				case 3:	// nds-bootstrap nightly
-					if(checkWifiStatus()){
+						break;
+					case 3:	// nds-bootstrap nightly
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
 						updateBootstrap(true);
-					} else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
-					}
-					break;
-				case 4:	// Updater release
-					if(checkWifiStatus()){
+						break;
+					case 4:	// Updater release
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -483,15 +455,8 @@ int main()
 							updateSelf(false);
 							updatingSelf = false;
 						}
-					} else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
-					}
-					break;
-				case 5:	// Updater nightly
-					if(checkWifiStatus()){
+						break;
+					case 5:	// Updater nightly
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
@@ -499,47 +464,34 @@ int main()
 						updatingSelf = true;
 						updateSelf(true);
 						updatingSelf = false;
-					} else {
-						if(dspfirmfound) {
-							sfx_wrong->stop();
-							sfx_wrong->play();
-						}
-					}
-					break;
-				case 6:	// Boxart
-					// if(checkWifiStatus()){
+						break;
+					case 6:	// Art
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						downloadBoxart();
-					// } else {
-					// 	if(dspfirmfound) {
-					// 		sfx_wrong->stop();
-					// 		sfx_wrong->play();
-					// 	}
-					// }
-					break;
-				case 7:	// usrcheat.dat
-					if(checkWifiStatus()){
+						downloadArt();
+						break;
+					case 7:	// usrcheat.dat
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
 						updateCheats();
-					} else {
+						break;
+					default:
 						if(dspfirmfound) {
 							sfx_wrong->stop();
 							sfx_wrong->play();
 						}
-					}
-					break;
-				default:
-					if(dspfirmfound) {
-						sfx_wrong->stop();
-						sfx_wrong->play();
-					}
-					break;
+						break;
+				}
+			} else {
+				if(dspfirmfound) {
+					sfx_wrong->stop();
+					sfx_wrong->play();
+				}
+				notConnectedMsg();
 			}
 			setOption = false;
 		}
