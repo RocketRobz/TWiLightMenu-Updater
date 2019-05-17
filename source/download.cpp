@@ -354,6 +354,7 @@ std::string getLatestRelease(std::string repo, std::string item)
 	if (parsedAPI[item].is_string()) {
 		jsonItem = parsedAPI[item];
 	}
+
 	socExit();
 	free(result_buf);
 	free(socubuf);
@@ -364,24 +365,25 @@ std::string getLatestRelease(std::string repo, std::string item)
 	return jsonItem;
 }
 
-std::string getLatestCommit(std::string repo, std::string item)
+std::vector<std::string> getRecentCommits(std::string repo, std::string item)
 {
+	std::vector<std::string> emptyVector;
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
 	if (!socubuf)
 	{
-		return "";
+		return emptyVector;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
 	if (R_FAILED(ret))
 	{
 		free(socubuf);
-		return "";
+		return emptyVector;
 	}
 	
 	std::stringstream apiurlStream;
-	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
+	apiurlStream << "https://api.github.com/repos/" << repo << "/commits";
 	std::string apiurl = apiurlStream.str();
 	
 	CURL *hnd = curl_easy_init();
@@ -393,7 +395,7 @@ std::string getLatestCommit(std::string repo, std::string item)
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return "";
+		return emptyVector;
 	}
 
 	CURLcode cres = curl_easy_perform(hnd);
@@ -410,14 +412,17 @@ std::string getLatestCommit(std::string repo, std::string item)
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return "";
+		return emptyVector;
 	}
 	
-	std::string jsonItem;
+	std::vector<std::string> jsonItems;
 	json parsedAPI = json::parse(result_buf);
-	if (parsedAPI[item].is_string()) {
-		jsonItem = parsedAPI[item];
+	for(uint i=0;i<parsedAPI.size();i++) {
+		if (parsedAPI[i][item].is_string()) {
+			jsonItems.push_back(parsedAPI[i][item]);
+		}
 	}
+
 	socExit();
 	free(result_buf);
 	free(socubuf);
@@ -425,27 +430,28 @@ std::string getLatestCommit(std::string repo, std::string item)
 	result_sz = 0;
 	result_written = 0;
 
-	return jsonItem;
+	return jsonItems;
 }
 
-std::string getLatestCommit(std::string repo, std::string array, std::string item)
+std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item)
 {
+	std::vector<std::string> emptyVector;
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
 	if (!socubuf)
 	{
-		return "";
+		return emptyVector;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
 	if (R_FAILED(ret))
 	{
 		free(socubuf);
-		return "";
+		return emptyVector;
 	}
 	
 	std::stringstream apiurlStream;
-	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
+	apiurlStream << "https://api.github.com/repos/" << repo << "/commits";
 	std::string apiurl = apiurlStream.str();
 	
 	CURL *hnd = curl_easy_init();
@@ -457,7 +463,7 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return "";
+		return emptyVector;
 	}
 
 	CURLcode cres = curl_easy_perform(hnd);
@@ -474,14 +480,17 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return "";
+		return emptyVector;
 	}
-	
-	std::string jsonItem;
+
+	std::vector<std::string> jsonItems;
 	json parsedAPI = json::parse(result_buf);
-	if (parsedAPI[array][item].is_string()) {
-		jsonItem = parsedAPI[array][item];
+	for(uint i=0;i<parsedAPI.size();i++) {
+		if (parsedAPI[i][array][item].is_string()) {
+			jsonItems.push_back(parsedAPI[i][array][item]);
+		}
 	}
+
 	socExit();
 	free(result_buf);
 	free(socubuf);
@@ -489,7 +498,7 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 	result_sz = 0;
 	result_written = 0;
 
-	return jsonItem;
+	return jsonItems;
 }
 
 std::vector<ThemeEntry> getThemeList(std::string repo, std::string path)
@@ -565,6 +574,7 @@ std::vector<ThemeEntry> getThemeList(std::string repo, std::string path)
 		}
 		jsonItems.push_back(themeEntry);
 	}
+
 	socExit();
 	free(result_buf);
 	free(socubuf);
@@ -591,6 +601,7 @@ void downloadTheme(std::string path) {
 
 bool showReleaseInfo(std::string repo, bool showExitText)
 {
+	displayBottomMsg("Loading release notes...");
 	jsonName = getLatestRelease(repo, "name");
 	std::string jsonBody = getLatestRelease(repo, "body");
 	
@@ -614,9 +625,9 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 				gspWaitForVBlank();
 		}
 		
-		if (hDown & KEY_A || hDown & KEY_Y || hDown & KEY_TOUCH) {
+		if (hDown & KEY_A) {
 			return true;
-		} else if (hDown & KEY_B) {
+		} else if (hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
 			return false;
 		} else if (hHeld & KEY_UP) {
 			if(textPosition > 0) {
@@ -632,17 +643,80 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 	}
 }
 
-void showCommitInfo(std::string repo)
+std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 {
-	jsonName = getLatestCommit(repo, "sha").substr(0,7);
-	std::string jsonBody = getLatestCommit(repo, "commit", "message");
-	setMessageText(jsonBody);
+	displayBottomMsg("Loading commits...");
+	std::vector<std::string> jsonShasTemp = getRecentCommits(repo, "sha");
+	std::vector<std::string> jsonBodyTemp = getRecentCommits(repo, "commit", "message");
+	std::vector<std::string> jsonShas;
+	std::vector<std::string> jsonBody;
+
+	for(int i=jsonBodyTemp.size();i>=0;i--) {
+		if(jsonBodyTemp[i].substr(0, title.size()) == title) {
+			jsonBody.push_back(jsonBodyTemp[i]);
+			jsonShas.push_back(jsonShasTemp[i]);
+		}
+	}
+
+	int selectedCommit = 0;
+	int keyRepeatDelay = 0;
+	showCommitList:
+	while(1) {
+		gspWaitForVBlank();
+		hidScanInput();
+		const u32 hDown = hidKeysDown();
+		const u32 hHeld = hidKeysHeld();
+		if(keyRepeatDelay)	keyRepeatDelay--;
+		if(hDown & KEY_A) {
+			break;
+		} else if(hDown & KEY_B) {
+			return "";
+		} else if(hHeld & KEY_UP && !keyRepeatDelay) {
+			if(selectedCommit > 0) {
+				selectedCommit--;
+				keyRepeatDelay = 3;
+			}
+		} else if(hHeld & KEY_DOWN && !keyRepeatDelay) {
+			if(selectedCommit < (int)jsonShas.size()-1) {
+				selectedCommit++;
+				keyRepeatDelay = 3;
+			}
+		} else if(hHeld & KEY_LEFT && !keyRepeatDelay) {
+			selectedCommit -= 10;
+			if(selectedCommit < 0) {
+				selectedCommit = 0;
+			}
+			keyRepeatDelay = 3;
+		} else if(hHeld & KEY_RIGHT && !keyRepeatDelay) {
+			selectedCommit += 10;
+			if(selectedCommit > (int)jsonBody.size()) {
+				selectedCommit = jsonBody.size()-1;
+			}
+			keyRepeatDelay = 3;
+		}
+		std::string commitsText = "Choose a commit for commit notes:\n";
+		for(int i=(selectedCommit<9) ? 0 : selectedCommit-9;i<(int)jsonBody.size()&&i<((selectedCommit<9) ? 10 : selectedCommit+1);i++) {
+			if(i == selectedCommit) {
+				commitsText += "> " + jsonBody[i] + "\n";
+			} else {
+				commitsText += "  " + jsonBody[i] + "\n";
+			}
+		}
+		for(uint i=0;i<((jsonBody.size()<9) ? 10-jsonBody.size() : 0);i++) {
+			commitsText += "\n";
+		}
+		commitsText += "B: Back   A: Info";
+		displayBottomMsg(commitsText.c_str());
+	}
+
+	setMessageText(jsonBody[selectedCommit]);
+	jsonName = jsonShas[selectedCommit].substr(0,7);
 	int textPosition = 0;
 	bool redrawText = true;
 
 	while(1) {
 		if(redrawText) {
-			drawMessageText(textPosition, false);
+			drawMessageText(textPosition, showExitText);
 			redrawText = false;
 		}
 
@@ -656,8 +730,10 @@ void showCommitInfo(std::string repo)
 				gspWaitForVBlank();
 		}
 		
-		if (hDown & KEY_A || hDown & KEY_B || hDown & KEY_Y) {
-			break;
+		if (hDown & KEY_A) {
+			return jsonShas[selectedCommit].substr(0,7);
+		} else if (hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
+			goto showCommitList;
 		} else if (hHeld & KEY_UP) {
 			if(textPosition > 0) {
 				textPosition--;
@@ -741,7 +817,7 @@ std::string latestMenuRelease(void) {
 
 std::string latestMenuNightly(void) {
 	if (latestMenuNightlyCache == "")
-		latestMenuNightlyCache = getLatestCommit("DS-Homebrew/TWiLightMenu", "sha").substr(0,7);
+		latestMenuNightlyCache = getRecentCommits("DS-Homebrew/TWiLightMenu", "sha")[0].substr(0,7);
 	return latestMenuNightlyCache;
 }
 
@@ -753,19 +829,19 @@ std::string latestBootstrapRelease(void) {
 
 std::string latestBootstrapNightly(void) {
 	if (latestBootstrapNightlyCache == "")
-		latestBootstrapNightlyCache = getLatestCommit("ahezard/nds-bootstrap", "sha").substr(0,7);
+		latestBootstrapNightlyCache = getRecentCommits("ahezard/nds-bootstrap", "sha")[0].substr(0,7);
 	return latestBootstrapNightlyCache;
 }
 
 std::string latestUpdaterRelease(void) {
 	if (latestUpdaterReleaseCache == "")
-		latestUpdaterReleaseCache = getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name");
+		latestUpdaterReleaseCache = getLatestRelease("DS-Homebrew/TWiLightMenu-Updater", "tag_name");
 	return latestUpdaterReleaseCache;
 }
 
 std::string latestUpdaterNightly(void) {
 	if (latestUpdaterNightlyCache == "")
-		latestUpdaterNightlyCache = getLatestCommit("RocketRobz/TWiLightMenu-Updater", "sha").substr(0,7);
+		latestUpdaterNightlyCache = getRecentCommits("DS-Homebrew/TWiLightMenu-Updater", "sha")[0].substr(0,7);
 	return latestUpdaterNightlyCache;
 }
 
@@ -818,13 +894,13 @@ void checkForUpdates() {
 		updateAvailable[4] = updateAvailable[5] = true;
 }
 
-void updateBootstrap(bool nightly) {
-	if(nightly) {
+void updateBootstrap(std::string commit) {
+	if(commit != "") {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading nds-bootstrap...\n(Nightly)");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
 			showProgressBar = false;
 			downloadFailed();
 			return;
@@ -868,13 +944,13 @@ void updateBootstrap(bool nightly) {
 	doneMsg();
 }
 
-void updateTWiLight(bool nightly) {
-	if(nightly) {
+void updateTWiLight(std::string commit) {
+	if(commit != "") {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++...\n(Nightly)");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
 			showProgressBar = false;
 			downloadFailed();
 			return;
@@ -936,13 +1012,13 @@ void updateTWiLight(bool nightly) {
 	doneMsg();
 }
 
-void updateSelf(bool nightly) {
-	if(nightly && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) != 0)) {
+void updateSelf(std::string commit) {
+	if(commit != "" && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) != 0)) {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Nightly (cia))");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia?raw=true", "/TWiLightMenu-Updater-nightly.cia") != 0) {
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia?raw=true", "/TWiLightMenu-Updater-nightly.cia") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -960,12 +1036,12 @@ void updateSelf(bool nightly) {
 		installCia("/TWiLightMenu-Updater-nightly.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
-	} else if(!nightly && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) != 0)) {
+	} else if(commit == "" && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) != 0)) {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Release (cia))");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-release.cia") != 0) {
+		if (downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-release.cia") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -983,12 +1059,12 @@ void updateSelf(bool nightly) {
 		installCia("/TWiLightMenu-Updater-release.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-release.cia");
-	} else if(nightly && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) == 0)) {
+	} else if(commit != "" && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) == 0)) {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Nightly (3dsx))");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.3dsx?raw=true", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.3dsx?raw=true", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -1003,7 +1079,7 @@ void updateSelf(bool nightly) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.3dsx", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
+		if (downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.3dsx", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -1131,8 +1207,8 @@ void scanToCancelBoxArt(void) {
 	}
 }
 
-void downloadArt(void) {
-	std::string artOptions[] = {"Boxart", "Themes"};
+void downloadExtras(void) {
+	std::string extrasOptions[] = {"Boxart", "Themes"};
 	int selectedOption = 0;
 	while(1) {
 		gspWaitForVBlank();
@@ -1155,17 +1231,17 @@ void downloadArt(void) {
 				selectedOption++;
 			}
 		}
-		std::string artText = "Would you like to download boxart\nor themes?\n";
+		std::string extrasText = "What would you like to download?\n";
 		for(int i=0;i<2;i++) {
 			if(i == selectedOption) {
-				artText += "> " + artOptions[i] + "\n";
+				extrasText += "> " + extrasOptions[i] + "\n";
 			} else {
-				artText += "  " + artOptions[i] + "\n";
+				extrasText += "  " + extrasOptions[i] + "\n";
 			}
 		}
-		artText += "\n\n\n\n\n\n\n";
-		artText += "B: Back   A: Choose";
-		displayBottomMsg(artText.c_str());
+		extrasText += "\n\n\n\n\n\n\n\n";
+		extrasText += "B: Back   A: Choose";
+		displayBottomMsg(extrasText.c_str());
 	}
 }
 

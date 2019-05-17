@@ -6,14 +6,14 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "graphic.h"
-#include "pp2d/pp2d.h"
-#include "sound.h"
-#include "dumpdsp.h"
-#include "settings.h"
-#include "language.h"
 #include "download.hpp"
+#include "dumpdsp.h"
+#include "graphic.h"
 #include "inifile.h"
+#include "language.h"
+#include "pp2d/pp2d.h"
+#include "settings.h"
+#include "sound.h"
 
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
 
@@ -68,8 +68,8 @@ const char *button_titles2[] = {
 	"Nightly",
 	"Release",
 	"Nightly",
-	"Art",
 	"Cheats",
+	"Extras",
 };
 
 const int title_spacing[] = {
@@ -79,8 +79,8 @@ const int title_spacing[] = {
 	10,
 	6,
 	10,
-	30,
 	10,
+	17,
 };
 
 const char *row_titles2[] = {
@@ -205,7 +205,7 @@ int main()
 		sfx_wrong = new sound("romfs:/sounds/wrong.wav", 2, false);
 		sfx_back = new sound("romfs:/sounds/back.wav", 2, false);
 	}
-	
+
 	bool buttonShading = false;
 	bool setOption = false;
 	bool showMessage = false;
@@ -362,14 +362,14 @@ int main()
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					showReleaseInfo("RocketRobz/TWiLightMenu", false);
+					showReleaseInfo("DS-Homebrew/TWiLightMenu", false);
 					break;
 				case 1:
 					if(dspfirmfound) {
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					showCommitInfo("RocketRobz/TWiLightMenu");
+					chooseCommit("TWLBot/Builds", "TWiLightMenu |", false);
 					break;
 				case 2:
 					if(dspfirmfound) {
@@ -383,21 +383,21 @@ int main()
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					showCommitInfo("ahezard/nds-bootstrap");
+					chooseCommit("TWLBot/Builds", "nds-bootstrap |", false);
 					break;
 				case 4:
 					if(dspfirmfound) {
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					showReleaseInfo("RocketRobz/TWiLightMenu-Updater", false);
+					showReleaseInfo("DS-Homebrew/TWiLightMenu-Updater", false);
 					break;
 				case 5:
 					if(dspfirmfound) {
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					showCommitInfo("RocketRobz/TWiLightMenu-Updater");
+					chooseCommit("TWLBot/Builds", "TWiLightMenu-Updater |", false);
 					break;
 				default:
 					if(dspfirmfound) {
@@ -411,48 +411,48 @@ int main()
 
 		if (setOption) {
 			if(checkWifiStatus()) {
+				std::string commit;
 				switch (menuSelection) {
 					case 0:	// TWiLight release
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						displayBottomMsg("Loading release notes...");
-						if(showReleaseInfo("RocketRobz/TWiLightMenu", true))
-							updateTWiLight(false);
+						if(showReleaseInfo("DS-Homebrew/TWiLightMenu", true))
+							updateTWiLight("");
 						break;
 					case 1:	// TWiLight nightly
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						updateTWiLight(true);
+						if((commit = chooseCommit("TWLBot/Builds", "TWiLightMenu |", true)) != "")
+							updateTWiLight(commit);
 						break;
 					case 2:	// nds-bootstrap release
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						displayBottomMsg("Loading release notes...");
 						if(showReleaseInfo("ahezard/nds-bootstrap", true))
-							updateBootstrap(false);
+							updateBootstrap("");
 						break;
 					case 3:	// nds-bootstrap nightly
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						updateBootstrap(true);
+						if((commit = chooseCommit("TWLBot/Builds", "nds-bootstrap |", true)) != "")
+							updateBootstrap(commit);
 						break;
 					case 4:	// Updater release
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						displayBottomMsg("Loading release notes...");
-						if(showReleaseInfo("RocketRobz/TWiLightMenu-Updater", true)) {
+						if(showReleaseInfo("DS-Homebrew/TWiLightMenu-Updater", true)) {
 							updatingSelf = true;
-							updateSelf(false);
+							updateSelf("");
 							updatingSelf = false;
 						}
 						break;
@@ -461,23 +461,26 @@ int main()
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						updatingSelf = true;
-						updateSelf(true);
-						updatingSelf = false;
-						break;
-					case 6:	// Art
-						if(dspfirmfound) {
-							sfx_select->stop();
-							sfx_select->play();
+						if((commit = chooseCommit("TWLBot/Builds", "TWiLightMenu-Updater |", true)) != "") {
+							updatingSelf = true;
+							updateSelf(commit);
+							updatingSelf = false;
 						}
-						downloadArt();
 						break;
-					case 7:	// usrcheat.dat
+					case 6:	// Cheats
+						break;
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
 						updateCheats();
+						break;
+					case 7:	// Extras
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						downloadExtras();
 						break;
 					default:
 						if(dspfirmfound) {

@@ -28,14 +28,15 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
  * @return True if Wi-Fi is connected; false if not.
  */
 bool checkWifiStatus(void);
+
 /**
- * Display "Please connect to Wi-Fi" for 2s
+ * Display "Please connect to Wi-Fi" for 2s.
  */
 void notConnectedMsg(void);
 
 /**
  * Get info from the GitHub API about a Release.
- * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
  * item is that to get from the API. (Ex. "tag_name")
  * @return the string from the API.
  */
@@ -43,20 +44,20 @@ std::string getLatestRelease(std::string repo, std::string item);
 
 /**
  * Get info from the GitHub API about a Commit.
- * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
  * item is that to get from the API. (Ex. "sha")
  * @return the string from the API.
  */
-std::string getLatestCommit(std::string repo, std::string item);
+std::vector<std::string> getRecentCommits(std::string repo, std::string item);
 
 /**
  * Get info from the GitHub API about a Commit.
- * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
  * array is the array the item is in. (Ex. "commit")
  * item is that to get from the API. (Ex. "message")
  * @return the string from the API.
  */
-std::string getLatestCommit(std::string repo, std::string array, std::string item);
+std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item);
 
 /**
  * Get a GitHub directory's contents with the GitHub API.
@@ -68,15 +69,18 @@ std::vector<ThemeEntry> getThemeList(std::string repo, std::string path);
 
 /**
  * Show the latest release's name and message.
- * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
+ * drawMessageText is whether to show the Cancel/Update text at the bottom
  */
 bool showReleaseInfo(std::string repo, bool drawMessageText);
 
 /**
  * Show the latest commit's name and message.
- * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * repo is where to get from. (Ex. "TWlBot/Builds")
+ * title is what the commit title needs to start with (Ex. "TWiLightMenu")
+ * drawMessageText is whether to show the Cancel/Update text at the bottom
  */
-void showCommitInfo(std::string repo);
+std::string chooseCommit(std::string repo, std::string title, bool showExitText);
 
 /**
  * Prepare text for showing a release/commit message.
@@ -97,18 +101,21 @@ void checkForUpdates(void);
 
 /**
  * Update nds-bootstrap to the latest build.
+ * commit is the TWlBot commit, leave blank for release
  */
-void updateBootstrap(bool nightly);
+void updateBootstrap(std::string commit);
 
 /**
  * Update TWiLight Menu++ to the latest build.
+ * commit is the TWlBot commit, leave blank for release
  */
-void updateTWiLight(bool nightly);
+void updateTWiLight(std::string commit);
 
 /**
  * Update the TWiLight Menu++ Updater to the latest build.
+ * commit is the TWlBot commit, leave blank for release
  */
-void updateSelf(bool nightly);
+void updateSelf(std::string commit);
 
 /**
  * Update DeadSkullzJr's cheat DB to the latest version.
@@ -118,7 +125,7 @@ void updateCheats(void);
 /**
  * Display a menu to choose to download boxart or themes.
  */
-void downloadArt(void);
+void downloadExtras(void);
 
 /**
  * Download boxart from gametdb for all roms found on SD.

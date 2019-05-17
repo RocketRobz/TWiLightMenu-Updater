@@ -2,7 +2,7 @@
 TWiLightMenu Updater is an open-source updater for TWiLightMenu++
 
 # Links
-[TWiLightMenu++](https://github.com/RocketRobz/TWiLightMenu)
+[TWiLightMenu++](https://github.com/DS-Homebrew/TWiLightMenu)
 
 [nds-bootstrap](https://github.com/ahezard/nds-bootstrap)
 
