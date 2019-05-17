@@ -369,7 +369,7 @@ int main()
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					chooseCommit("DS-Homebrew/TWiLightMenu", false);
+					chooseCommit("TWLBot/Builds", "TWiLightMenu |", false);
 					break;
 				case 2:
 					if(dspfirmfound) {
@@ -383,7 +383,7 @@ int main()
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					chooseCommit("ahezard/nds-bootstrap", false);
+					chooseCommit("TWLBot/Builds", "nds-bootstrap |", false);
 					break;
 				case 4:
 					if(dspfirmfound) {
@@ -397,7 +397,7 @@ int main()
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					chooseCommit("DS-Homebrew/TWiLightMenu-Updater", false);
+					chooseCommit("TWLBot/Builds", "TWiLightMenu-Updater |", false);
 					break;
 				default:
 					if(dspfirmfound) {
@@ -411,52 +411,48 @@ int main()
 
 		if (setOption) {
 			if(checkWifiStatus()) {
+				std::string commit;
 				switch (menuSelection) {
 					case 0:	// TWiLight release
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						displayBottomMsg("Loading release notes...");
 						if(showReleaseInfo("DS-Homebrew/TWiLightMenu", true))
-							updateTWiLight(false);
+							updateTWiLight("");
 						break;
 					case 1:	// TWiLight nightly
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						displayBottomMsg("Loading commits...");
-						if(chooseCommit("DS-Homebrew/TWiLightMenu", true) != "")
-							updateTWiLight(true);
+						if((commit = chooseCommit("TWLBot/Builds", "TWiLightMenu |", true)) != "")
+							updateTWiLight(commit);
 						break;
 					case 2:	// nds-bootstrap release
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						displayBottomMsg("Loading release notes...");
 						if(showReleaseInfo("ahezard/nds-bootstrap", true))
-							updateBootstrap(false);
+							updateBootstrap("");
 						break;
 					case 3:	// nds-bootstrap nightly
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						displayBottomMsg("Loading commits...");
-						if(chooseCommit("ahezard/nds-bootstrap", true) != "")
-							updateBootstrap(true);
+						if((commit = chooseCommit("TWLBot/Builds", "nds-bootstrap |", true)) != "")
+							updateBootstrap(commit);
 						break;
 					case 4:	// Updater release
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						displayBottomMsg("Loading release notes...");
 						if(showReleaseInfo("DS-Homebrew/TWiLightMenu-Updater", true)) {
 							updatingSelf = true;
-							updateSelf(false);
+							updateSelf("");
 							updatingSelf = false;
 						}
 						break;
@@ -465,10 +461,9 @@ int main()
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						displayBottomMsg("Loading commits...");
-						if(chooseCommit("DS-Homebrew/TWiLightMenu", true) != "") {
+						if((commit = chooseCommit("TWLBot/Builds", "TWiLightMenu-Updater |", true)) != "") {
 							updatingSelf = true;
-							updateSelf(true);
+							updateSelf(commit);
 							updatingSelf = false;
 						}
 						break;

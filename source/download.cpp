@@ -238,13 +238,7 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	printf("Looking for asset with name matching:\n%s\n", asset.c_str());
 	std::string assetUrl;
 	json parsedAPI = json::parse(result_buf);
-	if(parsedAPI["message"].is_string()) {
-		std::string message = parsedAPI["message"];
-		if(message.substr(0,23) == "API rate limit exceeded") {
-			displayBottomMsg("GitHub rate limit exeeded... :(");
-			for(int i=0;i<60*2;i++)	gspWaitForVBlank();
-		}
-	} else if (parsedAPI["assets"].is_array()) {
+	if (parsedAPI["assets"].is_array()) {
 		for (auto jsonAsset : parsedAPI["assets"]) {
 			if (jsonAsset.is_object() && jsonAsset["name"].is_string() && jsonAsset["browser_download_url"].is_string()) {
 				std::string assetName = jsonAsset["name"];
@@ -357,13 +351,7 @@ std::string getLatestRelease(std::string repo, std::string item)
 	
 	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
-	if(parsedAPI["message"].is_string()) {
-		std::string message = parsedAPI["message"];
-		if(message.substr(0,23) == "API rate limit exceeded") {
-			displayBottomMsg("GitHub rate limit exeeded... :(");
-			for(int i=0;i<60*2;i++)	gspWaitForVBlank();
-		}
-	} else if (parsedAPI[item].is_string()) {
+	if (parsedAPI[item].is_string()) {
 		jsonItem = parsedAPI[item];
 	}
 
@@ -429,17 +417,9 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string item)
 	
 	std::vector<std::string> jsonItems;
 	json parsedAPI = json::parse(result_buf);
-	if(parsedAPI["message"].is_string()) {
-		std::string message = parsedAPI["message"];
-		if(message.substr(0,23) == "API rate limit exceeded") {
-			displayBottomMsg("GitHub rate limit exeeded... :(");
-			for(int i=0;i<60*2;i++)	gspWaitForVBlank();
-		}
-	} else {
-		for(uint i=0;i<parsedAPI.size();i++) {
-			if (parsedAPI[i][item].is_string()) {
-				jsonItems.push_back(parsedAPI[i][item]);
-			}
+	for(uint i=0;i<parsedAPI.size();i++) {
+		if (parsedAPI[i][item].is_string()) {
+			jsonItems.push_back(parsedAPI[i][item]);
 		}
 	}
 
@@ -505,17 +485,9 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string array, s
 
 	std::vector<std::string> jsonItems;
 	json parsedAPI = json::parse(result_buf);
-	if(parsedAPI["message"].is_string()) {
-		std::string message = parsedAPI["message"];
-		if(message.substr(0,23) == "API rate limit exceeded") {
-			displayBottomMsg("GitHub rate limit exeeded... :(");
-			for(int i=0;i<60*2;i++)	gspWaitForVBlank();
-		}
-	} else {
-		for(uint i=0;i<parsedAPI.size();i++) {
-			if (parsedAPI[i][array][item].is_string()) {
-				jsonItems.push_back(parsedAPI[i][array][item]);
-			}
+	for(uint i=0;i<parsedAPI.size();i++) {
+		if (parsedAPI[i][array][item].is_string()) {
+			jsonItems.push_back(parsedAPI[i][array][item]);
 		}
 	}
 
@@ -582,33 +554,25 @@ std::vector<ThemeEntry> getThemeList(std::string repo, std::string path)
 	
 	std::vector<ThemeEntry> jsonItems;
 	json parsedAPI = json::parse(result_buf);
-	if(parsedAPI["message"].is_string()) {
-		std::string message = parsedAPI["message"];
-		if(message.substr(0,23) == "API rate limit exceeded") {
-			displayBottomMsg("GitHub rate limit exeeded... :(");
-			for(int i=0;i<60*2;i++)	gspWaitForVBlank();
+	for(uint i=0;i<parsedAPI.size();i++) {
+		ThemeEntry themeEntry;
+		if (parsedAPI[i]["name"].is_string()) {
+			themeEntry.name = parsedAPI[i]["name"];
 		}
-	} else {
-		for(uint i=0;i<parsedAPI.size();i++) {
-			ThemeEntry themeEntry;
-			if (parsedAPI[i]["name"].is_string()) {
-				themeEntry.name = parsedAPI[i]["name"];
-			}
-			if (parsedAPI[i]["download_url"].is_string()) {
-				themeEntry.downloadUrl = parsedAPI[i]["download_url"];
-			}
-			if (parsedAPI[i]["path"].is_string()) {
-				themeEntry.sdPath = "sdmc:/";
-				themeEntry.sdPath += parsedAPI[i]["path"];
-				themeEntry.path = parsedAPI[i]["path"];
+		if (parsedAPI[i]["download_url"].is_string()) {
+			themeEntry.downloadUrl = parsedAPI[i]["download_url"];
+		}
+		if (parsedAPI[i]["path"].is_string()) {
+			themeEntry.sdPath = "sdmc:/";
+			themeEntry.sdPath += parsedAPI[i]["path"];
+			themeEntry.path = parsedAPI[i]["path"];
 
-				size_t pos;
-				while ((pos = themeEntry.path.find(" ")) != std::string::npos) {
-					themeEntry.path.replace(pos, 1, "%20");
-				}
+			size_t pos;
+			while ((pos = themeEntry.path.find(" ")) != std::string::npos) {
+				themeEntry.path.replace(pos, 1, "%20");
 			}
-			jsonItems.push_back(themeEntry);
 		}
+		jsonItems.push_back(themeEntry);
 	}
 
 	socExit();
@@ -637,6 +601,7 @@ void downloadTheme(std::string path) {
 
 bool showReleaseInfo(std::string repo, bool showExitText)
 {
+	displayBottomMsg("Loading release notes...");
 	jsonName = getLatestRelease(repo, "name");
 	std::string jsonBody = getLatestRelease(repo, "body");
 	
@@ -678,10 +643,20 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 	}
 }
 
-std::string chooseCommit(std::string repo, bool showExitText)
+std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 {
-	std::vector<std::string> jsonShas = getRecentCommits(repo, "sha");
-	std::vector<std::string> jsonBody = getRecentCommits(repo, "commit", "message");
+	displayBottomMsg("Loading commits...");
+	std::vector<std::string> jsonShasTemp = getRecentCommits(repo, "sha");
+	std::vector<std::string> jsonBodyTemp = getRecentCommits(repo, "commit", "message");
+	std::vector<std::string> jsonShas;
+	std::vector<std::string> jsonBody;
+
+	for(int i=jsonBodyTemp.size();i>=0;i--) {
+		if(jsonBodyTemp[i].substr(0, title.size()) == title) {
+			jsonBody.push_back(jsonBodyTemp[i]);
+			jsonShas.push_back(jsonShasTemp[i]);
+		}
+	}
 
 	int selectedCommit = 0;
 	int keyRepeatDelay = 0;
@@ -714,20 +689,20 @@ std::string chooseCommit(std::string repo, bool showExitText)
 			keyRepeatDelay = 3;
 		} else if(hHeld & KEY_RIGHT && !keyRepeatDelay) {
 			selectedCommit += 10;
-			if(selectedCommit > (int)jsonShas.size()) {
-				selectedCommit = jsonShas.size()-1;
+			if(selectedCommit > (int)jsonBody.size()) {
+				selectedCommit = jsonBody.size()-1;
 			}
 			keyRepeatDelay = 3;
 		}
 		std::string commitsText = "Choose a commit for commit notes:\n";
-		for(int i=(selectedCommit<9) ? 0 : selectedCommit-9;i<(int)jsonShas.size()&&i<((selectedCommit<9) ? 10 : selectedCommit+1);i++) {
+		for(int i=(selectedCommit<9) ? 0 : selectedCommit-9;i<(int)jsonBody.size()&&i<((selectedCommit<9) ? 10 : selectedCommit+1);i++) {
 			if(i == selectedCommit) {
-				commitsText += "> " + jsonShas[i].substr(0,7) + "\n";
+				commitsText += "> " + jsonBody[i] + "\n";
 			} else {
-				commitsText += "  " + jsonShas[i].substr(0,7) + "\n";
+				commitsText += "  " + jsonBody[i] + "\n";
 			}
 		}
-		for(uint i=0;i<((jsonShas.size()<9) ? 10-jsonShas.size() : 0);i++) {
+		for(uint i=0;i<((jsonBody.size()<9) ? 10-jsonBody.size() : 0);i++) {
 			commitsText += "\n";
 		}
 		commitsText += "B: Back   A: Info";
@@ -919,13 +894,13 @@ void checkForUpdates() {
 		updateAvailable[4] = updateAvailable[5] = true;
 }
 
-void updateBootstrap(bool nightly) {
-	if(nightly) {
+void updateBootstrap(std::string commit) {
+	if(commit != "") {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading nds-bootstrap...\n(Nightly)");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
 			showProgressBar = false;
 			downloadFailed();
 			return;
@@ -969,13 +944,13 @@ void updateBootstrap(bool nightly) {
 	doneMsg();
 }
 
-void updateTWiLight(bool nightly) {
-	if(nightly) {
+void updateTWiLight(std::string commit) {
+	if(commit != "") {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++...\n(Nightly)");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
 			showProgressBar = false;
 			downloadFailed();
 			return;
@@ -1037,13 +1012,13 @@ void updateTWiLight(bool nightly) {
 	doneMsg();
 }
 
-void updateSelf(bool nightly) {
-	if(nightly && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) != 0)) {
+void updateSelf(std::string commit) {
+	if(commit != "" && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) != 0)) {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Nightly (cia))");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia?raw=true", "/TWiLightMenu-Updater-nightly.cia") != 0) {
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia?raw=true", "/TWiLightMenu-Updater-nightly.cia") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -1061,7 +1036,7 @@ void updateSelf(bool nightly) {
 		installCia("/TWiLightMenu-Updater-nightly.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-nightly.cia");
-	} else if(!nightly && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) != 0)) {
+	} else if(commit == "" && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) != 0)) {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Release (cia))");
 		showProgressBar = true;
 		progressBarType = 0;
@@ -1084,12 +1059,12 @@ void updateSelf(bool nightly) {
 		installCia("/TWiLightMenu-Updater-release.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-Updater-release.cia");
-	} else if(nightly && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) == 0)) {
+	} else if(commit != "" && (access("sdmc:/3ds/TWiLightMenu-Updater.3dsx", F_OK) == 0)) {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ Updater...\n(Nightly (3dsx))");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.3dsx?raw=true", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.3dsx?raw=true", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
 			downloadFailed();
 			return;
 		}

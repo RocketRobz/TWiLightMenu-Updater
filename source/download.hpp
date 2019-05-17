@@ -28,8 +28,9 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
  * @return True if Wi-Fi is connected; false if not.
  */
 bool checkWifiStatus(void);
+
 /**
- * Display "Please connect to Wi-Fi" for 2s
+ * Display "Please connect to Wi-Fi" for 2s.
  */
 void notConnectedMsg(void);
 
@@ -69,14 +70,17 @@ std::vector<ThemeEntry> getThemeList(std::string repo, std::string path);
 /**
  * Show the latest release's name and message.
  * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
+ * drawMessageText is whether to show the Cancel/Update text at the bottom
  */
 bool showReleaseInfo(std::string repo, bool drawMessageText);
 
 /**
  * Show the latest commit's name and message.
- * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
+ * repo is where to get from. (Ex. "TWlBot/Builds")
+ * title is what the commit title needs to start with (Ex. "TWiLightMenu")
+ * drawMessageText is whether to show the Cancel/Update text at the bottom
  */
-std::string chooseCommit(std::string repo, bool showExitText);
+std::string chooseCommit(std::string repo, std::string title, bool showExitText);
 
 /**
  * Prepare text for showing a release/commit message.
@@ -97,18 +101,21 @@ void checkForUpdates(void);
 
 /**
  * Update nds-bootstrap to the latest build.
+ * commit is the TWlBot commit, leave blank for release
  */
-void updateBootstrap(bool nightly);
+void updateBootstrap(std::string commit);
 
 /**
  * Update TWiLight Menu++ to the latest build.
+ * commit is the TWlBot commit, leave blank for release
  */
-void updateTWiLight(bool nightly);
+void updateTWiLight(std::string commit);
 
 /**
  * Update the TWiLight Menu++ Updater to the latest build.
+ * commit is the TWlBot commit, leave blank for release
  */
-void updateSelf(bool nightly);
+void updateSelf(std::string commit);
 
 /**
  * Update DeadSkullzJr's cheat DB to the latest version.
