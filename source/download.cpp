@@ -1131,8 +1131,8 @@ void scanToCancelBoxArt(void) {
 	}
 }
 
-void downloadArt(void) {
-	std::string artOptions[] = {"Boxart", "Themes"};
+void downloadExtras(void) {
+	std::string extrasOptions[] = {"Boxart", "Themes"};
 	int selectedOption = 0;
 	while(1) {
 		gspWaitForVBlank();
@@ -1155,17 +1155,17 @@ void downloadArt(void) {
 				selectedOption++;
 			}
 		}
-		std::string artText = "Would you like to download boxart\nor themes?\n";
+		std::string extrasText = "What would you like to download?\n";
 		for(int i=0;i<2;i++) {
 			if(i == selectedOption) {
-				artText += "> " + artOptions[i] + "\n";
+				extrasText += "> " + extrasOptions[i] + "\n";
 			} else {
-				artText += "  " + artOptions[i] + "\n";
+				extrasText += "  " + extrasOptions[i] + "\n";
 			}
 		}
-		artText += "\n\n\n\n\n\n\n";
-		artText += "B: Back   A: Choose";
-		displayBottomMsg(artText.c_str());
+		extrasText += "\n\n\n\n\n\n\n\n";
+		extrasText += "B: Back   A: Choose";
+		displayBottomMsg(extrasText.c_str());
 	}
 }
 

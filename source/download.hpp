@@ -118,7 +118,7 @@ void updateCheats(void);
 /**
  * Display a menu to choose to download boxart or themes.
  */
-void downloadArt(void);
+void downloadExtras(void);
 
 /**
  * Download boxart from gametdb for all roms found on SD.

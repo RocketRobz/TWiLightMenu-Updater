@@ -6,14 +6,14 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include "graphic.h"
-#include "pp2d/pp2d.h"
-#include "sound.h"
-#include "dumpdsp.h"
-#include "settings.h"
-#include "language.h"
 #include "download.hpp"
+#include "dumpdsp.h"
+#include "graphic.h"
 #include "inifile.h"
+#include "language.h"
+#include "pp2d/pp2d.h"
+#include "settings.h"
+#include "sound.h"
 
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
 
@@ -68,8 +68,8 @@ const char *button_titles2[] = {
 	"Nightly",
 	"Release",
 	"Nightly",
-	"Art",
 	"Cheats",
+	"Extras",
 };
 
 const int title_spacing[] = {
@@ -79,8 +79,8 @@ const int title_spacing[] = {
 	10,
 	6,
 	10,
-	30,
 	10,
+	17,
 };
 
 const char *row_titles2[] = {
@@ -205,7 +205,7 @@ int main()
 		sfx_wrong = new sound("romfs:/sounds/wrong.wav", 2, false);
 		sfx_back = new sound("romfs:/sounds/back.wav", 2, false);
 	}
-	
+
 	bool buttonShading = false;
 	bool setOption = false;
 	bool showMessage = false;
@@ -465,19 +465,20 @@ int main()
 						updateSelf(true);
 						updatingSelf = false;
 						break;
-					case 6:	// Art
-						if(dspfirmfound) {
-							sfx_select->stop();
-							sfx_select->play();
-						}
-						downloadArt();
+					case 6:	// Cheats
 						break;
-					case 7:	// usrcheat.dat
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
 						}
 						updateCheats();
+						break;
+					case 7:	// Extras
+						if(dspfirmfound) {
+							sfx_select->stop();
+							sfx_select->play();
+						}
+						downloadExtras();
 						break;
 					default:
 						if(dspfirmfound) {
