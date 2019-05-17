@@ -238,7 +238,13 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	printf("Looking for asset with name matching:\n%s\n", asset.c_str());
 	std::string assetUrl;
 	json parsedAPI = json::parse(result_buf);
-	if (parsedAPI["assets"].is_array()) {
+	if(parsedAPI["message"].is_string()) {
+		std::string message = parsedAPI["message"];
+		if(message.substr(0,23) == "API rate limit exceeded") {
+			displayBottomMsg("GitHub rate limit exeeded... :(");
+			for(int i=0;i<60*2;i++)	gspWaitForVBlank();
+		}
+	} else if (parsedAPI["assets"].is_array()) {
 		for (auto jsonAsset : parsedAPI["assets"]) {
 			if (jsonAsset.is_object() && jsonAsset["name"].is_string() && jsonAsset["browser_download_url"].is_string()) {
 				std::string assetName = jsonAsset["name"];
@@ -351,9 +357,16 @@ std::string getLatestRelease(std::string repo, std::string item)
 	
 	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
-	if (parsedAPI[item].is_string()) {
+	if(parsedAPI["message"].is_string()) {
+		std::string message = parsedAPI["message"];
+		if(message.substr(0,23) == "API rate limit exceeded") {
+			displayBottomMsg("GitHub rate limit exeeded... :(");
+			for(int i=0;i<60*2;i++)	gspWaitForVBlank();
+		}
+	} else if (parsedAPI[item].is_string()) {
 		jsonItem = parsedAPI[item];
 	}
+
 	socExit();
 	free(result_buf);
 	free(socubuf);
@@ -364,24 +377,25 @@ std::string getLatestRelease(std::string repo, std::string item)
 	return jsonItem;
 }
 
-std::string getLatestCommit(std::string repo, std::string item)
+std::vector<std::string> getRecentCommits(std::string repo, std::string item)
 {
+	std::vector<std::string> emptyVector;
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
 	if (!socubuf)
 	{
-		return "";
+		return emptyVector;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
 	if (R_FAILED(ret))
 	{
 		free(socubuf);
-		return "";
+		return emptyVector;
 	}
 	
 	std::stringstream apiurlStream;
-	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
+	apiurlStream << "https://api.github.com/repos/" << repo << "/commits";
 	std::string apiurl = apiurlStream.str();
 	
 	CURL *hnd = curl_easy_init();
@@ -393,7 +407,7 @@ std::string getLatestCommit(std::string repo, std::string item)
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return "";
+		return emptyVector;
 	}
 
 	CURLcode cres = curl_easy_perform(hnd);
@@ -410,14 +424,25 @@ std::string getLatestCommit(std::string repo, std::string item)
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return "";
+		return emptyVector;
 	}
 	
-	std::string jsonItem;
+	std::vector<std::string> jsonItems;
 	json parsedAPI = json::parse(result_buf);
-	if (parsedAPI[item].is_string()) {
-		jsonItem = parsedAPI[item];
+	if(parsedAPI["message"].is_string()) {
+		std::string message = parsedAPI["message"];
+		if(message.substr(0,23) == "API rate limit exceeded") {
+			displayBottomMsg("GitHub rate limit exeeded... :(");
+			for(int i=0;i<60*2;i++)	gspWaitForVBlank();
+		}
+	} else {
+		for(uint i=0;i<parsedAPI.size();i++) {
+			if (parsedAPI[i][item].is_string()) {
+				jsonItems.push_back(parsedAPI[i][item]);
+			}
+		}
 	}
+
 	socExit();
 	free(result_buf);
 	free(socubuf);
@@ -425,27 +450,28 @@ std::string getLatestCommit(std::string repo, std::string item)
 	result_sz = 0;
 	result_written = 0;
 
-	return jsonItem;
+	return jsonItems;
 }
 
-std::string getLatestCommit(std::string repo, std::string array, std::string item)
+std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item)
 {
+	std::vector<std::string> emptyVector;
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
 	if (!socubuf)
 	{
-		return "";
+		return emptyVector;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
 	if (R_FAILED(ret))
 	{
 		free(socubuf);
-		return "";
+		return emptyVector;
 	}
 	
 	std::stringstream apiurlStream;
-	apiurlStream << "https://api.github.com/repos/" << repo << "/commits/master";
+	apiurlStream << "https://api.github.com/repos/" << repo << "/commits";
 	std::string apiurl = apiurlStream.str();
 	
 	CURL *hnd = curl_easy_init();
@@ -457,7 +483,7 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return "";
+		return emptyVector;
 	}
 
 	CURLcode cres = curl_easy_perform(hnd);
@@ -474,14 +500,25 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return "";
+		return emptyVector;
 	}
-	
-	std::string jsonItem;
+
+	std::vector<std::string> jsonItems;
 	json parsedAPI = json::parse(result_buf);
-	if (parsedAPI[array][item].is_string()) {
-		jsonItem = parsedAPI[array][item];
+	if(parsedAPI["message"].is_string()) {
+		std::string message = parsedAPI["message"];
+		if(message.substr(0,23) == "API rate limit exceeded") {
+			displayBottomMsg("GitHub rate limit exeeded... :(");
+			for(int i=0;i<60*2;i++)	gspWaitForVBlank();
+		}
+	} else {
+		for(uint i=0;i<parsedAPI.size();i++) {
+			if (parsedAPI[i][array][item].is_string()) {
+				jsonItems.push_back(parsedAPI[i][array][item]);
+			}
+		}
 	}
+
 	socExit();
 	free(result_buf);
 	free(socubuf);
@@ -489,7 +526,7 @@ std::string getLatestCommit(std::string repo, std::string array, std::string ite
 	result_sz = 0;
 	result_written = 0;
 
-	return jsonItem;
+	return jsonItems;
 }
 
 std::vector<ThemeEntry> getThemeList(std::string repo, std::string path)
@@ -545,26 +582,35 @@ std::vector<ThemeEntry> getThemeList(std::string repo, std::string path)
 	
 	std::vector<ThemeEntry> jsonItems;
 	json parsedAPI = json::parse(result_buf);
-	for(uint i=0;i<parsedAPI.size();i++) {
-		ThemeEntry themeEntry;
-		if (parsedAPI[i]["name"].is_string()) {
-			themeEntry.name = parsedAPI[i]["name"];
+	if(parsedAPI["message"].is_string()) {
+		std::string message = parsedAPI["message"];
+		if(message.substr(0,23) == "API rate limit exceeded") {
+			displayBottomMsg("GitHub rate limit exeeded... :(");
+			for(int i=0;i<60*2;i++)	gspWaitForVBlank();
 		}
-		if (parsedAPI[i]["download_url"].is_string()) {
-			themeEntry.downloadUrl = parsedAPI[i]["download_url"];
-		}
-		if (parsedAPI[i]["path"].is_string()) {
-			themeEntry.sdPath = "sdmc:/";
-			themeEntry.sdPath += parsedAPI[i]["path"];
-			themeEntry.path = parsedAPI[i]["path"];
-
-			size_t pos;
-			while ((pos = themeEntry.path.find(" ")) != std::string::npos) {
-				themeEntry.path.replace(pos, 1, "%20");
+	} else {
+		for(uint i=0;i<parsedAPI.size();i++) {
+			ThemeEntry themeEntry;
+			if (parsedAPI[i]["name"].is_string()) {
+				themeEntry.name = parsedAPI[i]["name"];
 			}
+			if (parsedAPI[i]["download_url"].is_string()) {
+				themeEntry.downloadUrl = parsedAPI[i]["download_url"];
+			}
+			if (parsedAPI[i]["path"].is_string()) {
+				themeEntry.sdPath = "sdmc:/";
+				themeEntry.sdPath += parsedAPI[i]["path"];
+				themeEntry.path = parsedAPI[i]["path"];
+
+				size_t pos;
+				while ((pos = themeEntry.path.find(" ")) != std::string::npos) {
+					themeEntry.path.replace(pos, 1, "%20");
+				}
+			}
+			jsonItems.push_back(themeEntry);
 		}
-		jsonItems.push_back(themeEntry);
 	}
+
 	socExit();
 	free(result_buf);
 	free(socubuf);
@@ -614,9 +660,9 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 				gspWaitForVBlank();
 		}
 		
-		if (hDown & KEY_A || hDown & KEY_Y || hDown & KEY_TOUCH) {
+		if (hDown & KEY_A) {
 			return true;
-		} else if (hDown & KEY_B) {
+		} else if (hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
 			return false;
 		} else if (hHeld & KEY_UP) {
 			if(textPosition > 0) {
@@ -632,17 +678,70 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 	}
 }
 
-void showCommitInfo(std::string repo)
+std::string chooseCommit(std::string repo, bool showExitText)
 {
-	jsonName = getLatestCommit(repo, "sha").substr(0,7);
-	std::string jsonBody = getLatestCommit(repo, "commit", "message");
-	setMessageText(jsonBody);
+	std::vector<std::string> jsonShas = getRecentCommits(repo, "sha");
+	std::vector<std::string> jsonBody = getRecentCommits(repo, "commit", "message");
+
+	int selectedCommit = 0;
+	int keyRepeatDelay = 0;
+	showCommitList:
+	while(1) {
+		gspWaitForVBlank();
+		hidScanInput();
+		const u32 hDown = hidKeysDown();
+		const u32 hHeld = hidKeysHeld();
+		if(keyRepeatDelay)	keyRepeatDelay--;
+		if(hDown & KEY_A) {
+			break;
+		} else if(hDown & KEY_B) {
+			return "";
+		} else if(hHeld & KEY_UP && !keyRepeatDelay) {
+			if(selectedCommit > 0) {
+				selectedCommit--;
+				keyRepeatDelay = 3;
+			}
+		} else if(hHeld & KEY_DOWN && !keyRepeatDelay) {
+			if(selectedCommit < (int)jsonShas.size()-1) {
+				selectedCommit++;
+				keyRepeatDelay = 3;
+			}
+		} else if(hHeld & KEY_LEFT && !keyRepeatDelay) {
+			selectedCommit -= 10;
+			if(selectedCommit < 0) {
+				selectedCommit = 0;
+			}
+			keyRepeatDelay = 3;
+		} else if(hHeld & KEY_RIGHT && !keyRepeatDelay) {
+			selectedCommit += 10;
+			if(selectedCommit > (int)jsonShas.size()) {
+				selectedCommit = jsonShas.size()-1;
+			}
+			keyRepeatDelay = 3;
+		}
+		std::string commitsText = "Choose a commit for commit notes:\n";
+		for(int i=(selectedCommit<9) ? 0 : selectedCommit-9;i<(int)jsonShas.size()&&i<((selectedCommit<9) ? 10 : selectedCommit+1);i++) {
+			if(i == selectedCommit) {
+				commitsText += "> " + jsonShas[i].substr(0,7) + "\n";
+			} else {
+				commitsText += "  " + jsonShas[i].substr(0,7) + "\n";
+			}
+		}
+		for(uint i=0;i<((jsonShas.size()<9) ? 10-jsonShas.size() : 0);i++) {
+			commitsText += "\n";
+		}
+		commitsText += "B: Back   A: Info";
+		displayBottomMsg(commitsText.c_str());
+	}
+
+	setMessageText(jsonBody[selectedCommit]);
+	jsonName = jsonShas[selectedCommit].substr(0,7);
 	int textPosition = 0;
 	bool redrawText = true;
 
 	while(1) {
 		if(redrawText) {
-			drawMessageText(textPosition, false);
+			drawMessageText(textPosition, showExitText);
 			redrawText = false;
 		}
 
@@ -656,8 +755,10 @@ void showCommitInfo(std::string repo)
 				gspWaitForVBlank();
 		}
 		
-		if (hDown & KEY_A || hDown & KEY_B || hDown & KEY_Y) {
-			break;
+		if (hDown & KEY_A) {
+			return jsonShas[selectedCommit].substr(0,7);
+		} else if (hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
+			goto showCommitList;
 		} else if (hHeld & KEY_UP) {
 			if(textPosition > 0) {
 				textPosition--;
@@ -741,7 +842,7 @@ std::string latestMenuRelease(void) {
 
 std::string latestMenuNightly(void) {
 	if (latestMenuNightlyCache == "")
-		latestMenuNightlyCache = getLatestCommit("DS-Homebrew/TWiLightMenu", "sha").substr(0,7);
+		latestMenuNightlyCache = getRecentCommits("DS-Homebrew/TWiLightMenu", "sha")[0].substr(0,7);
 	return latestMenuNightlyCache;
 }
 
@@ -753,19 +854,19 @@ std::string latestBootstrapRelease(void) {
 
 std::string latestBootstrapNightly(void) {
 	if (latestBootstrapNightlyCache == "")
-		latestBootstrapNightlyCache = getLatestCommit("ahezard/nds-bootstrap", "sha").substr(0,7);
+		latestBootstrapNightlyCache = getRecentCommits("ahezard/nds-bootstrap", "sha")[0].substr(0,7);
 	return latestBootstrapNightlyCache;
 }
 
 std::string latestUpdaterRelease(void) {
 	if (latestUpdaterReleaseCache == "")
-		latestUpdaterReleaseCache = getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name");
+		latestUpdaterReleaseCache = getLatestRelease("DS-Homebrew/TWiLightMenu-Updater", "tag_name");
 	return latestUpdaterReleaseCache;
 }
 
 std::string latestUpdaterNightly(void) {
 	if (latestUpdaterNightlyCache == "")
-		latestUpdaterNightlyCache = getLatestCommit("RocketRobz/TWiLightMenu-Updater", "sha").substr(0,7);
+		latestUpdaterNightlyCache = getRecentCommits("DS-Homebrew/TWiLightMenu-Updater", "sha")[0].substr(0,7);
 	return latestUpdaterNightlyCache;
 }
 
@@ -965,7 +1066,7 @@ void updateSelf(bool nightly) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-release.cia") != 0) {
+		if (downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-release.cia") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -1003,7 +1104,7 @@ void updateSelf(bool nightly) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.3dsx", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
+		if (downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.3dsx", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
 			downloadFailed();
 			return;
 		}

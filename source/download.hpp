@@ -35,7 +35,7 @@ void notConnectedMsg(void);
 
 /**
  * Get info from the GitHub API about a Release.
- * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
  * item is that to get from the API. (Ex. "tag_name")
  * @return the string from the API.
  */
@@ -43,20 +43,20 @@ std::string getLatestRelease(std::string repo, std::string item);
 
 /**
  * Get info from the GitHub API about a Commit.
- * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
  * item is that to get from the API. (Ex. "sha")
  * @return the string from the API.
  */
-std::string getLatestCommit(std::string repo, std::string item);
+std::vector<std::string> getRecentCommits(std::string repo, std::string item);
 
 /**
  * Get info from the GitHub API about a Commit.
- * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
  * array is the array the item is in. (Ex. "commit")
  * item is that to get from the API. (Ex. "message")
  * @return the string from the API.
  */
-std::string getLatestCommit(std::string repo, std::string array, std::string item);
+std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item);
 
 /**
  * Get a GitHub directory's contents with the GitHub API.
@@ -68,15 +68,15 @@ std::vector<ThemeEntry> getThemeList(std::string repo, std::string path);
 
 /**
  * Show the latest release's name and message.
- * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
  */
 bool showReleaseInfo(std::string repo, bool drawMessageText);
 
 /**
  * Show the latest commit's name and message.
- * repo is where to get from. (Ex. "RocketRobz/TWiLightMenu")
+ * repo is where to get from. (Ex. "DS-Homebrew/TWiLightMenu")
  */
-void showCommitInfo(std::string repo);
+std::string chooseCommit(std::string repo, bool showExitText);
 
 /**
  * Prepare text for showing a release/commit message.
