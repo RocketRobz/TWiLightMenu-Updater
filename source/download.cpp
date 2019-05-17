@@ -651,6 +651,9 @@ std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 	std::vector<std::string> jsonShas;
 	std::vector<std::string> jsonBody;
 
+	jsonBody.push_back("Latest");
+	jsonShas.push_back("master");
+
 	for(int i=jsonBodyTemp.size();i>=0;i--) {
 		if(jsonBodyTemp[i].substr(0, title.size()) == title) {
 			jsonBody.push_back(jsonBodyTemp[i]);
