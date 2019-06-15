@@ -390,7 +390,7 @@ int main()
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					showReleaseInfo("DS-Homebrew/TWiLightMenu-Updater", false);
+					showReleaseInfo("RocketRobz/TWiLightMenu-Updater", false);
 					break;
 				case 5:
 					if(dspfirmfound) {
@@ -450,7 +450,7 @@ int main()
 							sfx_select->stop();
 							sfx_select->play();
 						}
-						if(showReleaseInfo("DS-Homebrew/TWiLightMenu-Updater", true)) {
+						if(showReleaseInfo("RocketRobz/TWiLightMenu-Updater", true)) {
 							updatingSelf = true;
 							updateSelf("");
 							updatingSelf = false;
