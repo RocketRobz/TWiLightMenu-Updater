@@ -838,13 +838,13 @@ std::string latestBootstrapNightly(void) {
 
 std::string latestUpdaterRelease(void) {
 	if (latestUpdaterReleaseCache == "")
-		latestUpdaterReleaseCache = getLatestRelease("DS-Homebrew/TWiLightMenu-Updater", "tag_name");
+		latestUpdaterReleaseCache = getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name");
 	return latestUpdaterReleaseCache;
 }
 
 std::string latestUpdaterNightly(void) {
 	if (latestUpdaterNightlyCache == "")
-		latestUpdaterNightlyCache = getRecentCommits("DS-Homebrew/TWiLightMenu-Updater", "sha")[0].substr(0,7);
+		latestUpdaterNightlyCache = getRecentCommits("RocketRobz/TWiLightMenu-Updater", "sha")[0].substr(0,7);
 	return latestUpdaterNightlyCache;
 }
 
@@ -1044,7 +1044,7 @@ void updateSelf(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-release.cia") != 0) {
+		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-release.cia") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -1082,7 +1082,7 @@ void updateSelf(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.3dsx", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
+		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.3dsx", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
 			downloadFailed();
 			return;
 		}
