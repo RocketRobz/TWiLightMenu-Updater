@@ -410,7 +410,7 @@ int main()
 		}
 
 		if (setOption) {
-			if(checkWifiStatus()) {
+			if(checkWifiStatus() || 1) {
 				std::string commit;
 				switch (menuSelection) {
 					case 0:	// TWiLight release
@@ -468,7 +468,6 @@ int main()
 						}
 						break;
 					case 6:	// Cheats
-						break;
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
