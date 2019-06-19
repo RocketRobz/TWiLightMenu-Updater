@@ -410,7 +410,7 @@ int main()
 		}
 
 		if (setOption) {
-			if(checkWifiStatus() || 1) {
+			if(checkWifiStatus()) {
 				std::string commit;
 				switch (menuSelection) {
 					case 0:	// TWiLight release
