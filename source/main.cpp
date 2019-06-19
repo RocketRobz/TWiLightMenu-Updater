@@ -468,7 +468,6 @@ int main()
 						}
 						break;
 					case 6:	// Cheats
-						break;
 						if(dspfirmfound) {
 							sfx_select->stop();
 							sfx_select->play();
