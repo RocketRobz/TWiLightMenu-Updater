@@ -1353,15 +1353,15 @@ void downloadBoxart(void) {
 
 	for(int i=0;i<(int)dirContents.size();i++) {
 		char downloadMessage[50];
-		snprintf(downloadMessage, sizeof(downloadMessage), "Downloading \"%s.bmp\"...\n", dirContents[i].tid);
+		snprintf(downloadMessage, sizeof(downloadMessage), "Downloading \"%s.png\"...\n", dirContents[i].tid);
 		displayBottomMsg(downloadMessage);
 
 		const char *ba_region = getBoxartRegion(dirContents[i].tid[3]);
 		
 		char boxartUrl[256];
-		snprintf(boxartUrl, sizeof(boxartUrl), "https://art.gametdb.com/ds/coverDS/%s/%s.bmp", ba_region, dirContents[i].tid);
+		snprintf(boxartUrl, sizeof(boxartUrl), "https://art.gametdb.com/ds/coverS/%s/%s.png", ba_region, dirContents[i].tid);
 		char boxartPath[256];
-		snprintf(boxartPath, sizeof(boxartPath), "/_nds/TWiLightMenu/boxart/%s.bmp", dirContents[i].tid);
+		snprintf(boxartPath, sizeof(boxartPath), "/_nds/TWiLightMenu/boxart/%s.png", dirContents[i].tid);
 		
 		downloadToFile(boxartUrl, boxartPath);
 	}
