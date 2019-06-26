@@ -1351,31 +1351,44 @@ void downloadBoxart(void) {
 	findNdsFiles(dirContents);
 	continueNdsScan = false;
 
+	mkdir("sdmc:/_nds/TWiLightMenu/boxart/temp", 0777);
 	for(int i=0;i<(int)dirContents.size();i++) {
-		char downloadMessage[50];
-		snprintf(downloadMessage, sizeof(downloadMessage), "Downloading \"%s.bmp\"...\n", dirContents[i].tid);
-		displayBottomMsg(downloadMessage);
+		char path[256];
+		snprintf(path, sizeof(path), "sdmc:/_nds/TWiLightMenu/boxart/%s.png", dirContents[i].tid);
+		if(access(path, F_OK) != 0) {
+			char downloadMessage[50];
+			snprintf(downloadMessage, sizeof(downloadMessage), "Downloading \"%s.png\"...\n", dirContents[i].tid);
+			displayBottomMsg(downloadMessage);
 
-		const char *ba_region = getBoxartRegion(dirContents[i].tid[3]);
-		
-		char boxartUrl[256];
-		snprintf(boxartUrl, sizeof(boxartUrl), "https://art.gametdb.com/ds/coverDS/%s/%s.bmp", ba_region, dirContents[i].tid);
-		char boxartPath[256];
-		snprintf(boxartPath, sizeof(boxartPath), "/_nds/TWiLightMenu/boxart/%s.bmp", dirContents[i].tid);
-		
-		downloadToFile(boxartUrl, boxartPath);
+			const char *ba_region = getBoxartRegion(dirContents[i].tid[3]);
+			
+			char boxartUrl[256];
+			snprintf(boxartUrl, sizeof(boxartUrl), "https://art.gametdb.com/ds/coverS/%s/%s.png", ba_region, dirContents[i].tid);
+			char boxartPath[256];
+			snprintf(boxartPath, sizeof(boxartPath), "/_nds/TWiLightMenu/boxart/temp/%s.png", dirContents[i].tid);
+			
+			downloadToFile(boxartUrl, boxartPath);
+		}
 	}
 
-	chdir("sdmc:/_nds/TWiLightMenu/boxart/");
+	chdir("sdmc:/_nds/TWiLightMenu/boxart/temp/");
 	getDirectoryContents(dirContents);
 
-	displayBottomMsg("Deleting blank files...");
+	displayBottomMsg("Cleaning up...");
 	for(int i=0;i<(int)dirContents.size();i++) {
 		if(dirContents[i].size == 0) {
 			char path[256];
-			snprintf(path, sizeof(path), "%s%s", "sdmc:/_nds/TWiLightMenu/boxart/", dirContents[i].name.c_str());
+			snprintf(path, sizeof(path), "sdmc:/_nds/TWiLightMenu/boxart/temp/%s", dirContents[i].name.c_str());
 			deleteFile(path);
+		} else {
+			char tempPath[256];
+			snprintf(tempPath, sizeof(tempPath), "sdmc:/_nds/TWiLightMenu/boxart/temp/%s", dirContents[i].name.c_str());
+			char path[256];
+			snprintf(path, sizeof(path), "sdmc:/_nds/TWiLightMenu/boxart/%s", dirContents[i].name.c_str());
+			deleteFile(path);
+			rename(tempPath, path);
 		}
+		rmdir("sdmc:/_nds/TWiLightMenu/boxart/temp");
 	}
 	doneMsg();
 }
