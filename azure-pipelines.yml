@@ -45,7 +45,7 @@ steps:
 - script: |
     git config --global user.email "flamekat54@aol.com"
     git config --global user.name "TWLBot"
-    git --depth 1 clone https://$GITHUB_TOKEN@github.com/TWLBot/Builds.git
+    git clone --depth 1 https://$GITHUB_TOKEN@github.com/TWLBot/Builds.git
     cd Builds/TWiLightMenu\ Updater/
     cp ../../TWiLight_Menu++_Updater.3dsx TWiLight_Menu++_Updater.3dsx
     cp ../../TWiLight_Menu++_Updater.cia TWiLight_Menu++_Updater.cia
