@@ -204,8 +204,9 @@ int main()
 			mus_settings->play();
 			musicPlaying = true;
 		}
-			
+
     		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+			C2D_TargetClear(top, TRANSPARENT);
     		C2D_TargetClear(bottom, TRANSPARENT);
 			Gui::clearTextBufs();
 			set_screen(top);
@@ -217,7 +218,8 @@ int main()
 			Gui::sprite(sprites_text_updater_idx, 187, 151);
 			Gui::sprite(sprites_twlm_logo_idx, 127, 100);
 			Draw_Text(336, 222, 0.50, WHITE, launcher_vertext);
-			
+			if (fadealpha > 0) Draw_Rect(0, 0, 400, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
+
 		set_screen(bottom);
 		Gui::sprite(sprites_BS_background_idx, 0, 0);
 		Draw_Text(6, 5, 0.55, WHITE, "Updater menu");
