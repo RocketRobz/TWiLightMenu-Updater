@@ -8,10 +8,9 @@
 
 #include "download.hpp"
 #include "dumpdsp.h"
-#include "graphic.h"
+#include "gui.hpp"
 #include "inifile.h"
 #include "language.h"
-#include "pp2d/pp2d.h"
 #include "settings.h"
 #include "sound.h"
 
@@ -23,6 +22,8 @@ bool dspfirmfound = false;
 bool updatingSelf = false;
 bool updated3dsx = false;
 static bool musicPlaying = false;
+extern C3D_RenderTarget* top;
+extern C3D_RenderTarget* bottom;
 
 // Music and sound effects.
 sound *mus_settings = NULL;
@@ -51,14 +52,14 @@ struct {
 };
 
 size_t button_tex2[] = {
-	extrasmallbuttontex,
-	extrasmallbuttontex,
-	extrasmallbuttontex,
-	extrasmallbuttontex,
-	extrasmallbuttontex,
-	extrasmallbuttontex,
-	extrasmallbuttontex,
-	extrasmallbuttontex,
+	sprites_BS_2page_extra_small_button_idx,
+	sprites_BS_2page_extra_small_button_idx,
+	sprites_BS_2page_extra_small_button_idx,
+	sprites_BS_2page_extra_small_button_idx,
+	sprites_BS_2page_extra_small_button_idx,
+	sprites_BS_2page_extra_small_button_idx,
+	sprites_BS_2page_extra_small_button_idx,
+	sprites_BS_2page_extra_small_button_idx,
 };
 
 const char *button_titles2[] = {
@@ -73,14 +74,14 @@ const char *button_titles2[] = {
 };
 
 const int title_spacing[] = {
-	6,
+	2,
+	5,
+	2,
+	5,
+	2,
+	5,
+	2,
 	10,
-	6,
-	10,
-	6,
-	10,
-	10,
-	17,
 };
 
 const char *row_titles2[] = {
@@ -115,13 +116,6 @@ void screenon()
 	gspLcdExit();
 }
 
-void displayBottomMsg(const char* text) {
-	pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-	pp2d_draw_texture(loadingbgtex, 0, 0);
-	pp2d_draw_text(24, 32, 0.5f, 0.5f, BLACK, text);
-	pp2d_end_draw();
-}
-
 // Version numbers.
 char launcher_vertext[13];
 
@@ -136,6 +130,7 @@ int main()
 	srvInit();
 	hidInit();
 	acInit();
+	gfxInitDefault();
 
 	osSetSpeedupEnable(true);	// Enable speed-up for New 3DS users
 
@@ -150,47 +145,27 @@ int main()
 	mkdir("sdmc:/_nds/TWiLightMenu/extras", 0777);
 	mkdir("sdmc:/_nds/TWiLightMenu/extras/updater", 0777);
 
-	pp2d_init();
-	
-	pp2d_set_screen_color(GFX_TOP, TRANSPARENT);
-	pp2d_set_3D(1);
-	
-	pp2d_load_texture_png(homeicontex, "romfs:/graphics/BS_home_icon.png");
-	pp2d_load_texture_png(loadingbgtex, "romfs:/graphics/BS_loading_background.png");
-	pp2d_load_texture_png(topbgtex, "romfs:/graphics/top_bg.png");
-	pp2d_load_texture_png(subbgtex, "romfs:/graphics/BS_background.png");
-	pp2d_load_texture_png(buttontex, "romfs:/graphics/BS_1_2page_button.png");
-	pp2d_load_texture_png(extrasmallbuttontex, "romfs:/graphics/BS_2page_extra_small_button.png");
-	pp2d_load_texture_png(smallbuttontex, "romfs:/graphics/BS_2page_small_button.png");
-	pp2d_load_texture_png(leftpagetex, "romfs:/graphics/BS_Left_page_button.png");
-	pp2d_load_texture_png(rightpagetex, "romfs:/graphics/BS_Rigt_page_button.png");
-	pp2d_load_texture_png(pagenumberframetex, "romfs:/graphics/BS_Page_number_frame.png");
-	pp2d_load_texture_png(twinkletex1, "romfs:/graphics/twinkle_1.png");
-	pp2d_load_texture_png(twinkletex2, "romfs:/graphics/twinkle_2.png");
-	pp2d_load_texture_png(twinkletex3, "romfs:/graphics/twinkle_3.png");
-	pp2d_load_texture_png(logotex, "romfs:/graphics/twlm_logo.png");
-	pp2d_load_texture_png(arrowtex, "romfs:/graphics/arrow.png");
-	pp2d_load_texture_png(updatertex, "romfs:/graphics/text_updater.png");
-	pp2d_load_texture_png(bluedot, "romfs:/graphics/dot_blue.png");
-	pp2d_load_texture_png(greendot, "romfs:/graphics/dot_green.png");
+	Gui::init();
 	
  	if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
 		ndspInit();
 		dspfirmfound = true;
 	}else{
-		pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-		pp2d_draw_text(12, 16, 0.5f, 0.5f, WHITE, "Dumping DSP firm...");
-		pp2d_end_draw();
+		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+		set_screen(bottom);
+		Draw_Text(12, 16, 0.5f, WHITE, "Dumping DSP firm...");
+		Draw_EndFrame();
 		dumpDsp();
 		if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
 			ndspInit();
 			dspfirmfound = true;
 		} else {
 			for (int i = 0; i < 90; i++) {
-				pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-				pp2d_draw_text(12, 16, 0.5f, 0.5f, WHITE, "DSP firm dumping failed.\n"
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				set_screen(bottom);
+				Draw_Text(12, 16, 0.5f, WHITE, "DSP firm dumping failed.\n"
 						"Running without sound.");
-				pp2d_end_draw();
+				Draw_EndFrame();
 			}	
 		}
 	}
@@ -217,18 +192,6 @@ int main()
 	
 	// Loop as long as the status is not exit
 	while(aptMainLoop()) {
-		offset3D[0].topbg = CONFIG_3D_SLIDERSTATE * -7.0f;
-		offset3D[1].topbg = CONFIG_3D_SLIDERSTATE * 7.0f;
-		offset3D[0].twinkle3 = CONFIG_3D_SLIDERSTATE * -6.0f;
-		offset3D[1].twinkle3 = CONFIG_3D_SLIDERSTATE * 6.0f;
-		offset3D[0].twinkle2 = CONFIG_3D_SLIDERSTATE * -5.0f;
-		offset3D[1].twinkle2 = CONFIG_3D_SLIDERSTATE * 5.0f;
-		offset3D[0].twinkle1 = CONFIG_3D_SLIDERSTATE * -4.0f;
-		offset3D[1].twinkle1 = CONFIG_3D_SLIDERSTATE * 4.0f;
-		offset3D[0].updater = CONFIG_3D_SLIDERSTATE * -3.0f;
-		offset3D[1].updater = CONFIG_3D_SLIDERSTATE * 3.0f;
-		offset3D[0].logo = CONFIG_3D_SLIDERSTATE * -2.0f;
-		offset3D[1].logo = CONFIG_3D_SLIDERSTATE * 2.0f;
 
 		// Scan hid shared memory for input events
 		hidScanInput();
@@ -241,39 +204,39 @@ int main()
 			mus_settings->play();
 			musicPlaying = true;
 		}
-
-		for (int topfb = GFX_LEFT; topfb <= GFX_RIGHT; topfb++) {
-			if (topfb == GFX_LEFT) pp2d_begin_draw(GFX_TOP, (gfx3dSide_t)topfb);
-			else pp2d_draw_on(GFX_TOP, (gfx3dSide_t)topfb);
-			pp2d_draw_texture(topbgtex, offset3D[topfb].topbg, 0);
-			pp2d_draw_texture(twinkletex3, 133+offset3D[topfb].twinkle3, 61);
-			pp2d_draw_texture(twinkletex2, 157+offset3D[topfb].twinkle2, 81);
-			pp2d_draw_texture(twinkletex1, 184+offset3D[topfb].twinkle1, 107);
-			pp2d_draw_texture(arrowtex, 41+offset3D[topfb].twinkle1, 25);
-			pp2d_draw_texture(updatertex, 187+offset3D[topfb].updater, 151);
-			pp2d_draw_texture(logotex, 127+offset3D[topfb].logo, 100);
-			pp2d_draw_text(336, 222, 0.50, 0.50, WHITE, launcher_vertext);
-			if (fadealpha > 0) pp2d_draw_rectangle(0, 0, 400, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
-		}
-		pp2d_draw_on(GFX_BOTTOM, GFX_LEFT);
-		pp2d_draw_texture(subbgtex, 0, 0);
-		pp2d_draw_text(6, 5, 0.55, 0.55, WHITE, "Updater menu");
+			
+    		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    		C2D_TargetClear(bottom, TRANSPARENT);
+			Gui::clearTextBufs();
+			set_screen(top);
+			Gui::sprite(sprites_top_bg_idx, 0, 0);
+			Gui::sprite(sprites_twinkle_3_idx, 133, 61);
+			Gui::sprite(sprites_twinkle_2_idx, 157, 81);
+			Gui::sprite(sprites_twinkle_1_idx, 184, 107);
+			Gui::sprite(sprites_arrow_idx, 41, 25);
+			Gui::sprite(sprites_text_updater_idx, 187, 151);
+			Gui::sprite(sprites_twlm_logo_idx, 127, 100);
+			Draw_Text(336, 222, 0.50, WHITE, launcher_vertext);
+			
+		set_screen(bottom);
+		Gui::sprite(sprites_BS_background_idx, 0, 0);
+		Draw_Text(6, 5, 0.55, WHITE, "Updater menu");
 		// Draw buttons
 		for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
 			if (menuSelection == i) {
 				// Button is highlighted.
-				pp2d_draw_texture(button_tex2[i], buttons2[i].x, buttons2[i].y);
+				Gui::sprite(button_tex2[i], buttons2[i].x, buttons2[i].y);
 			} else {
 				// Button is not highlighted. Darken the texture.
 				if (buttonShading) {
-					pp2d_draw_texture_blend(button_tex2[i], buttons2[i].x, buttons2[i].y, GRAY);
+					Gui::Draw_ImageBlend(button_tex2[i], buttons2[i].x, buttons2[i].y, GRAY);
 				} else {
-					pp2d_draw_texture(button_tex2[i], buttons2[i].x, buttons2[i].y);
+					Gui::sprite(button_tex2[i], buttons2[i].x, buttons2[i].y);
 				}
 			}
 			// Draw a green dot if an update is availible
 			if(updateAvailable[i]) {
-				pp2d_draw_texture(greendot, buttons2[i].x+75, buttons2[i].y-6);
+				Gui::sprite(sprites_dot_green_idx, buttons2[i].x+75, buttons2[i].y-6);
 			}
 
 			// Determine the text height.
@@ -283,19 +246,19 @@ int main()
 			// Draw the title.
 			int y = buttons2[i].y + ((40 - h) / 2);
 			int x_from_width = buttons2[i].x + title_spacing[i];
-			pp2d_draw_text(x_from_width, y, 0.75, 0.75, BLACK, button_titles2[i]);
+			Draw_Text(x_from_width, y, 0.75, BLACK, button_titles2[i]);
 
 			if(!(i%2)) {
-				pp2d_draw_text(5, y, 0.7, 0.7, WHITE, row_titles2[i/2]);
+				Draw_Text(0, y, 0.60, WHITE, row_titles2[i/2]);
 			}
 		}
-		const wchar_t *home_text = TR(STR_RETURN_TO_HOME_MENU);
-		const int home_width = pp2d_get_wtext_width(home_text, 0.50, 0.50) + 16;
-		const int home_x = (320-home_width)/2;
-		pp2d_draw_texture(homeicontex, home_x, 219); // Draw HOME icon
-		pp2d_draw_wtext(home_x+20, 220, 0.50, 0.50, WHITE, home_text);
-		if (fadealpha > 0) pp2d_draw_rectangle(0, 0, 320, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
-		pp2d_end_draw();
+		//const wchar_t *home_text = TR(STR_RETURN_TO_HOME_MENU);
+		//const int home_width = pp2d_get_wtext_width(home_text, 0.50, 0.50) + 16;
+		//const int home_x = (320-home_width)/2;
+		//pp2d_draw_texture(homeicontex, home_x, 219); // Draw HOME icon
+		//pp2d_draw_wtext(home_x+20, 220, 0.50, 0.50, WHITE, home_text);
+		if (fadealpha > 0) Draw_Rect(0, 0, 320, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
+		Draw_EndFrame();
 		
 		if (fadein == true) {
 			fadealpha -= 15;
@@ -514,7 +477,7 @@ int main()
 		ndspExit();
 	}
 
-	pp2d_exit();
+	Gui::exit();
 
 	hidExit();
 	srvExit();

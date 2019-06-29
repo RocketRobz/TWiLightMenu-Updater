@@ -50,10 +50,13 @@ VERSION_MICRO := 2
 #---------------------------------------------------------------------------------
 TARGET		:=	TWiLight_Menu++_Updater
 BUILD		:=	build
-SOURCES		:=	source source/pp2d source/json
+SOURCES		:=	source source/json
 DATA		:=	data
 INCLUDES	:=	include
+GRAPHICS	:=	assets/gfx
+#GFXBUILD	:=	$(BUILD)
 ROMFS		:=	romfs
+GFXBUILD	:=	$(ROMFS)/gfx
 APP_AUTHOR	:=	RocketRobz/Epicpkmn11
 APP_DESCRIPTION :=  	TWiLight Menu++ Updater
 ICON		:=	app/icon.png
@@ -77,7 +80,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -fpermissive -std=c++11 -std=gnu
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcurl -lmbedtls -lmbedx509 -lmbedcrypto  -larchive -lbz2 -llzma -lz -lcitro3d -lctru -lm -lstdc++
+LIBS	:= -lcurl -lmbedtls -lmbedx509 -lmbedcrypto  -larchive -lbz2 -llzma -lz -lcitro2d -lcitro3d -lctru -lm -lstdc++
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -97,6 +100,7 @@ export OUTPUT	:=	$(CURDIR)/$(TARGET)
 export TOPDIR	:=	$(CURDIR)
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+			$(foreach dir,$(GRAPHICS),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
@@ -106,6 +110,7 @@ CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PICAFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.v.pica)))
 SHLISTFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.shlist)))
+GFXFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.t3s)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 #---------------------------------------------------------------------------------
@@ -122,15 +127,38 @@ else
 endif
 #---------------------------------------------------------------------------------
 
-export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
+#---------------------------------------------------------------------------------
+ifeq ($(GFXBUILD),$(BUILD))
+#---------------------------------------------------------------------------------
+export T3XFILES :=  $(GFXFILES:.t3s=.t3x)
+#---------------------------------------------------------------------------------
+else
+#---------------------------------------------------------------------------------
+export ROMFS_T3XFILES	:=	$(patsubst %.t3s, $(GFXBUILD)/%.t3x, $(GFXFILES))
+export T3XHFILES		:=	$(patsubst %.t3s, $(BUILD)/%.h, $(GFXFILES))
+#---------------------------------------------------------------------------------
+endif
+#---------------------------------------------------------------------------------
+
+export OFILES_SOURCES 	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+
+export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES)) \
 			$(PICAFILES:.v.pica=.shbin.o) $(SHLISTFILES:.shlist=.shbin.o) \
-			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+			$(addsuffix .o,$(T3XFILES))
+
+export OFILES := $(OFILES_BIN) $(OFILES_SOURCES)
+
+export HFILES	:=	$(PICAFILES:.v.pica=_shbin.h) $(SHLISTFILES:.shlist=_shbin.h) \
+			$(addsuffix .h,$(subst .,_,$(BINFILES))) \
+			$(GFXFILES:.t3s=.h)
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 			-I$(CURDIR)/$(BUILD)
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
+export _3DSXDEPS	:=	$(if $(NO_SMDH),,$(OUTPUT).smdh)
 
 ifeq ($(strip $(ICON)),)
 	icons := $(wildcard *.png)
@@ -153,20 +181,17 @@ ifneq ($(ROMFS),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all cia
+.PHONY: all clean
 
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
-#---------------------------------------------------------------------------------
-$(BUILD):
-	@[ -d $@ ] || mkdir -p $@
-
-#---------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).3dsx $(TARGET).smdh $(TARGET).cia $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).elf
+	@rm -fr $(OUTDIR)
 
 
 #---------------------------------------------------------------------------------
@@ -178,9 +203,17 @@ cia: $(BUILD)
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile 3dsx
 
 #---------------------------------------------------------------------------------
-else
+$(GFXBUILD)/%.t3x	$(BUILD)/%.h	:	%.t3s
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@tex3ds -i $< -H $(BUILD)/$*.h -d $(DEPSDIR)/$*.d -o $(GFXBUILD)/$*.t3x
 
-DEPENDS	:=	$(OFILES:.o=.d)
+#---------------------------------------------------------------------------------
+$(BUILD):
+	@[ -d $@ ] || mkdir -p $@
+
+#---------------------------------------------------------------------------------
+else
 
 #---------------------------------------------------------------------------------
 # main targets
@@ -195,11 +228,18 @@ $(OUTPUT).cia	:	$(OUTPUT).elf $(OUTPUT).smdh
 	$(BANNERTOOL) makesmdh -i "../app/icon.png" -s "TWiLight Menu++ Updater" -l "TWiLight Menu++ Updater" -p "$(APP_AUTHOR)" -o "../app/icon.bin"
 
 	$(MAKEROM) -f cia -target t -exefslogo -o "../TWiLight_Menu++_Updater.cia" -elf "../TWiLight_Menu++_Updater.elf" -rsf "../app/build-cia.rsf" -banner "../app/banner.bin" -icon "../app/icon.bin" -logo "../app/logo.bcma.lz" -DAPP_ROMFS="$(TOPDIR)/$(ROMFS)" -major $(VERSION_MAJOR) -minor $(VERSION_MINOR) -micro $(VERSION_MICRO) -DAPP_VERSION_MAJOR="$(VERSION_MAJOR)"
-
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
 #---------------------------------------------------------------------------------
-%.bin.o	:	%.bin
+%.bin.o	%_bin.h :	%.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+#---------------------------------------------------------------------------------
+.PRECIOUS	:	%.t3x
+#---------------------------------------------------------------------------------
+%.t3x.o	%_t3x.h :	%.t3x
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
@@ -208,27 +248,35 @@ $(OUTPUT).cia	:	$(OUTPUT).elf $(OUTPUT).smdh
 # rules for assembling GPU shaders
 #---------------------------------------------------------------------------------
 define shader-as
-	$(eval CURBIN := $(patsubst %.shbin.o,%.shbin,$(notdir $@)))
-	picasso -o $(CURBIN) $1
-	bin2s $(CURBIN) | $(AS) -o $@
+	$(eval CURBIN := $*.shbin)
+	$(eval DEPSFILE := $(DEPSDIR)/$*.shbin.d)
+	echo "$(CURBIN).o: $< $1" > $(DEPSFILE)
 	echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(CURBIN) | tr . _)`.h
 	echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(CURBIN) | tr . _)`.h
 	echo "extern const u32" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(CURBIN) | tr . _)`.h
+	picasso -o $(CURBIN) $1
+	bin2s $(CURBIN) | $(AS) -o $*.shbin.o
 endef
 
-%.shbin.o : %.v.pica %.g.pica
+%.shbin.o %_shbin.h : %.v.pica %.g.pica
 	@echo $(notdir $^)
 	@$(call shader-as,$^)
 
-%.shbin.o : %.v.pica
+%.shbin.o %_shbin.h : %.v.pica
 	@echo $(notdir $<)
 	@$(call shader-as,$<)
 
-%.shbin.o : %.shlist
+%.shbin.o %_shbin.h : %.shlist
 	@echo $(notdir $<)
-	@$(call shader-as,$(foreach file,$(shell cat $<),$(dir $<)/$(file)))
+	@$(call shader-as,$(foreach file,$(shell cat $<),$(dir $<)$(file)))
 
--include $(DEPENDS)
+#---------------------------------------------------------------------------------
+%.t3x	%.h	:	%.t3s
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@tex3ds -i $< -H $*.h -d $*.d -o $*.t3x
+
+-include $(DEPSDIR)/*.d
 
 #---------------------------------------------------------------------------------------
 endif
