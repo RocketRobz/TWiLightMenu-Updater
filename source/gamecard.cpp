@@ -6,7 +6,7 @@
 #include <3ds.h>
 
 #include <malloc.h>
-#include "graphic.h"
+#include "gui.hpp"
 
 #include <string>
 #include <vector>

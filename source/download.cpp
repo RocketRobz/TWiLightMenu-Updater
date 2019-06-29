@@ -5,9 +5,8 @@
 
 #include "extract.hpp"
 #include "inifile.h"
-#include "graphic.h"
+#include "gui.hpp"
 #include "fileBrowse.h"
-#include "pp2d/pp2d.h"
 #include "thread.h"
 
 extern "C" {
@@ -29,7 +28,8 @@ std::string latestBootstrapNightlyCache = "";
 std::string latestUpdaterReleaseCache = "";
 std::string latestUpdaterNightlyCache = "";
 
-extern void displayBottomMsg(const char* text);
+extern C3D_RenderTarget* top;
+extern C3D_RenderTarget* bottom;
 
 extern bool downloadNightlies;
 extern bool updateAvailable[];
@@ -768,7 +768,7 @@ void setMessageText(const std::string &text)
 	_topText.clear();
 	for(auto word : words)
 	{
-		int width = pp2d_get_text_width((temp + " " + word).c_str(), 0.5f, 0.5f);
+		int width = Draw_GetTextWidth(0.5f, (temp + " " + word).c_str());
 		if(word.find('\n') != -1u)
 		{
 			word.erase(std::remove(word.begin(), word.end(), '\n'), word.end());
@@ -792,15 +792,18 @@ void setMessageText(const std::string &text)
 
 void drawMessageText(int position, bool showExitText)
 {
-	pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-	pp2d_draw_texture(loadingbgtex, 0, 0);
-	pp2d_draw_text(18, 24, .7, .7, BLACK, jsonName.c_str());
+    Gui::clearTextBufs();
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    C2D_TargetClear(bottom, TRANSPARENT);
+	set_screen(bottom);
+	Gui::sprite(sprites_BS_loading_background_idx, 0, 0);
+	Draw_Text(18, 24, .7, BLACK, jsonName.c_str());
 	for (int i = 0; i < (int)_topText.size() && i < (showExitText ? 9 : 10); i++) {
-			pp2d_draw_text(24, ((i * 16) + 48), 0.5f, 0.5f, BLACK, _topText[i+position].c_str());
+			Draw_Text_Small(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
 	}
 	if(showExitText)
-		pp2d_draw_text(24, 200, 0.5f, 0.5f, BLACK, "B: Cancel   A: Update");
-	pp2d_end_draw();
+		Draw_Text(24, 200, 0.5f, BLACK, "B: Cancel   A: Update");
+	Draw_EndFrame();
 }
 
 void displayProgressBar() {

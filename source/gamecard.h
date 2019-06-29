@@ -4,8 +4,7 @@
 
 #include <vector>
 #include <string>
-#include "graphic.h"
-#include "pp2d/pp2d.h"
+#include "gui.hpp"
 
 /**
  * Poll for a game card change.
