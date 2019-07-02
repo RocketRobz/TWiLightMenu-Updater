@@ -38,6 +38,7 @@ static C2D_SpriteSheet sprites;
 C2D_TextBuf dynamicBuf, sizeBuf;
 C2D_Font defaultFont;
 C2D_Font smallFont;
+C2D_Font systemFont;
 
 void Gui::clearTextBufs(void)
 {
@@ -57,6 +58,7 @@ Result Gui::init(void)
     sprites    = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
     defaultFont = C2D_FontLoad("romfs:/gfx/Font.bcfnt");
     smallFont = C2D_FontLoad("romfs:/gfx/smallFont.bcfnt");
+    systemFont = C2D_FontLoadSystem(CFG_REGION_USA);
     return 0;
 }
 
@@ -140,6 +142,13 @@ void Draw_Text_Small(float x, float y, float size, u32 color, const char *text) 
     C2D_TextFontParse(&c2d_text, smallFont, sizeBuf, text);
 	C2D_TextOptimize(&c2d_text);
 	C2D_DrawText(&c2d_text, C2D_WithColor, x, y, 0.5f, size, size, color);
+}
+
+void Draw_Text_System(float x, float y, float size, u32 color, const char *text) {
+    C2D_Text c2d_text;
+    C2D_TextFontParse(&c2d_text, systemFont, sizeBuf, text);
+    C2D_TextOptimize(&c2d_text);
+    C2D_DrawText(&c2d_text, C2D_WithColor, x, y, 0.5f, size, size, color);
 }
 
 void Draw_Textf(float x, float y, float size, u32 color, const char* text, ...) {

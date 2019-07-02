@@ -130,6 +130,7 @@ int main()
 	srvInit();
 	hidInit();
 	acInit();
+	cfguInit();
 	gfxInitDefault();
 
 	osSetSpeedupEnable(true);	// Enable speed-up for New 3DS users
@@ -485,6 +486,7 @@ int main()
 	srvExit();
 	romfsExit();
 	sdmcExit();
+	cfguExit();
 	aptExit();
 
 	return 0;
