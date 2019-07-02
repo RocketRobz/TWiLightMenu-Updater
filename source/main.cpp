@@ -196,8 +196,9 @@ int main()
 	
 	int fadealpha = 255;
 	bool fadein = true;
-
+	if(checkWifiStatus()) {
 	checkForUpdates();
+	}
 	
 	// Loop as long as the status is not exit
 	createThread((ThreadFunc)Play_Music);

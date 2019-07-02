@@ -799,7 +799,7 @@ void drawMessageText(int position, bool showExitText)
 	Gui::sprite(sprites_BS_loading_background_idx, 0, 0);
 	Draw_Text(18, 24, .7, BLACK, jsonName.c_str());
 	for (int i = 0; i < (int)_topText.size() && i < (showExitText ? 9 : 10); i++) {
-			Draw_Text_Small(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
+			Draw_Text_System(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
 	}
 	if(showExitText)
 		Draw_Text(24, 200, 0.5f, BLACK, "B: Cancel   A: Update");
