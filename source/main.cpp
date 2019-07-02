@@ -13,6 +13,7 @@
 #include "language.h"
 #include "settings.h"
 #include "sound.h"
+#include "thread.h"
 
 #define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
 
@@ -116,6 +117,13 @@ void screenon()
 	gspLcdExit();
 }
 
+static void Play_Music(void) {
+	if (!musicPlaying && dspfirmfound) {
+		mus_settings->play();
+		musicPlaying = true;
+	}
+}
+
 // Version numbers.
 char launcher_vertext[13];
 
@@ -192,6 +200,7 @@ int main()
 	checkForUpdates();
 	
 	// Loop as long as the status is not exit
+	createThread((ThreadFunc)Play_Music);
 	while(aptMainLoop()) {
 
 		// Scan hid shared memory for input events
@@ -200,11 +209,6 @@ int main()
 		const u32 hDown = hidKeysDown();
 
 		hidTouchRead(&touch);
-
-		if (!musicPlaying && dspfirmfound) {
-			mus_settings->play();
-			musicPlaying = true;
-		}
 
     		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 			C2D_TargetClear(top, TRANSPARENT);
