@@ -25,7 +25,6 @@
 */
 
 #include "gui.hpp"
-#include "settings.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <unistd.h>
@@ -40,86 +39,75 @@ C2D_Font defaultFont;
 C2D_Font smallFont;
 C2D_Font systemFont;
 
-void Gui::clearTextBufs(void)
-{
-    C2D_TextBufClear(dynamicBuf);
-    C2D_TextBufClear(sizeBuf);
+void Gui::clearTextBufs(void) {
+	C2D_TextBufClear(dynamicBuf);
+	C2D_TextBufClear(sizeBuf);
 }
 
-Result Gui::init(void)
-{
-    C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
-    C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
-    C2D_Prepare();
-    top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
-    bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
-    dynamicBuf = C2D_TextBufNew(4096);
-    sizeBuf = C2D_TextBufNew(4096);
-    sprites    = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
-    defaultFont = C2D_FontLoad("romfs:/gfx/Font.bcfnt");
-    smallFont = C2D_FontLoad("romfs:/gfx/smallFont.bcfnt");
-    systemFont = C2D_FontLoadSystem(CFG_REGION_USA);
-    return 0;
+Result Gui::init(void) {
+	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
+	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
+	C2D_Prepare();
+	top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+	bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
+	dynamicBuf = C2D_TextBufNew(4096);
+	sizeBuf = C2D_TextBufNew(4096);
+	sprites    = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
+	defaultFont = C2D_FontLoad("romfs:/gfx/Font.bcfnt");
+	smallFont = C2D_FontLoad("romfs:/gfx/smallFont.bcfnt");
+	systemFont = C2D_FontLoadSystem(CFG_REGION_USA);
+	return 0;
 }
 
-void Gui::exit(void)
-{
-    if (sprites)
-    {
-        C2D_SpriteSheetFree(sprites);
-    }
-    C2D_TextBufDelete(dynamicBuf);
-    C2D_TextBufDelete(sizeBuf);
-    C2D_FontFree(defaultFont);
-    C2D_FontFree(smallFont);
-    C2D_Fini();
-    C3D_Fini();
+void Gui::exit(void) {
+	if (sprites) {
+		C2D_SpriteSheetFree(sprites);
+	}
+	C2D_TextBufDelete(dynamicBuf);
+	C2D_TextBufDelete(sizeBuf);
+	C2D_FontFree(defaultFont);
+	C2D_FontFree(smallFont);
+	C2D_Fini();
+	C3D_Fini();
 }
 
-void set_screen(C3D_RenderTarget * screen)
-{
-    C2D_SceneBegin(screen);
+void set_screen(C3D_RenderTarget * screen) {
+	C2D_SceneBegin(screen);
 }
 
-void Gui::sprite(int key, int x, int y)
-{
-    if (key == sprites_res_null_idx)
-    {
-        return;
-    }
-    // standard case
-    else
-    {
-        C2D_DrawImageAt(C2D_SpriteSheetGetImage(sprites, key), x, y, 0.5f);
-    }
+void Gui::sprite(int key, int x, int y) {
+	if (key == sprites_res_null_idx) {
+		return;
+	} else { // standard case
+		C2D_DrawImageAt(C2D_SpriteSheetGetImage(sprites, key), x, y, 0.5f);
+	}
 }
 
-void Gui::Draw_ImageBlend(int key, int x, int y, u32 color)
-{
-    C2D_ImageTint tint;
-    C2D_SetImageTint(&tint, C2D_TopLeft, color, 1);
-    C2D_SetImageTint(&tint, C2D_TopRight, color, 1);
-    C2D_SetImageTint(&tint, C2D_BotLeft, color, 1);
-    C2D_SetImageTint(&tint, C2D_BotRight, color, 1);
-    C2D_DrawImageAt(C2D_SpriteSheetGetImage(sprites, key), x, y, 0.5f, &tint);
+void Gui::Draw_ImageBlend(int key, int x, int y, u32 color) {
+	C2D_ImageTint tint;
+	C2D_SetImageTint(&tint, C2D_TopLeft, color, 1);
+	C2D_SetImageTint(&tint, C2D_TopRight, color, 1);
+	C2D_SetImageTint(&tint, C2D_BotLeft, color, 1);
+	C2D_SetImageTint(&tint, C2D_BotRight, color, 1);
+	C2D_DrawImageAt(C2D_SpriteSheetGetImage(sprites, key), x, y, 0.5f, &tint);
 }
 
 void displayMsg(const char* text) {
-    Gui::clearTextBufs();
-    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-    C2D_TargetClear(bottom, TRANSPARENT);
-    set_screen(bottom);
-    Gui::sprite(sprites_BS_loading_background_idx, 0, 0);
+	Gui::clearTextBufs();
+	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+	C2D_TargetClear(bottom, TRANSPARENT);
+	set_screen(bottom);
+	Gui::sprite(sprites_BS_loading_background_idx, 0, 0);
 	Draw_Text(24, 32, 0.45f, BLACK, text);
 	Draw_EndFrame();
 }
 
 void displayBottomMsg(const char* text) {
-    Gui::clearTextBufs();
-    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-    C2D_TargetClear(bottom, TRANSPARENT);
-    set_screen(bottom);
-    Gui::sprite(sprites_BS_loading_background_idx, 0, 0);
+	Gui::clearTextBufs();
+	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+	C2D_TargetClear(bottom, TRANSPARENT);
+	set_screen(bottom);
+	Gui::sprite(sprites_BS_loading_background_idx, 0, 0);
 	Draw_Text(24, 32, 0.45f, BLACK, text);
 	Draw_EndFrame();
 }
@@ -132,23 +120,23 @@ void Draw_EndFrame(void) {
 
 void Draw_Text(float x, float y, float size, u32 color, const char *text) {
 	C2D_Text c2d_text;
-    C2D_TextFontParse(&c2d_text, defaultFont, sizeBuf, text);
+	C2D_TextFontParse(&c2d_text, defaultFont, sizeBuf, text);
 	C2D_TextOptimize(&c2d_text);
 	C2D_DrawText(&c2d_text, C2D_WithColor, x, y, 0.5f, size, size, color);
 }
 
 void Draw_Text_Small(float x, float y, float size, u32 color, const char *text) {
 	C2D_Text c2d_text;
-    C2D_TextFontParse(&c2d_text, smallFont, sizeBuf, text);
+	C2D_TextFontParse(&c2d_text, smallFont, sizeBuf, text);
 	C2D_TextOptimize(&c2d_text);
 	C2D_DrawText(&c2d_text, C2D_WithColor, x, y, 0.5f, size, size, color);
 }
 
 void Draw_Text_System(float x, float y, float size, u32 color, const char *text) {
-    C2D_Text c2d_text;
-    C2D_TextFontParse(&c2d_text, systemFont, sizeBuf, text);
-    C2D_TextOptimize(&c2d_text);
-    C2D_DrawText(&c2d_text, C2D_WithColor, x, y, 0.5f, size, size, color);
+	C2D_Text c2d_text;
+	C2D_TextFontParse(&c2d_text, systemFont, sizeBuf, text);
+	C2D_TextOptimize(&c2d_text);
+	C2D_DrawText(&c2d_text, C2D_WithColor, x, y, 0.5f, size, size, color);
 }
 
 void Draw_Textf(float x, float y, float size, u32 color, const char* text, ...) {
@@ -162,7 +150,7 @@ void Draw_Textf(float x, float y, float size, u32 color, const char* text, ...) 
 
 void Draw_GetTextSize(float size, float *width, float *height, const char *text) {
 	C2D_Text c2d_text;
-    C2D_TextFontParse(&c2d_text, defaultFont, sizeBuf, text);
+	C2D_TextFontParse(&c2d_text, defaultFont, sizeBuf, text);
 	C2D_TextGetDimensions(&c2d_text, size, size, width, height);
 }
 

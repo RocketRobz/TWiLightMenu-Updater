@@ -20,8 +20,7 @@ static Result CIA_LaunchTitle(u64 titleId, FS_MediaType mediaType) {
 	return 0;
 }
 
-Result deletePrevious(u64 titleid, FS_MediaType media)
-{
+Result deletePrevious(u64 titleid, FS_MediaType media) {
 	Result ret = 0;
 	
 	u32 titles_amount = 0;
@@ -66,8 +65,7 @@ FS_MediaType getTitleDestination(u64 titleId) {
 }
 
 
-Result installCia(const char * ciaPath)
-{
+Result installCia(const char * ciaPath) {
 	u64 size = 0;
 	u32 bytes;
 	Handle ciaHandle;

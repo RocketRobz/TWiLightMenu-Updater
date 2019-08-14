@@ -53,33 +53,32 @@
 #define FONT_SIZE_11 0.46f
 #define FONT_SIZE_9 0.37f
 
-namespace Gui
-{
-    Result init(void);
-    void exit(void);
+namespace Gui {
+	Result init(void);
+	void exit(void);
 
-    C3D_RenderTarget* target(gfxScreen_t t);
+	C3D_RenderTarget* target(gfxScreen_t t);
 
-    void clearTextBufs(void);
-    
-    void sprite(int key, int x, int y);
+	void clearTextBufs(void);
+	
+	void sprite(int key, int x, int y);
 
-    void Draw_ImageBlend(int key, int x, int y, u32 color);
+	void Draw_ImageBlend(int key, int x, int y, u32 color);
 }
 
-    void displayMsg(const char* text);
-    void displayBottomMsg(const char* text);
+	void displayMsg(const char* text);
+	void displayBottomMsg(const char* text);
 
-    void set_screen(C3D_RenderTarget * screen);
+	void set_screen(C3D_RenderTarget * screen);
 
-    void Draw_EndFrame(void);
-    void Draw_Text(float x, float y, float size, u32 color, const char *text);
-    void Draw_Text_Small(float x, float y, float size, u32 color, const char *text);
-    void Draw_Text_System(float x, float y, float size, u32 color, const char *text);
-    void Draw_Textf(float x, float y, float size, u32 color, const char* text, ...);
-    void Draw_GetTextSize(float size, float *width, float *height, const char *text);
-    float Draw_GetTextWidth(float size, const char *text);
-    float Draw_GetTextHeight(float size, const char *text);
-    bool Draw_Rect(float x, float y, float w, float h, u32 color);
+	void Draw_EndFrame(void);
+	void Draw_Text(float x, float y, float size, u32 color, const char *text);
+	void Draw_Text_Small(float x, float y, float size, u32 color, const char *text);
+	void Draw_Text_System(float x, float y, float size, u32 color, const char *text);
+	void Draw_Textf(float x, float y, float size, u32 color, const char* text, ...);
+	void Draw_GetTextSize(float size, float *width, float *height, const char *text);
+	float Draw_GetTextWidth(float size, const char *text);
+	float Draw_GetTextHeight(float size, const char *text);
+	bool Draw_Rect(float x, float y, float w, float h, u32 color);
 
 #endif

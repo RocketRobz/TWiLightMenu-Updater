@@ -2,8 +2,7 @@
 #include <3ds.h>
 #include <string>
 
-class sound
-{
+class sound {
 public:
 	sound(const std::string& path, int channel = 1, bool toloop = true);
 	~sound();

@@ -19,26 +19,21 @@ extern void displayBottomMsg(const char* text);
  * @param buf Output buffer for title ID. (Must be at least 4 characters.)
  * @return 0 on success; non-zero on error.
  */
-int grabTID(FILE *ndsFile, char *buf)
-{
+int grabTID(FILE *ndsFile, char *buf) {
 	fseek(ndsFile, offsetof(sNDSHeadertitlecodeonly, gameCode), SEEK_SET);
 	size_t read = fread(buf, 1, 4, ndsFile);
 	return !(read == 4);
 }
 
-void findNdsFiles(vector<DirEntry>& dirContents)
-{	
+void findNdsFiles(vector<DirEntry>& dirContents) {
 	struct stat st;
 	DIR *pdir = opendir(".");
 
-	if (pdir == NULL)
-	{
+	if (pdir == NULL) {
 		displayBottomMsg("Unable to open the directory.");
 		for(int i=0;i<120;i++)
 			gspWaitForVBlank();
-	}
-	else
-	{
+	} else {
 		while (continueNdsScan)
 		{
 			DirEntry dirEntry;
@@ -85,8 +80,7 @@ void findNdsFiles(vector<DirEntry>& dirContents)
 	}
 }
 
-off_t getFileSize(const char *fileName)
-{
+off_t getFileSize(const char *fileName) {
 	FILE* fp = fopen(fileName, "rb");
 	off_t fsize = 0;
 	if (fp) {
@@ -104,8 +98,8 @@ void getDirectoryContents (vector<DirEntry>& dirContents) {
 
 	dirContents.clear();
 
-	DIR *pdir = opendir ("."); 
-	
+	DIR *pdir = opendir (".");
+
 	if (pdir == NULL) {
 		displayBottomMsg("Unable to open the directory.");
 		for(int i=0;i<120;i++)
@@ -132,7 +126,7 @@ void getDirectoryContents (vector<DirEntry>& dirContents) {
 			}
 
 		}
-		
+
 		closedir(pdir);
-	}	
+	}
 }

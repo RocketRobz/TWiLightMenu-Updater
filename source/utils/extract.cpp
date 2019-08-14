@@ -6,8 +6,7 @@
 int filesExtracted = 0;
 std::string extractingFile = "";
 
-Result extractArchive(std::string archivePath, std::string wantedFile, std::string outputPath)
-{
+Result extractArchive(std::string archivePath, std::string wantedFile, std::string outputPath) {
 	int r;
 	struct archive_entry *entry;
 	

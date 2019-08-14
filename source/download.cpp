@@ -1,12 +1,14 @@
 #include "download.hpp"
+#include <fstream>
 #include <sys/stat.h>
 #include <vector>
 #include <unistd.h>
 
 #include "extract.hpp"
-#include "inifile.h"
-#include "gui.hpp"
 #include "fileBrowse.h"
+#include "gui.hpp"
+#include "inifile.h"
+#include "keyboard.h"
 #include "thread.h"
 
 extern "C" {
@@ -27,6 +29,7 @@ std::string latestBootstrapReleaseCache = "";
 std::string latestBootstrapNightlyCache = "";
 std::string latestUpdaterReleaseCache = "";
 std::string latestUpdaterNightlyCache = "";
+std::string usernamePasswordCache = "";
 
 extern C3D_RenderTarget* top;
 extern C3D_RenderTarget* bottom;
@@ -42,38 +45,33 @@ bool showProgressBar = false;
 bool progressBarType = 0; // 0 = Download | 1 = Extract
 bool continueNdsScan = true;
 
-// following function is from 
+// following function is from
 // https://github.com/angelsl/libctrfgh/blob/master/curl_test/src/main.c
-static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata)
-{
+static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata) {
 	(void) userdata;
 	const size_t bsz = size*nmemb;
 
-	if (result_sz == 0 || !result_buf)
-	{
+	if(result_sz == 0 || !result_buf) {
 		result_sz = 0x1000;
 		result_buf = (char*)malloc(result_sz);
 	}
 
 	bool need_realloc = false;
-	while (result_written + bsz > result_sz) 
-	{
+	while (result_written + bsz > result_sz) {
 		result_sz <<= 1;
 		need_realloc = true;
 	}
 
-	if (need_realloc)
-	{
+	if(need_realloc) {
 		char *new_buf = (char*)realloc(result_buf, result_sz);
-		if (!new_buf)
+		if(!new_buf)
 		{
 			return 0;
 		}
 		result_buf = new_buf;
 	}
 
-	if (!result_buf)
-	{
+	if(!result_buf) {
 		return 0;
 	}
 
@@ -82,8 +80,7 @@ static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata)
 	return bsz;
 }
 
-static Result setupContext(CURL *hnd, const char * url)
-{
+static Result setupContext(CURL *hnd, const char * url) {
 	curl_easy_setopt(hnd, CURLOPT_BUFFERSIZE, 102400L);
 	curl_easy_setopt(hnd, CURLOPT_URL, url);
 	curl_easy_setopt(hnd, CURLOPT_NOPROGRESS, 1L);
@@ -95,31 +92,29 @@ static Result setupContext(CURL *hnd, const char * url)
 	curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L);
 	curl_easy_setopt(hnd, CURLOPT_STDERR, stdout);
+	if(usernamePasswordCache != "")	curl_easy_setopt(hnd, CURLOPT_USERPWD, usernamePasswordCache.c_str());
 
 	return 0;
 }
 
-Result downloadToFile(std::string url, std::string path)
-{
-	Result ret = 0;	
+Result downloadToFile(std::string url, std::string path) {
+	Result ret = 0;
 	printf("Downloading from:\n%s\nto:\n%s\n", url.c_str(), path.c_str());
 
 	void *socubuf = memalign(0x1000, 0x100000);
-	if (!socubuf)
-	{
+	if(!socubuf) {
 		return -1;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
-	if (R_FAILED(ret))
-	{
+	if(R_FAILED(ret)) {
 		free(socubuf);
 		return ret;
 	}
 
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, url.c_str());
-	if (ret != 0) {
+	if(ret != 0) {
 		socExit();
 		free(result_buf);
 		free(socubuf);
@@ -132,9 +127,9 @@ Result downloadToFile(std::string url, std::string path)
 	Handle fileHandle;
 	u64 offset = 0;
 	u32 bytesWritten = 0;
-	
+
 	ret = openFile(&fileHandle, path.c_str(), true);
-	if (R_FAILED(ret)) {
+	if(R_FAILED(ret)) {
 		printf("Error: couldn't open file to write.\n");
 		socExit();
 		free(result_buf);
@@ -144,13 +139,11 @@ Result downloadToFile(std::string url, std::string path)
 		result_written = 0;
 		return DL_ERROR_WRITEFILE;
 	}
-	
-	u64 startTime = osGetTime();
 
 	CURLcode cres = curl_easy_perform(hnd);
 	curl_easy_cleanup(hnd);
 
-	if (cres != CURLE_OK) {
+	if(cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
 		free(result_buf);
@@ -160,12 +153,8 @@ Result downloadToFile(std::string url, std::string path)
 		result_written = 0;
 		return -1;
 	}
-	
-	FSFILE_Write(fileHandle, &bytesWritten, offset, result_buf, result_written, 0);
 
-	u64 endTime = osGetTime();
-	u64 totalTime = endTime - startTime;
-	printf("Download took %llu milliseconds.\n", totalTime);
+	FSFILE_Write(fileHandle, &bytesWritten, offset, result_buf, result_written, 0);
 
 	socExit();
 	free(result_buf);
@@ -177,18 +166,15 @@ Result downloadToFile(std::string url, std::string path)
 	return 0;
 }
 
-Result downloadFromRelease(std::string url, std::string asset, std::string path)
-{
+Result downloadFromRelease(std::string url, std::string asset, std::string path) {
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
-	if (!socubuf)
-	{
+	if(!socubuf) {
 		return -1;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
-	if (R_FAILED(ret))
-	{
+	if(R_FAILED(ret)) {
 		free(socubuf);
 		return ret;
 	}
@@ -196,19 +182,19 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	std::regex parseUrl("github\\.com\\/(.+)\\/(.+)");
 	std::smatch result;
 	regex_search(url, result, parseUrl);
-	
+
 	std::string repoOwner = result[1].str(), repoName = result[2].str();
-	
+
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repoOwner << "/" << repoName << "/releases/latest";
 	std::string apiurl = apiurlStream.str();
-	
+
 	printf("Downloading latest release from repo:\n%s\nby:\n%s\n", repoName.c_str(), repoOwner.c_str());
 	printf("Crafted API url:\n%s\n", apiurl.c_str());
-	
+
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
-	if (ret != 0) {
+	if(ret != 0) {
 		socExit();
 		free(result_buf);
 		free(socubuf);
@@ -223,8 +209,8 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-	
-	if (cres != CURLE_OK) {
+
+	if(cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
 		free(result_buf);
@@ -234,15 +220,15 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 		result_written = 0;
 		return -1;
 	}
-	
+
 	printf("Looking for asset with name matching:\n%s\n", asset.c_str());
 	std::string assetUrl;
 	json parsedAPI = json::parse(result_buf);
-	if (parsedAPI["assets"].is_array()) {
+	if(parsedAPI["assets"].is_array()) {
 		for (auto jsonAsset : parsedAPI["assets"]) {
-			if (jsonAsset.is_object() && jsonAsset["name"].is_string() && jsonAsset["browser_download_url"].is_string()) {
+			if(jsonAsset.is_object() && jsonAsset["name"].is_string() && jsonAsset["browser_download_url"].is_string()) {
 				std::string assetName = jsonAsset["name"];
-				if (matchPattern(asset, assetName)) {
+				if(matchPattern(asset, assetName)) {
 					assetUrl = jsonAsset["browser_download_url"];
 					break;
 				}
@@ -255,12 +241,12 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
 	result_buf = NULL;
 	result_sz = 0;
 	result_written = 0;
-	
-	if (assetUrl.empty())
+
+	if(assetUrl.empty())
 		ret = DL_ERROR_GIT;
 	else
 		ret = downloadToFile(assetUrl, path);
-	
+
 	return ret;
 }
 
@@ -269,13 +255,14 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
  * @return True if Wi-Fi is connected; false if not.
  */
 bool checkWifiStatus(void) {
+	return true; // Citra
 	u32 wifiStatus;
 	bool res = false;
 
-	if (R_SUCCEEDED(ACU_GetWifiStatus(&wifiStatus)) && wifiStatus) {
+	if(R_SUCCEEDED(ACU_GetWifiStatus(&wifiStatus)) && wifiStatus) {
 		res = true;
 	}
-	
+
 	return res;
 }
 
@@ -300,29 +287,26 @@ void doneMsg(void) {
 	}
 }
 
-std::string getLatestRelease(std::string repo, std::string item)
-{
+std::string getLatestRelease(std::string repo, std::string item, bool retrying) {
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
-	if (!socubuf)
-	{
+	if(!socubuf) {
 		return "";
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
-	if (R_FAILED(ret))
-	{
+	if(R_FAILED(ret)) {
 		free(socubuf);
 		return "";
 	}
-	
+
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/releases/latest";
 	std::string apiurl = apiurlStream.str();
-	
+
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
-	if (ret != 0) {
+	if(ret != 0) {
 		socExit();
 		free(result_buf);
 		free(socubuf);
@@ -333,13 +317,31 @@ std::string getLatestRelease(std::string repo, std::string item)
 	}
 
 	CURLcode cres = curl_easy_perform(hnd);
+	int httpCode;
+	curl_easy_getinfo(hnd, CURLINFO_RESPONSE_CODE, &httpCode);
 	curl_easy_cleanup(hnd);
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-	
-	if (cres != CURLE_OK) {
-		printf("Error in:\ncurl\n");
+
+	if(httpCode == 401 || httpCode == 403) {
+		bool save = promtUsernamePassword();
+		if(save)	saveUsernamePassword();
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		if(usernamePasswordCache == "" || retrying) {
+			usernamePasswordCache = "";
+			return "API";
+		} else {
+			return getLatestRelease(repo, item, true);
+		}
+	}
+
+	if(cres != CURLE_OK) {
 		socExit();
 		free(result_buf);
 		free(socubuf);
@@ -348,10 +350,11 @@ std::string getLatestRelease(std::string repo, std::string item)
 		result_written = 0;
 		return "";
 	}
-	
+
+
 	std::string jsonItem;
 	json parsedAPI = json::parse(result_buf);
-	if (parsedAPI[item].is_string()) {
+	if(parsedAPI[item].is_string()) {
 		jsonItem = parsedAPI[item];
 	}
 
@@ -365,30 +368,27 @@ std::string getLatestRelease(std::string repo, std::string item)
 	return jsonItem;
 }
 
-std::vector<std::string> getRecentCommits(std::string repo, std::string item)
-{
+std::vector<std::string> getRecentCommits(std::string repo, std::string item, bool retrying) {
 	std::vector<std::string> emptyVector;
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
-	if (!socubuf)
-	{
+	if(!socubuf) {
 		return emptyVector;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
-	if (R_FAILED(ret))
-	{
+	if(R_FAILED(ret)) {
 		free(socubuf);
 		return emptyVector;
 	}
-	
+
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/commits";
 	std::string apiurl = apiurlStream.str();
-	
+
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
-	if (ret != 0) {
+	if(ret != 0) {
 		socExit();
 		free(result_buf);
 		free(socubuf);
@@ -399,12 +399,31 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string item)
 	}
 
 	CURLcode cres = curl_easy_perform(hnd);
+	int httpCode;
+	curl_easy_getinfo(hnd, CURLINFO_RESPONSE_CODE, &httpCode);
 	curl_easy_cleanup(hnd);
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-	
-	if (cres != CURLE_OK) {
+
+	if(httpCode == 401 || httpCode == 403) {
+		bool save = promtUsernamePassword();
+		if(save)	saveUsernamePassword();
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		if(usernamePasswordCache == "" || retrying) {
+			usernamePasswordCache = "";
+			return {"API"};
+		} else {
+			return getRecentCommits(repo, item, true);
+		}
+	}
+
+	if(cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
 		free(result_buf);
@@ -414,11 +433,11 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string item)
 		result_written = 0;
 		return emptyVector;
 	}
-	
+
 	std::vector<std::string> jsonItems;
 	json parsedAPI = json::parse(result_buf);
 	for(uint i=0;i<parsedAPI.size();i++) {
-		if (parsedAPI[i][item].is_string()) {
+		if(parsedAPI[i][item].is_string()) {
 			jsonItems.push_back(parsedAPI[i][item]);
 		}
 	}
@@ -433,30 +452,27 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string item)
 	return jsonItems;
 }
 
-std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item)
-{
+std::vector<std::string> getRecentCommitsArray(std::string repo, std::string array, std::string item, bool retrying) {
 	std::vector<std::string> emptyVector;
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
-	if (!socubuf)
-	{
+	if(!socubuf) {
 		return emptyVector;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
-	if (R_FAILED(ret))
-	{
+	if(R_FAILED(ret)) {
 		free(socubuf);
 		return emptyVector;
 	}
-	
+
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/commits";
 	std::string apiurl = apiurlStream.str();
-	
+
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
-	if (ret != 0) {
+	if(ret != 0) {
 		socExit();
 		free(result_buf);
 		free(socubuf);
@@ -467,12 +483,31 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string array, s
 	}
 
 	CURLcode cres = curl_easy_perform(hnd);
+	int httpCode;
+	curl_easy_getinfo(hnd, CURLINFO_RESPONSE_CODE, &httpCode);
 	curl_easy_cleanup(hnd);
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-	
-	if (cres != CURLE_OK) {
+
+	if(httpCode == 401 || httpCode == 403) {
+		bool save = promtUsernamePassword();
+		if(save)	saveUsernamePassword();
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		if(usernamePasswordCache == "" || retrying) {
+			usernamePasswordCache = "";
+			return {"API"};
+		} else {
+			return getRecentCommitsArray(repo, array, item, true);
+		}
+	}
+
+	if(cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
 		free(result_buf);
@@ -486,7 +521,7 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string array, s
 	std::vector<std::string> jsonItems;
 	json parsedAPI = json::parse(result_buf);
 	for(uint i=0;i<parsedAPI.size();i++) {
-		if (parsedAPI[i][array][item].is_string()) {
+		if(parsedAPI[i][array][item].is_string()) {
 			jsonItems.push_back(parsedAPI[i][array][item]);
 		}
 	}
@@ -501,30 +536,27 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string array, s
 	return jsonItems;
 }
 
-std::vector<ThemeEntry> getThemeList(std::string repo, std::string path)
-{
+std::vector<ThemeEntry> getThemeList(std::string repo, std::string path, bool retrying) {
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
 	std::vector<ThemeEntry> emptyVector;
-	if (!socubuf)
-	{
+	if(!socubuf) {
 		return emptyVector;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
-	if (R_FAILED(ret))
-	{
+	if(R_FAILED(ret)) {
 		free(socubuf);
 		return emptyVector;
 	}
-	
+
 	std::stringstream apiurlStream;
 	apiurlStream << "https://api.github.com/repos/" << repo << "/contents/" << path;
 	std::string apiurl = apiurlStream.str();
-	
+
 	CURL *hnd = curl_easy_init();
 	ret = setupContext(hnd, apiurl.c_str());
-	if (ret != 0) {
+	if(ret != 0) {
 		socExit();
 		free(result_buf);
 		free(socubuf);
@@ -535,12 +567,31 @@ std::vector<ThemeEntry> getThemeList(std::string repo, std::string path)
 	}
 
 	CURLcode cres = curl_easy_perform(hnd);
+	int httpCode;
+	curl_easy_getinfo(hnd, CURLINFO_RESPONSE_CODE, &httpCode);
 	curl_easy_cleanup(hnd);
 	char* newbuf = (char*)realloc(result_buf, result_written + 1);
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
-	
-	if (cres != CURLE_OK) {
+
+	if(httpCode == 401 || httpCode == 403) { // Unauthorized || Forbidden
+		bool save = promtUsernamePassword();
+		if(save)	saveUsernamePassword();
+		socExit();
+		free(result_buf);
+		free(socubuf);
+		result_buf = NULL;
+		result_sz = 0;
+		result_written = 0;
+		if(usernamePasswordCache == "" || retrying) {
+			usernamePasswordCache = "";
+			return {{"API", "API", "API", "API"}};
+		} else {
+			return getThemeList(repo, path, true);
+		}
+	}
+
+	if(cres != CURLE_OK) {
 		printf("Error in:\ncurl\n");
 		socExit();
 		free(result_buf);
@@ -548,21 +599,21 @@ std::vector<ThemeEntry> getThemeList(std::string repo, std::string path)
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		
+
 		return emptyVector;
 	}
-	
+
 	std::vector<ThemeEntry> jsonItems;
 	json parsedAPI = json::parse(result_buf);
 	for(uint i=0;i<parsedAPI.size();i++) {
 		ThemeEntry themeEntry;
-		if (parsedAPI[i]["name"].is_string()) {
+		if(parsedAPI[i]["name"].is_string()) {
 			themeEntry.name = parsedAPI[i]["name"];
 		}
-		if (parsedAPI[i]["download_url"].is_string()) {
+		if(parsedAPI[i]["download_url"].is_string()) {
 			themeEntry.downloadUrl = parsedAPI[i]["download_url"];
 		}
-		if (parsedAPI[i]["path"].is_string()) {
+		if(parsedAPI[i]["path"].is_string()) {
 			themeEntry.sdPath = "sdmc:/";
 			themeEntry.sdPath += parsedAPI[i]["path"];
 			themeEntry.path = parsedAPI[i]["path"];
@@ -599,12 +650,11 @@ void downloadTheme(std::string path) {
 	}
 }
 
-bool showReleaseInfo(std::string repo, bool showExitText)
-{
+bool showReleaseInfo(std::string repo, bool showExitText) {
 	displayBottomMsg("Loading release notes...");
 	jsonName = getLatestRelease(repo, "name");
 	std::string jsonBody = getLatestRelease(repo, "body");
-	
+
 	setMessageText(jsonBody);
 	int textPosition = 0;
 	bool redrawText = true;
@@ -624,17 +674,17 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 			for(int i=0;i<9;i++)
 				gspWaitForVBlank();
 		}
-		
-		if (hDown & KEY_A) {
+
+		if(hDown & KEY_A) {
 			return true;
-		} else if (hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
+		} else if(hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
 			return false;
-		} else if (hHeld & KEY_UP) {
+		} else if(hHeld & KEY_UP) {
 			if(textPosition > 0) {
 				textPosition--;
 				redrawText = true;
 			}
-		} else if (hHeld & KEY_DOWN) {
+		} else if(hHeld & KEY_DOWN) {
 			if(textPosition < (int)(_topText.size() - 10)) {
 				textPosition++;
 				redrawText = true;
@@ -643,21 +693,23 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 	}
 }
 
-std::string chooseCommit(std::string repo, std::string title, bool showExitText)
-{
+std::string chooseCommit(std::string repo, std::string title, bool showExitText) {
 	displayBottomMsg("Loading commits...");
 	std::vector<std::string> jsonShasTemp = getRecentCommits(repo, "sha");
-	std::vector<std::string> jsonBodyTemp = getRecentCommits(repo, "commit", "message");
+	std::vector<std::string> jsonBodyTemp = ((jsonShasTemp[0] == "API") ? jsonShasTemp : getRecentCommitsArray(repo, "commit", "message"));
 	std::vector<std::string> jsonShas;
 	std::vector<std::string> jsonBody;
+	gspWaitForVBlank();
 
 	jsonBody.push_back("Latest");
 	jsonShas.push_back("master");
 
-	for(int i=jsonBodyTemp.size();i>=0;i--) {
-		if(jsonBodyTemp[i].substr(0, title.size()) == title) {
-			jsonBody.push_back(jsonBodyTemp[i]);
-			jsonShas.push_back(jsonShasTemp[i]);
+	if(jsonShasTemp[0] != "API"){
+		for(uint i=0;i<jsonShasTemp.size();i++) {
+			if(jsonBodyTemp[i].substr(0, title.size()) == title) {
+				jsonBody.push_back(jsonBodyTemp[i]);
+				jsonShas.push_back(jsonShasTemp[i]);
+			}
 		}
 	}
 
@@ -732,17 +784,17 @@ std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 			for(int i=0;i<9;i++)
 				gspWaitForVBlank();
 		}
-		
-		if (hDown & KEY_A) {
+
+		if(hDown & KEY_A) {
 			return jsonShas[selectedCommit].substr(0,7);
-		} else if (hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
+		} else if(hDown & KEY_B || hDown & KEY_Y || hDown & KEY_TOUCH) {
 			goto showCommitList;
-		} else if (hHeld & KEY_UP) {
+		} else if(hHeld & KEY_UP) {
 			if(textPosition > 0) {
 				textPosition--;
 				redrawText = true;
 			}
-		} else if (hHeld & KEY_DOWN) {
+		} else if(hHeld & KEY_DOWN) {
 			if(textPosition < (int)(_topText.size() - 10)) {
 				textPosition++;
 				redrawText = true;
@@ -751,8 +803,7 @@ std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 	}
 }
 
-void setMessageText(const std::string &text)
-{
+void setMessageText(const std::string &text) {
 	std::string _topTextStr(text);
 	std::vector<std::string> words;
 	std::size_t pos;
@@ -766,8 +817,7 @@ void setMessageText(const std::string &text)
 		words.push_back(_topTextStr);
 	std::string temp;
 	_topText.clear();
-	for(auto word : words)
-	{
+	for(auto word : words) {
 		int width = Draw_GetTextWidth(0.5f, (temp + " " + word).c_str());
 		if(word.find('\n') != -1u)
 		{
@@ -787,19 +837,18 @@ void setMessageText(const std::string &text)
 		}
 	}
 	if(temp.size())
-	   _topText.push_back(temp);
+		_topText.push_back(temp);
 }
 
-void drawMessageText(int position, bool showExitText)
-{
-    Gui::clearTextBufs();
-    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-    C2D_TargetClear(bottom, TRANSPARENT);
+void drawMessageText(int position, bool showExitText) {
+	Gui::clearTextBufs();
+	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+	C2D_TargetClear(bottom, TRANSPARENT);
 	set_screen(bottom);
 	Gui::sprite(sprites_BS_loading_background_idx, 0, 0);
 	Draw_Text(18, 24, .7, BLACK, jsonName.c_str());
 	for (int i = 0; i < (int)_topText.size() && i < (showExitText ? 9 : 10); i++) {
-			Draw_Text_System(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
+		Draw_Text(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
 	}
 	if(showExitText)
 		Draw_Text(24, 200, 0.5f, BLACK, "B: Cancel   A: Update");
@@ -815,39 +864,138 @@ void displayProgressBar() {
 	}
 }
 
+bool promtUsernamePassword(void) {
+	displayBottomMsg("The GitHub API rate limit has been\n"
+					 "exceeded for your IP, you can regain\n"
+					 "access by signing in to a GitHub account\n"
+					 "or waiting for a bit\n"
+					 "(or press B but some things won't work)\n\n\n\n\n\n\n\n"
+					 "B: Cancel   A: Authenticate");
+
+	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+	set_screen(bottom);
+	Draw_Text(20, 100, 0.45f, BLACK, "Username:");
+	Draw_Rect(100, 100, 100, 14, GRAY);
+	Draw_Text(20, 120, 0.45f, BLACK, "Password:");
+	Draw_Rect(100, 120, 100, 14, GRAY);
+
+	Draw_Rect(100, 140, 14, 14, GRAY);
+	Draw_Text(120, 140, 0.45f, BLACK, "Save login?");
+	Draw_EndFrame();
+
+	bool save = false;
+	int hDown;
+	std::string username, password;
+	while(1) {
+		do {
+			gspWaitForVBlank();
+			hidScanInput();
+			hDown = hidKeysDown();
+		} while(!hDown);
+
+		if(hDown & KEY_A) {
+			usernamePasswordCache = username + ":" + password;
+			return save;
+		} else if(hDown & KEY_B) {
+			usernamePasswordCache = "";
+			return save;
+		} else if(hDown & KEY_TOUCH) {
+			touchPosition touch;
+			touchRead(&touch);
+			if(touch.px >= 100 && touch.px <= 200 && touch.py >= 100 && touch.py <= 114) {
+				username = keyboardInput("Username");
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				set_screen(bottom);
+				Draw_Rect(100, 100, 100, 14, GRAY);
+				Draw_Text(100, 100, 0.45f, BLACK, username.c_str());
+				Draw_EndFrame();
+			} else if(touch.px >= 100 && touch.px <= 200 && touch.py >= 120 && touch.py <= 134) {
+				password = keyboardInput("Password");
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				set_screen(bottom);
+				Draw_Rect(100, 120, 100, 14, GRAY);
+				Draw_Text(100, 120, 0.45f, BLACK, password.c_str());
+				Draw_EndFrame();
+			} else if(touch.px >= 100 && touch.px <= 114 && touch.py >= 140 && touch.py <= 154) {
+				save = !save;
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				set_screen(bottom);
+				Draw_Rect(102, 142, 10, 10, save ? GREEN : GRAY);
+				Draw_EndFrame();
+			}
+		}
+	}
+}
+
+void loadUsernamePassword(void) {
+	std::ifstream in("sdmc:/_nds/TWiLightMenu/extras/updater/usernamePassword");
+	if(in.good())	in >> usernamePasswordCache;
+	in.close();
+}
+
+void saveUsernamePassword() {
+	std::ofstream out("sdmc:/_nds/TWiLightMenu/extras/updater/usernamePassword");
+	if(out.good())	out << usernamePasswordCache;
+	out.close();
+}
+
 std::string latestMenuRelease(void) {
-	if (latestMenuReleaseCache == "")
-		latestMenuReleaseCache = getLatestRelease("DS-Homebrew/TWiLightMenu", "tag_name");
+	if(latestMenuReleaseCache == "") {
+		std::string apiInfo = getLatestRelease("DS-Homebrew/TWiLightMenu", "tag_name");
+		if(apiInfo != "API") {
+			latestMenuReleaseCache = apiInfo;
+		}
+	}
 	return latestMenuReleaseCache;
 }
 
 std::string latestMenuNightly(void) {
-	if (latestMenuNightlyCache == "")
-		latestMenuNightlyCache = getRecentCommits("DS-Homebrew/TWiLightMenu", "sha")[0].substr(0,7);
+	if(latestMenuNightlyCache == "") {
+		std::string apiInfo = getRecentCommits("DS-Homebrew/TWiLightMenu", "sha")[0];
+		if(apiInfo != "API") {
+			latestMenuNightlyCache = apiInfo.substr(0,7);
+		}
+	}
 	return latestMenuNightlyCache;
 }
 
 std::string latestBootstrapRelease(void) {
-	if (latestBootstrapReleaseCache == "")
-		latestBootstrapReleaseCache = getLatestRelease("ahezard/nds-bootstrap", "tag_name");
+	if(latestBootstrapReleaseCache == "") {
+		std::string apiInfo = getLatestRelease("ahezard/nds-bootstrap", "tag_name");
+		if(apiInfo != "API") {
+			latestBootstrapReleaseCache = apiInfo;
+		}
+	}
 	return latestBootstrapReleaseCache;
 }
 
 std::string latestBootstrapNightly(void) {
-	if (latestBootstrapNightlyCache == "")
-		latestBootstrapNightlyCache = getRecentCommits("ahezard/nds-bootstrap", "sha")[0].substr(0,7);
+	if(latestBootstrapNightlyCache == "") {
+		std::string apiInfo = getRecentCommits("ahezard/nds-bootstrap", "sha")[0];
+		if(apiInfo != "API") {
+			latestBootstrapNightlyCache = apiInfo.substr(0,7);
+		}
+	}
 	return latestBootstrapNightlyCache;
 }
 
 std::string latestUpdaterRelease(void) {
-	if (latestUpdaterReleaseCache == "")
-		latestUpdaterReleaseCache = getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name");
+	if(latestUpdaterReleaseCache == "") {
+		std::string apiInfo = getLatestRelease("RocketRobz/TWiLightMenu-Updater", "tag_name");
+		if(apiInfo != "API") {
+			latestUpdaterReleaseCache = apiInfo;
+		}
+	}
 	return latestUpdaterReleaseCache;
 }
 
 std::string latestUpdaterNightly(void) {
-	if (latestUpdaterNightlyCache == "")
-		latestUpdaterNightlyCache = getRecentCommits("RocketRobz/TWiLightMenu-Updater", "sha")[0].substr(0,7);
+	if(latestUpdaterNightlyCache == "") {
+		std::string apiInfo = getRecentCommits("RocketRobz/TWiLightMenu-Updater", "sha")[0];
+		if(apiInfo != "API") {
+			latestUpdaterNightlyCache = apiInfo.substr(0,7);
+		}
+	}
 	return latestUpdaterNightlyCache;
 }
 
@@ -882,9 +1030,9 @@ void checkForUpdates() {
 	std::string bootstrapRelease = getInstalledVersion("NDS-BOOTSTRAP-RELEASE");
 	std::string boostrapNightly = getInstalledVersion("NDS-BOOTSTRAP-NIGHTLY");
 
-	if (menuChannel == "release")
+	if(menuChannel == "release")
 		updateAvailable[0] = menuVersion != latestMenuRelease();
-	else if (menuChannel == "nightly")
+	else if(menuChannel == "nightly")
 		updateAvailable[1] = menuVersion != latestMenuNightly();
 	else
 		updateAvailable[0] = updateAvailable[1] = true;
@@ -892,9 +1040,9 @@ void checkForUpdates() {
 	updateAvailable[2] = bootstrapRelease != latestBootstrapRelease();
 	updateAvailable[3] = boostrapNightly != latestBootstrapNightly();
 
-	if (updaterChannel == "release")
+	if(updaterChannel == "release")
 		updateAvailable[4] = updaterVersion != latestUpdaterRelease();
-	else if (updaterChannel == "nightly")
+	else if(updaterChannel == "nightly")
 		updateAvailable[5] = updaterVersion != latestUpdaterNightly();
 	else
 		updateAvailable[4] = updateAvailable[5] = true;
@@ -906,7 +1054,7 @@ void updateBootstrap(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
+		if(downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/nds-bootstrap.7z?raw=true", "/nds-bootstrap-nightly.7z") != 0) {
 			showProgressBar = false;
 			downloadFailed();
 			return;
@@ -923,13 +1071,13 @@ void updateBootstrap(std::string commit) {
 		setInstalledVersion("NDS-BOOTSTRAP-NIGHTLY", latestBootstrapNightly());
 		saveUpdateData();
 		updateAvailable[3] = false;
-	} else {	
+	} else {
 		displayBottomMsg("Downloading nds-bootstrap...\n(Release)");
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading nds-bootstrap...\n(Release)");
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip") != 0) {
+		if(downloadFromRelease("https://github.com/ahezard/nds-bootstrap", "nds-bootstrap\\.zip", "/nds-bootstrap-release.zip") != 0) {
 			showProgressBar = false;
 			downloadFailed();
 			return;
@@ -956,7 +1104,7 @@ void updateTWiLight(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
+		if(downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
 			showProgressBar = false;
 			downloadFailed();
 			return;
@@ -971,7 +1119,7 @@ void updateTWiLight(std::string commit) {
 
 		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
 						"(Nightly)");
-		// installCia("/TWiLight Menu.cia");
+		installCia("/TWiLight Menu.cia");
 		installCia("/TWiLight Menu - Game booter.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-nightly.7z");
@@ -987,7 +1135,7 @@ void updateTWiLight(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z") != 0) {
+		if(downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z") != 0) {
 			showProgressBar = false;
 			downloadFailed();
 			return;
@@ -1024,7 +1172,7 @@ void updateSelf(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia?raw=true", "/TWiLightMenu-Updater-nightly.cia") != 0) {
+		if(downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia?raw=true", "/TWiLightMenu-Updater-nightly.cia") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -1047,7 +1195,7 @@ void updateSelf(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-release.cia") != 0) {
+		if(downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.cia", "/TWiLightMenu-Updater-release.cia") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -1070,7 +1218,7 @@ void updateSelf(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.3dsx?raw=true", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
+		if(downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.3dsx?raw=true", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -1085,7 +1233,7 @@ void updateSelf(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if (downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.3dsx", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
+		if(downloadFromRelease("https://github.com/RocketRobz/TWiLightMenu-Updater", "TWiLightMenu-Updater\\.3dsx", "/3ds/TWiLightMenu-Updater.3dsx") != 0) {
 			downloadFailed();
 			return;
 		}
@@ -1104,10 +1252,10 @@ void updateSelf(std::string commit) {
 
 void updateCheats(void) {
 	snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading DSJ's cheat database...");
-		showProgressBar = true;
-		progressBarType = 0;
-		createThread((ThreadFunc)displayProgressBar);
-	if (downloadToFile("https://github.com/TWLBot/Builds/raw/master/usrcheat.dat.7z", "/usrcheat.dat.7z") != 0) {
+	showProgressBar = true;
+	progressBarType = 0;
+	createThread((ThreadFunc)displayProgressBar);
+	if(downloadToFile("https://github.com/TWLBot/Builds/raw/master/usrcheat.dat.7z", "/usrcheat.dat.7z") != 0) {
 		downloadFailed();
 		return;
 	}
@@ -1152,7 +1300,7 @@ const char* getBoxartRegion(char tid_region) {
 			break;
 
 		case 'O':			// USA/Europe
-			// if (region == CFG_REGION_USA) {
+			// if(region == CFG_REGION_USA) {
 				// System is USA region.
 				// Get the USA boxart if it's available.
 				ba_region = "EN";
@@ -1364,12 +1512,12 @@ void downloadBoxart(void) {
 			displayBottomMsg(downloadMessage);
 
 			const char *ba_region = getBoxartRegion(dirContents[i].tid[3]);
-			
+
 			char boxartUrl[256];
 			snprintf(boxartUrl, sizeof(boxartUrl), "https://art.gametdb.com/ds/coverS/%s/%s.png", ba_region, dirContents[i].tid);
 			char boxartPath[256];
 			snprintf(boxartPath, sizeof(boxartPath), "/_nds/TWiLightMenu/boxart/temp/%s.png", dirContents[i].tid);
-			
+
 			downloadToFile(boxartUrl, boxartPath);
 		}
 	}

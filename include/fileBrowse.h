@@ -8,8 +8,7 @@
 
 using namespace std;
 
-struct DirEntry
-{
+struct DirEntry {
 	string name;
 	bool isDirectory;
 	char tid[5];

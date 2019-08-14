@@ -1,7 +1,6 @@
 #include "file.h"
 
-FS_Path getPathInfo(const char * path, FS_ArchiveID * archive)
-{
+FS_Path getPathInfo(const char * path, FS_ArchiveID * archive) {
 	*archive = ARCHIVE_SDMC;
 	FS_Path filePath = {0};
 	unsigned int prefixlen = 0;
@@ -23,10 +22,9 @@ FS_Path getPathInfo(const char * path, FS_ArchiveID * archive)
 	}
 	else if (*path != '/') {
 		//if the path is local (doesnt start with a slash), it needs to be appended to the working dir to be valid
-		char * actualPath = NULL;
-		asprintf(&actualPath, "%s%s", WORKING_DIR, path);
+		char actualPath[sizeof(WORKING_DIR)+sizeof(path)];
+		snprintf(actualPath, sizeof(actualPath), "%s%s", WORKING_DIR, path);
 		filePath = fsMakePath(PATH_ASCII, actualPath);
-		free(actualPath);
 	}
 	
 	//if the filePath wasnt set above, set it
@@ -36,8 +34,7 @@ FS_Path getPathInfo(const char * path, FS_ArchiveID * archive)
 	return filePath;
 }
 
-Result makeDirs(FS_ArchiveID archiveID, char * path)
-{
+Result makeDirs(FS_ArchiveID archiveID, char * path) {
 	Result ret = 0;
 	FS_Archive archive;
 	
@@ -65,8 +62,7 @@ Result makeDirs(FS_ArchiveID archiveID, char * path)
 	return ret;
 }
 
-Result openFile(Handle* fileHandle, const char * path, bool write)
-{
+Result openFile(Handle* fileHandle, const char * path, bool write) {
 	FS_ArchiveID archive;
 	FS_Path filePath = getPathInfo(path, &archive);
 	u32 flags = (write ? (FS_OPEN_CREATE | FS_OPEN_WRITE) : FS_OPEN_READ);
@@ -80,8 +76,7 @@ Result openFile(Handle* fileHandle, const char * path, bool write)
 	return ret;
 }
 
-Result deleteFile(const char * path)
-{
+Result deleteFile(const char * path) {
 	FS_ArchiveID archiveID;
 	FS_Path filePath = getPathInfo(path, &archiveID);
 	

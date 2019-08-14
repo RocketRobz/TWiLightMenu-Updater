@@ -10,8 +10,6 @@
 #include "dumpdsp.h"
 #include "gui.hpp"
 #include "inifile.h"
-#include "language.h"
-#include "settings.h"
 #include "sound.h"
 #include "thread.h"
 
@@ -36,20 +34,19 @@ sound *sfx_wrong = NULL;
 sound *sfx_back = NULL;
 
 // 3D offsets. (0 == Left, 1 == Right)
-Offset3D offset3D[2] = {0.0f, 0.0f};
+struct _Offset3D {
+	float topbg;
+	float twinkle3;
+	float twinkle2;
+	float twinkle1;
+	float updater;
+	float logo;
+} offset3D[2] = {0.0f, 0.0f};
 
 struct {
 	int x;
 	int y;
-} buttons2[] = {
-	{ 129, 48},
-	{ 220, 48},
-	{ 129, 88},
-	{ 220, 88},
-	{ 129, 128},
-	{ 220, 128},
-	{ 129, 168},
-	{ 220, 168},
+} buttons2[] = { { 129, 48}, { 220, 48}, { 129, 88}, { 220, 88}, { 129, 128}, { 220, 128}, { 129, 168}, { 220, 168},
 };
 
 size_t button_tex2[] = {
@@ -103,20 +100,6 @@ bool updateAvailable[] = {
 	false,
 };
 
-void screenoff()
-{
-	gspLcdInit();\
-	GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTH);\
-	gspLcdExit();
-}
-
-void screenon()
-{
-	gspLcdInit();\
-	GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTH);\
-	gspLcdExit();
-}
-
 static void Play_Music(void) {
 	if (!musicPlaying && dspfirmfound) {
 		mus_settings->play();
@@ -124,13 +107,9 @@ static void Play_Music(void) {
 	}
 }
 
-// Version numbers.
-char launcher_vertext[13];
-
 int menuSelection = 0;
 
-int main()
-{
+int main() {
 	aptInit();
 	amInit();
 	sdmcInit();
@@ -143,8 +122,6 @@ int main()
 
 	osSetSpeedupEnable(true);	// Enable speed-up for New 3DS users
 
-	snprintf(launcher_vertext, 13, "v%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
-
 	// make folders if they don't exist
 	mkdir("sdmc:/3ds", 0777);	// For DSP dump
 	mkdir("sdmc:/_nds", 0777);
@@ -155,7 +132,7 @@ int main()
 	mkdir("sdmc:/_nds/TWiLightMenu/extras/updater", 0777);
 
 	Gui::init();
-	
+
  	if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
 		ndspInit();
 		dspfirmfound = true;
@@ -175,7 +152,7 @@ int main()
 				Draw_Text(12, 16, 0.5f, WHITE, "DSP firm dumping failed.\n"
 						"Running without sound.");
 				Draw_EndFrame();
-			}	
+			}
 		}
 	}
 
@@ -193,27 +170,29 @@ int main()
 	bool buttonShading = false;
 	bool setOption = false;
 	bool showMessage = false;
-	
+
 	int fadealpha = 255;
 	bool fadein = true;
+
+	loadUsernamePassword();
 	if(checkWifiStatus()) {
-	checkForUpdates();
+		checkForUpdates();
 	}
-	
+
 	// Loop as long as the status is not exit
 	createThread((ThreadFunc)Play_Music);
 	while(aptMainLoop()) {
 
 		// Scan hid shared memory for input events
 		hidScanInput();
-		
+
 		const u32 hDown = hidKeysDown();
 
 		hidTouchRead(&touch);
 
-    		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+			C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 			C2D_TargetClear(top, TRANSPARENT);
-    		C2D_TargetClear(bottom, TRANSPARENT);
+			C2D_TargetClear(bottom, TRANSPARENT);
 			Gui::clearTextBufs();
 			set_screen(top);
 			Gui::sprite(sprites_top_bg_idx, 0, 0);
@@ -223,7 +202,7 @@ int main()
 			Gui::sprite(sprites_arrow_idx, 41, 25);
 			Gui::sprite(sprites_text_updater_idx, 187, 151);
 			Gui::sprite(sprites_twlm_logo_idx, 127, 100);
-			Draw_Text(336, 222, 0.50, WHITE, launcher_vertext);
+			Draw_Text(336, 222, 0.50, WHITE, VERSION_STRING);
 			if (fadealpha > 0) Draw_Rect(0, 0, 400, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
 
 		set_screen(bottom);
@@ -267,7 +246,7 @@ int main()
 		//pp2d_draw_wtext(home_x+20, 220, 0.50, 0.50, WHITE, home_text);
 		if (fadealpha > 0) Draw_Rect(0, 0, 320, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
 		Draw_EndFrame();
-		
+
 		if (fadein == true) {
 			fadealpha -= 15;
 			if (fadealpha < 0) {
@@ -289,7 +268,7 @@ int main()
 			buttonShading = true;
 			if(dspfirmfound) {
 				sfx_select->stop();
-				sfx_select->play();	
+				sfx_select->play();
 			}
 		}
 
@@ -473,7 +452,7 @@ int main()
 		}
 	}
 
-	
+
 	delete mus_settings;
 	delete sfx_launch;
 	delete sfx_select;
