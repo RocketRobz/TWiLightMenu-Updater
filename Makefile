@@ -50,9 +50,9 @@ VERSION_MICRO := 2
 #---------------------------------------------------------------------------------
 TARGET		:=	TWiLight_Menu++_Updater
 BUILD		:=	build
-SOURCES		:=	source source/json
+SOURCES		:=	source source/utils source/utils/json
 DATA		:=	data
-INCLUDES	:=	include
+INCLUDES	:=	include include/utils source source/utils
 GRAPHICS	:=	assets/gfx
 #GFXBUILD	:=	$(BUILD)
 ROMFS		:=	romfs

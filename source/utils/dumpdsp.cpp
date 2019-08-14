@@ -172,7 +172,7 @@ Result openCode(Handle* out, u64 tid, u8 mediatype)
 {
 	if(!out)return -1;
 
-	u32 archivePath[] = {tid & 0xFFFFFFFF, (tid >> 32) & 0xFFFFFFFF, mediatype, 0x00000000};
+	u64 archivePath[] = {tid & 0xFFFFFFFF, (tid >> 32) & 0xFFFFFFFF, mediatype, 0x00000000};
 	static const u32 filePath[] = {0x00000000, 0x00000000, 0x00000002, 0x646F632E, 0x00000065};
 
 	return FSUSER_OpenFileDirectly(out, (FS_ArchiveID)0x2345678a, (FS_Path){PATH_BINARY, 0x10, (u8*)archivePath}, (FS_Path){PATH_BINARY, 0x14, (u8*)filePath}, FS_OPEN_READ, 0);
@@ -299,10 +299,9 @@ Result dumpCode(u64 tid , char* path)
 
 void dumpDsp()
 {
-	int i = 0;
 	Result res;
 
-	for(i = 0; i < NB_TITLES; ++i){
+	for(uint i = 0; i < NB_TITLES; ++i){
 		TitleInfo tl=titles[i];
 		res = dumpCode(tl.titleid, tl.name);
 		if(res) {

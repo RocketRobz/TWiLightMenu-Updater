@@ -25,7 +25,6 @@
 */
 
 #include "gui.hpp"
-#include "settings.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <unistd.h>

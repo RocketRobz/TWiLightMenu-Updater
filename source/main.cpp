@@ -10,8 +10,6 @@
 #include "dumpdsp.h"
 #include "gui.hpp"
 #include "inifile.h"
-#include "language.h"
-#include "settings.h"
 #include "sound.h"
 #include "thread.h"
 
@@ -36,7 +34,14 @@ sound *sfx_wrong = NULL;
 sound *sfx_back = NULL;
 
 // 3D offsets. (0 == Left, 1 == Right)
-Offset3D offset3D[2] = {0.0f, 0.0f};
+struct _Offset3D {
+	float topbg;
+	float twinkle3;
+	float twinkle2;
+	float twinkle1;
+	float updater;
+	float logo;
+} offset3D[2] = {0.0f, 0.0f};
 
 struct {
 	int x;
@@ -103,20 +108,6 @@ bool updateAvailable[] = {
 	false,
 };
 
-void screenoff()
-{
-	gspLcdInit();\
-	GSPLCD_PowerOffBacklight(GSPLCD_SCREEN_BOTH);\
-	gspLcdExit();
-}
-
-void screenon()
-{
-	gspLcdInit();\
-	GSPLCD_PowerOnBacklight(GSPLCD_SCREEN_BOTH);\
-	gspLcdExit();
-}
-
 static void Play_Music(void) {
 	if (!musicPlaying && dspfirmfound) {
 		mus_settings->play();
@@ -155,7 +146,7 @@ int main()
 	mkdir("sdmc:/_nds/TWiLightMenu/extras/updater", 0777);
 
 	Gui::init();
-	
+
  	if( access( "sdmc:/3ds/dspfirm.cdc", F_OK ) != -1 ) {
 		ndspInit();
 		dspfirmfound = true;
@@ -175,7 +166,7 @@ int main()
 				Draw_Text(12, 16, 0.5f, WHITE, "DSP firm dumping failed.\n"
 						"Running without sound.");
 				Draw_EndFrame();
-			}	
+			}
 		}
 	}
 
@@ -193,20 +184,20 @@ int main()
 	bool buttonShading = false;
 	bool setOption = false;
 	bool showMessage = false;
-	
+
 	int fadealpha = 255;
 	bool fadein = true;
 	if(checkWifiStatus()) {
 	checkForUpdates();
 	}
-	
+
 	// Loop as long as the status is not exit
 	createThread((ThreadFunc)Play_Music);
 	while(aptMainLoop()) {
 
 		// Scan hid shared memory for input events
 		hidScanInput();
-		
+
 		const u32 hDown = hidKeysDown();
 
 		hidTouchRead(&touch);
@@ -267,7 +258,7 @@ int main()
 		//pp2d_draw_wtext(home_x+20, 220, 0.50, 0.50, WHITE, home_text);
 		if (fadealpha > 0) Draw_Rect(0, 0, 320, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
 		Draw_EndFrame();
-		
+
 		if (fadein == true) {
 			fadealpha -= 15;
 			if (fadealpha < 0) {
@@ -289,7 +280,7 @@ int main()
 			buttonShading = true;
 			if(dspfirmfound) {
 				sfx_select->stop();
-				sfx_select->play();	
+				sfx_select->play();
 			}
 		}
 
@@ -473,7 +464,7 @@ int main()
 		}
 	}
 
-	
+
 	delete mus_settings;
 	delete sfx_launch;
 	delete sfx_select;

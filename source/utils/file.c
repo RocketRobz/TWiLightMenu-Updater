@@ -23,10 +23,9 @@ FS_Path getPathInfo(const char * path, FS_ArchiveID * archive)
 	}
 	else if (*path != '/') {
 		//if the path is local (doesnt start with a slash), it needs to be appended to the working dir to be valid
-		char * actualPath = NULL;
-		asprintf(&actualPath, "%s%s", WORKING_DIR, path);
+		char actualPath[sizeof(WORKING_DIR)+sizeof(path)];
+		snprintf(actualPath, sizeof(actualPath), "%s%s", WORKING_DIR, path);
 		filePath = fsMakePath(PATH_ASCII, actualPath);
-		free(actualPath);
 	}
 	
 	//if the filePath wasnt set above, set it
