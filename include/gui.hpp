@@ -73,8 +73,6 @@ namespace Gui {
 
 	void Draw_EndFrame(void);
 	void Draw_Text(float x, float y, float size, u32 color, const char *text);
-	void Draw_Text_Small(float x, float y, float size, u32 color, const char *text);
-	void Draw_Text_System(float x, float y, float size, u32 color, const char *text);
 	void Draw_Textf(float x, float y, float size, u32 color, const char* text, ...);
 	void Draw_GetTextSize(float size, float *width, float *height, const char *text);
 	float Draw_GetTextWidth(float size, const char *text);

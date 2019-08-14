@@ -34,13 +34,10 @@ C3D_RenderTarget* top;
 C3D_RenderTarget* bottom;
 
 static C2D_SpriteSheet sprites;
-C2D_TextBuf dynamicBuf, sizeBuf;
-C2D_Font defaultFont;
-C2D_Font smallFont;
+C2D_TextBuf sizeBuf;
 C2D_Font systemFont;
 
 void Gui::clearTextBufs(void) {
-	C2D_TextBufClear(dynamicBuf);
 	C2D_TextBufClear(sizeBuf);
 }
 
@@ -50,11 +47,8 @@ Result Gui::init(void) {
 	C2D_Prepare();
 	top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
-	dynamicBuf = C2D_TextBufNew(4096);
 	sizeBuf = C2D_TextBufNew(4096);
 	sprites    = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
-	defaultFont = C2D_FontLoad("romfs:/gfx/Font.bcfnt");
-	smallFont = C2D_FontLoad("romfs:/gfx/smallFont.bcfnt");
 	systemFont = C2D_FontLoadSystem(CFG_REGION_USA);
 	return 0;
 }
@@ -63,10 +57,7 @@ void Gui::exit(void) {
 	if (sprites) {
 		C2D_SpriteSheetFree(sprites);
 	}
-	C2D_TextBufDelete(dynamicBuf);
 	C2D_TextBufDelete(sizeBuf);
-	C2D_FontFree(defaultFont);
-	C2D_FontFree(smallFont);
 	C2D_Fini();
 	C3D_Fini();
 }
@@ -113,26 +104,11 @@ void displayBottomMsg(const char* text) {
 }
 
 void Draw_EndFrame(void) {
-	C2D_TextBufClear(dynamicBuf);
 	C2D_TextBufClear(sizeBuf);
 	C3D_FrameEnd(0);
 }
 
 void Draw_Text(float x, float y, float size, u32 color, const char *text) {
-	C2D_Text c2d_text;
-	C2D_TextFontParse(&c2d_text, defaultFont, sizeBuf, text);
-	C2D_TextOptimize(&c2d_text);
-	C2D_DrawText(&c2d_text, C2D_WithColor, x, y, 0.5f, size, size, color);
-}
-
-void Draw_Text_Small(float x, float y, float size, u32 color, const char *text) {
-	C2D_Text c2d_text;
-	C2D_TextFontParse(&c2d_text, smallFont, sizeBuf, text);
-	C2D_TextOptimize(&c2d_text);
-	C2D_DrawText(&c2d_text, C2D_WithColor, x, y, 0.5f, size, size, color);
-}
-
-void Draw_Text_System(float x, float y, float size, u32 color, const char *text) {
 	C2D_Text c2d_text;
 	C2D_TextFontParse(&c2d_text, systemFont, sizeBuf, text);
 	C2D_TextOptimize(&c2d_text);
@@ -150,7 +126,7 @@ void Draw_Textf(float x, float y, float size, u32 color, const char* text, ...) 
 
 void Draw_GetTextSize(float size, float *width, float *height, const char *text) {
 	C2D_Text c2d_text;
-	C2D_TextFontParse(&c2d_text, defaultFont, sizeBuf, text);
+	C2D_TextFontParse(&c2d_text, systemFont, sizeBuf, text);
 	C2D_TextGetDimensions(&c2d_text, size, size, width, height);
 }
 
