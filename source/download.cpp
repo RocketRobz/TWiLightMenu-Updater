@@ -1119,12 +1119,12 @@ void updateTWiLight(std::string commit) {
 
 		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
 						"(Nightly)");
-		// installCia("/TWiLight Menu.cia");
-		// installCia("/TWiLight Menu - Game booter.cia");
+		installCia("/TWiLight Menu.cia");
+		installCia("/TWiLight Menu - Game booter.cia");
 
-		// deleteFile("sdmc:/TWiLightMenu-nightly.7z");
-		// deleteFile("sdmc:/TWiLight Menu.cia");
-		// deleteFile("sdmc:/TWiLight Menu - Game booter.cia");
+		deleteFile("sdmc:/TWiLightMenu-nightly.7z");
+		deleteFile("sdmc:/TWiLight Menu.cia");
+		deleteFile("sdmc:/TWiLight Menu - Game booter.cia");
 
 		setInstalledChannel("TWILIGHTMENU", "nightly");
 		setInstalledVersion("TWILIGHTMENU", latestMenuNightly());
@@ -1151,12 +1151,12 @@ void updateTWiLight(std::string commit) {
 
 		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
 						"(Release)");
-		// installCia("/TWiLight Menu.cia");
-		// installCia("/TWiLight Menu - Game booter.cia");
+		installCia("/TWiLight Menu.cia");
+		installCia("/TWiLight Menu - Game booter.cia");
 
 		deleteFile("sdmc:/TWiLightMenu-release.7z");
-		// deleteFile("sdmc:/TWiLight Menu.cia");
-		// deleteFile("sdmc:/TWiLight Menu - Game booter.cia");
+		deleteFile("sdmc:/TWiLight Menu.cia");
+		deleteFile("sdmc:/TWiLight Menu - Game booter.cia");
 
 		setInstalledChannel("TWILIGHTMENU", "release");
 		setInstalledVersion("TWILIGHTMENU", latestMenuRelease());
