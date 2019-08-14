@@ -73,7 +73,7 @@ steps:
     isPreRelease: true
     addChangeLog: false
   
-  task: GitHubRelease@0
+- task: GitHubRelease@0
   displayName: "Release to RocketRobz/TWiLightMenu-Updater"
   condition: startsWith(variables['Build.SourceBranchName'], 'v')
   inputs:
