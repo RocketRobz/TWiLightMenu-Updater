@@ -72,6 +72,17 @@ steps:
     assets: '$(Build.ArtifactStagingDirectory)/*'
     isPreRelease: true
     addChangeLog: false
+  
+  - task: GitHubRelease@0
+  displayName: "Release to RocketRobz/TWiLightMenu-Updater"
+  condition: startsWith(variables['Build.SourceBranchName'], 'v')
+  inputs:
+    gitHubConnection: TWLBot
+    repositoryName: RocketRobz/TWiLightMenu-Updater
+    action: edit
+    target: '$(Build.SourceVersion)'
+    tag: $(Build.SourceBranchName)
+    assets: '$(Build.ArtifactStagingDirectory)/*'
 
 - script: |
     curl -o send.sh https://raw.githubusercontent.com/DS-Homebrew/discord-webhooks/master/send-azure.sh
