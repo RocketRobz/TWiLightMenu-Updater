@@ -452,7 +452,7 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string item, bo
 	return jsonItems;
 }
 
-std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item, bool retrying) {
+std::vector<std::string> getRecentCommitsArray(std::string repo, std::string array, std::string item, bool retrying) {
 	std::vector<std::string> emptyVector;
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
@@ -503,7 +503,7 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string array, s
 			usernamePasswordCache = "";
 			return {"API"};
 		} else {
-			return getRecentCommits(repo, array, item, true);
+			return getRecentCommitsArray(repo, array, item, true);
 		}
 	}
 
@@ -696,7 +696,7 @@ bool showReleaseInfo(std::string repo, bool showExitText) {
 std::string chooseCommit(std::string repo, std::string title, bool showExitText) {
 	displayBottomMsg("Loading commits...");
 	std::vector<std::string> jsonShasTemp = getRecentCommits(repo, "sha");
-	std::vector<std::string> jsonBodyTemp = ((jsonShasTemp[0] == "API") ? jsonShasTemp : getRecentCommits(repo, "commit", "message"));
+	std::vector<std::string> jsonBodyTemp = ((jsonShasTemp[0] == "API") ? jsonShasTemp : getRecentCommitsArray(repo, "commit", "message"));
 	std::vector<std::string> jsonShas;
 	std::vector<std::string> jsonBody;
 	gspWaitForVBlank();
@@ -705,7 +705,7 @@ std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 	jsonShas.push_back("master");
 
 	if(jsonShasTemp[0] != "API"){
-		for(int i=jsonShasTemp.size();i>=0;i--) {
+		for(uint i=0;i<jsonShasTemp.size();i++) {
 			if(jsonBodyTemp[i].substr(0, title.size()) == title) {
 				jsonBody.push_back(jsonBodyTemp[i]);
 				jsonShas.push_back(jsonShasTemp[i]);
@@ -848,7 +848,7 @@ void drawMessageText(int position, bool showExitText) {
 	Gui::sprite(sprites_BS_loading_background_idx, 0, 0);
 	Draw_Text(18, 24, .7, BLACK, jsonName.c_str());
 	for (int i = 0; i < (int)_topText.size() && i < (showExitText ? 9 : 10); i++) {
-		Draw_Text_System(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
+		Draw_Text(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
 	}
 	if(showExitText)
 		Draw_Text(24, 200, 0.5f, BLACK, "B: Cancel   A: Update");
@@ -869,7 +869,7 @@ bool promtUsernamePassword(void) {
 					 "exceeded for your IP, you can regain\n"
 					 "access by signing in to a GitHub account\n"
 					 "or waiting for a bit\n"
-					 "(or press B but some things won't work)\n\n\n\n\n\n\n\n\n"
+					 "(or press B but some things won't work)\n\n\n\n\n\n\n\n"
 					 "B: Cancel   A: Authenticate");
 
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);

@@ -65,7 +65,7 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string item, bo
  * item is that to get from the API. (Ex. "message")
  * @return the string from the API.
  */
-std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item, bool retrying = false);
+std::vector<std::string> getRecentCommitsArray(std::string repo, std::string array, std::string item, bool retrying = false);
 
 /**
  * Get a GitHub directory's contents with the GitHub API.
