@@ -188,7 +188,7 @@ int main()
 	int fadealpha = 255;
 	bool fadein = true;
 	if(checkWifiStatus()) {
-	checkForUpdates();
+		checkForUpdates();
 	}
 
 	// Loop as long as the status is not exit
