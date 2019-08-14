@@ -72,14 +72,14 @@ const char *button_titles2[] = {
 };
 
 const int title_spacing[] = {
-	0,
-	1,
-	0,
-	1,
-	0,
-	1,
-	4,
-	5,
+	6,
+	10,
+	6,
+	10,
+	6,
+	10,
+	10,
+	17,
 };
 
 const char *row_titles2[] = {
