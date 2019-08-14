@@ -3,7 +3,6 @@
 #include "common.hpp"
 
 #define APP_TITLE "TWLMenu Updater"
-#define VERSION_STRING "3.0.0"
 
 enum DownloadError {
 	DL_ERROR_NONE = 0,
@@ -19,6 +18,15 @@ struct ThemeEntry {
 	std::string path;
 	std::string sdPath;
 };
+
+// Prompts the user to sign in to GitHub to get past the rate limit
+bool promtUsernamePassword(void);
+
+// Loads saved username / password for GitHub API
+void loadUsernamePassword(void);
+
+// Saves the username / password for GitHub API
+void saveUsernamePassword(void);
 
 Result downloadToFile(std::string url, std::string path);
 Result downloadFromRelease(std::string url, std::string asset, std::string path);
@@ -40,7 +48,7 @@ void notConnectedMsg(void);
  * item is that to get from the API. (Ex. "tag_name")
  * @return the string from the API.
  */
-std::string getLatestRelease(std::string repo, std::string item);
+std::string getLatestRelease(std::string repo, std::string item, bool retrying = false);
 
 /**
  * Get info from the GitHub API about a Commit.
@@ -48,7 +56,7 @@ std::string getLatestRelease(std::string repo, std::string item);
  * item is that to get from the API. (Ex. "sha")
  * @return the string from the API.
  */
-std::vector<std::string> getRecentCommits(std::string repo, std::string item);
+std::vector<std::string> getRecentCommits(std::string repo, std::string item, bool retrying = false);
 
 /**
  * Get info from the GitHub API about a Commit.
@@ -57,7 +65,7 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string item);
  * item is that to get from the API. (Ex. "message")
  * @return the string from the API.
  */
-std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item);
+std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item, bool retrying = false);
 
 /**
  * Get a GitHub directory's contents with the GitHub API.
@@ -65,7 +73,7 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string array, s
  * path is the path within the repo (Ex. "contents/_nds/TWiLightMenu/dsimenu/themes")
  * @return the string from the API.
  */
-std::vector<ThemeEntry> getThemeList(std::string repo, std::string path);
+std::vector<ThemeEntry> getThemeList(std::string repo, std::string path, bool retrying = false);
 
 /**
  * Show the latest release's name and message.

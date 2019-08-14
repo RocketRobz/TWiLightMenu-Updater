@@ -1,12 +1,14 @@
 #include "download.hpp"
+#include <fstream>
 #include <sys/stat.h>
 #include <vector>
 #include <unistd.h>
 
 #include "extract.hpp"
-#include "inifile.h"
-#include "gui.hpp"
 #include "fileBrowse.h"
+#include "gui.hpp"
+#include "inifile.h"
+#include "keyboard.h"
 #include "thread.h"
 
 extern "C" {
@@ -27,6 +29,7 @@ std::string latestBootstrapReleaseCache = "";
 std::string latestBootstrapNightlyCache = "";
 std::string latestUpdaterReleaseCache = "";
 std::string latestUpdaterNightlyCache = "";
+std::string usernamePasswordCache = "";
 
 extern C3D_RenderTarget* top;
 extern C3D_RenderTarget* bottom;
@@ -44,26 +47,22 @@ bool continueNdsScan = true;
 
 // following function is from
 // https://github.com/angelsl/libctrfgh/blob/master/curl_test/src/main.c
-static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata)
-{
+static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata) {
 	(void) userdata;
 	const size_t bsz = size*nmemb;
 
-	if(result_sz == 0 || !result_buf)
-	{
+	if(result_sz == 0 || !result_buf) {
 		result_sz = 0x1000;
 		result_buf = (char*)malloc(result_sz);
 	}
 
 	bool need_realloc = false;
-	while (result_written + bsz > result_sz)
-	{
+	while (result_written + bsz > result_sz) {
 		result_sz <<= 1;
 		need_realloc = true;
 	}
 
-	if(need_realloc)
-	{
+	if(need_realloc) {
 		char *new_buf = (char*)realloc(result_buf, result_sz);
 		if(!new_buf)
 		{
@@ -72,8 +71,7 @@ static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata)
 		result_buf = new_buf;
 	}
 
-	if(!result_buf)
-	{
+	if(!result_buf) {
 		return 0;
 	}
 
@@ -82,8 +80,7 @@ static size_t handle_data(char* ptr, size_t size, size_t nmemb, void* userdata)
 	return bsz;
 }
 
-static Result setupContext(CURL *hnd, const char * url)
-{
+static Result setupContext(CURL *hnd, const char * url) {
 	curl_easy_setopt(hnd, CURLOPT_BUFFERSIZE, 102400L);
 	curl_easy_setopt(hnd, CURLOPT_URL, url);
 	curl_easy_setopt(hnd, CURLOPT_NOPROGRESS, 1L);
@@ -95,24 +92,22 @@ static Result setupContext(CURL *hnd, const char * url)
 	curl_easy_setopt(hnd, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt(hnd, CURLOPT_VERBOSE, 1L);
 	curl_easy_setopt(hnd, CURLOPT_STDERR, stdout);
+	if(usernamePasswordCache != "")	curl_easy_setopt(hnd, CURLOPT_USERPWD, usernamePasswordCache.c_str());
 
 	return 0;
 }
 
-Result downloadToFile(std::string url, std::string path)
-{
+Result downloadToFile(std::string url, std::string path) {
 	Result ret = 0;
 	printf("Downloading from:\n%s\nto:\n%s\n", url.c_str(), path.c_str());
 
 	void *socubuf = memalign(0x1000, 0x100000);
-	if(!socubuf)
-	{
+	if(!socubuf) {
 		return -1;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
-	if(R_FAILED(ret))
-	{
+	if(R_FAILED(ret)) {
 		free(socubuf);
 		return ret;
 	}
@@ -171,18 +166,15 @@ Result downloadToFile(std::string url, std::string path)
 	return 0;
 }
 
-Result downloadFromRelease(std::string url, std::string asset, std::string path)
-{
+Result downloadFromRelease(std::string url, std::string asset, std::string path) {
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
-	if(!socubuf)
-	{
+	if(!socubuf) {
 		return -1;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
-	if(R_FAILED(ret))
-	{
+	if(R_FAILED(ret)) {
 		free(socubuf);
 		return ret;
 	}
@@ -295,18 +287,15 @@ void doneMsg(void) {
 	}
 }
 
-std::string getLatestRelease(std::string repo, std::string item)
-{
+std::string getLatestRelease(std::string repo, std::string item, bool retrying) {
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
-	if(!socubuf)
-	{
+	if(!socubuf) {
 		return "";
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
-	if(R_FAILED(ret))
-	{
+	if(R_FAILED(ret)) {
 		free(socubuf);
 		return "";
 	}
@@ -335,18 +324,24 @@ std::string getLatestRelease(std::string repo, std::string item)
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
 
-	if(httpCode == 403) {
+	if(httpCode == 401 || httpCode == 403) {
+		bool save = promtUsernamePassword();
+		if(save)	saveUsernamePassword();
 		socExit();
 		free(result_buf);
 		free(socubuf);
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return "API";
+		if(usernamePasswordCache == "" || retrying) {
+			usernamePasswordCache = "";
+			return "API";
+		} else {
+			return getLatestRelease(repo, item, true);
+		}
 	}
 
 	if(cres != CURLE_OK) {
-		printf("Error in:\ncurl\n");
 		socExit();
 		free(result_buf);
 		free(socubuf);
@@ -373,8 +368,7 @@ std::string getLatestRelease(std::string repo, std::string item)
 	return jsonItem;
 }
 
-std::vector<std::string> getRecentCommits(std::string repo, std::string item)
-{
+std::vector<std::string> getRecentCommits(std::string repo, std::string item, bool retrying) {
 	std::vector<std::string> emptyVector;
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
@@ -412,14 +406,21 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string item)
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
 
-	if(httpCode == 403) {
+	if(httpCode == 401 || httpCode == 403) {
+		bool save = promtUsernamePassword();
+		if(save)	saveUsernamePassword();
 		socExit();
 		free(result_buf);
 		free(socubuf);
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return {"API"};
+		if(usernamePasswordCache == "" || retrying) {
+			usernamePasswordCache = "";
+			return {"API"};
+		} else {
+			return getRecentCommits(repo, item, true);
+		}
 	}
 
 	if(cres != CURLE_OK) {
@@ -451,8 +452,7 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string item)
 	return jsonItems;
 }
 
-std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item)
-{
+std::vector<std::string> getRecentCommits(std::string repo, std::string array, std::string item, bool retrying) {
 	std::vector<std::string> emptyVector;
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
@@ -490,14 +490,21 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string array, s
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
 
-	if(httpCode == 403) {
+	if(httpCode == 401 || httpCode == 403) {
+		bool save = promtUsernamePassword();
+		if(save)	saveUsernamePassword();
 		socExit();
 		free(result_buf);
 		free(socubuf);
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return {"API"};
+		if(usernamePasswordCache == "" || retrying) {
+			usernamePasswordCache = "";
+			return {"API"};
+		} else {
+			return getRecentCommits(repo, array, item, true);
+		}
 	}
 
 	if(cres != CURLE_OK) {
@@ -529,19 +536,16 @@ std::vector<std::string> getRecentCommits(std::string repo, std::string array, s
 	return jsonItems;
 }
 
-std::vector<ThemeEntry> getThemeList(std::string repo, std::string path)
-{
+std::vector<ThemeEntry> getThemeList(std::string repo, std::string path, bool retrying) {
 	Result ret = 0;
 	void *socubuf = memalign(0x1000, 0x100000);
 	std::vector<ThemeEntry> emptyVector;
-	if(!socubuf)
-	{
+	if(!socubuf) {
 		return emptyVector;
 	}
 
 	ret = socInit((u32*)socubuf, 0x100000);
-	if(R_FAILED(ret))
-	{
+	if(R_FAILED(ret)) {
 		free(socubuf);
 		return emptyVector;
 	}
@@ -570,14 +574,21 @@ std::vector<ThemeEntry> getThemeList(std::string repo, std::string path)
 	result_buf = newbuf;
 	result_buf[result_written] = 0; //nullbyte to end it as a proper C style string
 
-	if(httpCode == 403) {
+	if(httpCode == 401 || httpCode == 403) { // Unauthorized || Forbidden
+		bool save = promtUsernamePassword();
+		if(save)	saveUsernamePassword();
 		socExit();
 		free(result_buf);
 		free(socubuf);
 		result_buf = NULL;
 		result_sz = 0;
 		result_written = 0;
-		return {{"API", "API", "API", "API"}};
+		if(usernamePasswordCache == "" || retrying) {
+			usernamePasswordCache = "";
+			return {{"API", "API", "API", "API"}};
+		} else {
+			return getThemeList(repo, path, true);
+		}
 	}
 
 	if(cres != CURLE_OK) {
@@ -639,8 +650,7 @@ void downloadTheme(std::string path) {
 	}
 }
 
-bool showReleaseInfo(std::string repo, bool showExitText)
-{
+bool showReleaseInfo(std::string repo, bool showExitText) {
 	displayBottomMsg("Loading release notes...");
 	jsonName = getLatestRelease(repo, "name");
 	std::string jsonBody = getLatestRelease(repo, "body");
@@ -683,8 +693,7 @@ bool showReleaseInfo(std::string repo, bool showExitText)
 	}
 }
 
-std::string chooseCommit(std::string repo, std::string title, bool showExitText)
-{
+std::string chooseCommit(std::string repo, std::string title, bool showExitText) {
 	displayBottomMsg("Loading commits...");
 	std::vector<std::string> jsonShasTemp = getRecentCommits(repo, "sha");
 	std::vector<std::string> jsonBodyTemp = ((jsonShasTemp[0] == "API") ? jsonShasTemp : getRecentCommits(repo, "commit", "message"));
@@ -794,8 +803,7 @@ std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 	}
 }
 
-void setMessageText(const std::string &text)
-{
+void setMessageText(const std::string &text) {
 	std::string _topTextStr(text);
 	std::vector<std::string> words;
 	std::size_t pos;
@@ -809,8 +817,7 @@ void setMessageText(const std::string &text)
 		words.push_back(_topTextStr);
 	std::string temp;
 	_topText.clear();
-	for(auto word : words)
-	{
+	for(auto word : words) {
 		int width = Draw_GetTextWidth(0.5f, (temp + " " + word).c_str());
 		if(word.find('\n') != -1u)
 		{
@@ -833,8 +840,7 @@ void setMessageText(const std::string &text)
 		_topText.push_back(temp);
 }
 
-void drawMessageText(int position, bool showExitText)
-{
+void drawMessageText(int position, bool showExitText) {
 	Gui::clearTextBufs();
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	C2D_TargetClear(bottom, TRANSPARENT);
@@ -842,7 +848,7 @@ void drawMessageText(int position, bool showExitText)
 	Gui::sprite(sprites_BS_loading_background_idx, 0, 0);
 	Draw_Text(18, 24, .7, BLACK, jsonName.c_str());
 	for (int i = 0; i < (int)_topText.size() && i < (showExitText ? 9 : 10); i++) {
-			Draw_Text_System(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
+		Draw_Text_System(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
 	}
 	if(showExitText)
 		Draw_Text(24, 200, 0.5f, BLACK, "B: Cancel   A: Update");
@@ -856,6 +862,81 @@ void displayProgressBar() {
 		displayBottomMsg(str);
 		gspWaitForVBlank();
 	}
+}
+
+bool promtUsernamePassword(void) {
+	displayBottomMsg("The GitHub API rate limit has been\n"
+					 "exceeded for your IP, you can regain\n"
+					 "access by signing in to a GitHub account\n"
+					 "or waiting for a bit\n"
+					 "(or press B but some things won't work)\n\n\n\n\n\n\n\n\n"
+					 "B: Cancel   A: Authenticate");
+
+	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+	set_screen(bottom);
+	Draw_Text(20, 100, 0.45f, BLACK, "Username:");
+	Draw_Rect(100, 100, 100, 14, GRAY);
+	Draw_Text(20, 120, 0.45f, BLACK, "Password:");
+	Draw_Rect(100, 120, 100, 14, GRAY);
+
+	Draw_Rect(100, 140, 14, 14, GRAY);
+	Draw_Text(120, 140, 0.45f, BLACK, "Save login?");
+	Draw_EndFrame();
+
+	bool save = false;
+	int hDown;
+	std::string username, password;
+	while(1) {
+		do {
+			gspWaitForVBlank();
+			hidScanInput();
+			hDown = hidKeysDown();
+		} while(!hDown);
+
+		if(hDown & KEY_A) {
+			usernamePasswordCache = username + ":" + password;
+			return save;
+		} else if(hDown & KEY_B) {
+			usernamePasswordCache = "";
+			return save;
+		} else if(hDown & KEY_TOUCH) {
+			touchPosition touch;
+			touchRead(&touch);
+			if(touch.px >= 100 && touch.px <= 200 && touch.py >= 100 && touch.py <= 114) {
+				username = keyboardInput("Username");
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				set_screen(bottom);
+				Draw_Rect(100, 100, 100, 14, GRAY);
+				Draw_Text(100, 100, 0.45f, BLACK, username.c_str());
+				Draw_EndFrame();
+			} else if(touch.px >= 100 && touch.px <= 200 && touch.py >= 120 && touch.py <= 134) {
+				password = keyboardInput("Password");
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				set_screen(bottom);
+				Draw_Rect(100, 120, 100, 14, GRAY);
+				Draw_Text(100, 120, 0.45f, BLACK, password.c_str());
+				Draw_EndFrame();
+			} else if(touch.px >= 100 && touch.px <= 114 && touch.py >= 140 && touch.py <= 154) {
+				save = !save;
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				set_screen(bottom);
+				Draw_Rect(102, 142, 10, 10, save ? GREEN : GRAY);
+				Draw_EndFrame();
+			}
+		}
+	}
+}
+
+void loadUsernamePassword(void) {
+	std::ifstream in("sdmc:/_nds/TWiLightMenu/extras/updater/usernamePassword");
+	if(in.good())	in >> usernamePasswordCache;
+	in.close();
+}
+
+void saveUsernamePassword() {
+	std::ofstream out("sdmc:/_nds/TWiLightMenu/extras/updater/usernamePassword");
+	if(out.good())	out << usernamePasswordCache;
+	out.close();
 }
 
 std::string latestMenuRelease(void) {

@@ -46,15 +46,7 @@ struct _Offset3D {
 struct {
 	int x;
 	int y;
-} buttons2[] = {
-	{ 129, 48},
-	{ 220, 48},
-	{ 129, 88},
-	{ 220, 88},
-	{ 129, 128},
-	{ 220, 128},
-	{ 129, 168},
-	{ 220, 168},
+} buttons2[] = { { 129, 48}, { 220, 48}, { 129, 88}, { 220, 88}, { 129, 128}, { 220, 128}, { 129, 168}, { 220, 168},
 };
 
 size_t button_tex2[] = {
@@ -115,13 +107,9 @@ static void Play_Music(void) {
 	}
 }
 
-// Version numbers.
-char launcher_vertext[13];
-
 int menuSelection = 0;
 
-int main()
-{
+int main() {
 	aptInit();
 	amInit();
 	sdmcInit();
@@ -133,8 +121,6 @@ int main()
 	gfxInitDefault();
 
 	osSetSpeedupEnable(true);	// Enable speed-up for New 3DS users
-
-	snprintf(launcher_vertext, 13, "v%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_MICRO);
 
 	// make folders if they don't exist
 	mkdir("sdmc:/3ds", 0777);	// For DSP dump
@@ -187,6 +173,8 @@ int main()
 
 	int fadealpha = 255;
 	bool fadein = true;
+
+	loadUsernamePassword();
 	if(checkWifiStatus()) {
 		checkForUpdates();
 	}
@@ -202,9 +190,9 @@ int main()
 
 		hidTouchRead(&touch);
 
-    		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+			C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 			C2D_TargetClear(top, TRANSPARENT);
-    		C2D_TargetClear(bottom, TRANSPARENT);
+			C2D_TargetClear(bottom, TRANSPARENT);
 			Gui::clearTextBufs();
 			set_screen(top);
 			Gui::sprite(sprites_top_bg_idx, 0, 0);
@@ -214,7 +202,7 @@ int main()
 			Gui::sprite(sprites_arrow_idx, 41, 25);
 			Gui::sprite(sprites_text_updater_idx, 187, 151);
 			Gui::sprite(sprites_twlm_logo_idx, 127, 100);
-			Draw_Text(336, 222, 0.50, WHITE, launcher_vertext);
+			Draw_Text(336, 222, 0.50, WHITE, VERSION_STRING);
 			if (fadealpha > 0) Draw_Rect(0, 0, 400, 240, RGBA8(0, 0, 0, fadealpha)); // Fade in/out effect
 
 		set_screen(bottom);

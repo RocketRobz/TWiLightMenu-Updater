@@ -22,8 +22,7 @@
 #include <vector>
 #include <map>
 
-class CIniFile
-{
+class CIniFile {
 	public:
 		CIniFile();
 		explicit CIniFile(const std::string& filename);

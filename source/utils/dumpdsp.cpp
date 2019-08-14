@@ -13,20 +13,15 @@ typedef struct {
 } TitleInfo;
 
 TitleInfo titles[] = {
-
-{ 0x4003000008f02LL, "home_menu_usa"},
-{ 0x4003000008202LL, "home_menu_jpn"},
-{ 0x4003000009802LL, "home_menu_eur"},
-{ 0x400300000A102LL, "home_menu_chn"},
-{ 0x400300000A902LL, "home_menu_kor"},
-{ 0x400300000B102LL, "home_menu_twn"},
-
+	{ 0x4003000008f02LL, "home_menu_usa"},
+	{ 0x4003000008202LL, "home_menu_jpn"},
+	{ 0x4003000009802LL, "home_menu_eur"},
+	{ 0x400300000A102LL, "home_menu_chn"},
+	{ 0x400300000A902LL, "home_menu_kor"},
+	{ 0x400300000B102LL, "home_menu_twn"},
 };
 
-const void *memmem(
-	const void *haystack, size_t haystacklen, 
-	const void *needle,   size_t needlelen )
-{
+const void *memmem(const void *haystack, size_t haystacklen, const void *needle, size_t needlelen) {
 	// Sanity check
 	if (needlelen > haystacklen) return NULL;
 
@@ -37,8 +32,7 @@ const void *memmem(
 	// which is haystack[ haystacklen - needlelen + 1 ]
 	haystacklen -= needlelen - 1;
 
-	while (haystacklen)
-	{
+	while (haystacklen) {
 		// Find the first byte in a potential match
 		p z = (p)memchr( haystack, *(p)needle, haystacklen ); 
 		if (!z) return NULL;
@@ -64,13 +58,11 @@ const void *memmem(
 
 // decompression code stolen from ctrtool
 
-u32 getle32(const u8* p)
-{
+u32 getle32(const u8* p) {
 	return (p[0]<<0) | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
 }
 
-u32 lzss_get_decompressed_size(u8* compressed, u32 compressedsize)
-{
+u32 lzss_get_decompressed_size(u8* compressed, u32 compressedsize) {
 	u8* footer = compressed + compressedsize - 8;
 
 	u32 originalbottom = getle32(footer+4);
@@ -78,8 +70,7 @@ u32 lzss_get_decompressed_size(u8* compressed, u32 compressedsize)
 	return originalbottom + compressedsize;
 }
 
-int lzss_decompress(u8* compressed, u32 compressedsize, u8* decompressed, u32 decompressedsize)
-{
+int lzss_decompress(u8* compressed, u32 compressedsize, u8* decompressed, u32 decompressedsize) {
 	u8* footer = compressed + compressedsize - 8;
 	u32 buffertopandbottom = getle32(footer+0);
 	//u32 originalbottom = getle32(footer+4);
@@ -95,8 +86,7 @@ int lzss_decompress(u8* compressed, u32 compressedsize, u8* decompressed, u32 de
 	memcpy(decompressed, compressed, compressedsize);
 
 	
-	while(index > stopindex)
-	{
+	while(index > stopindex) {
 		control = compressed[--index];
 		
 
@@ -168,8 +158,7 @@ int lzss_decompress(u8* compressed, u32 compressedsize, u8* decompressed, u32 de
 }
 
 
-Result openCode(Handle* out, u64 tid, u8 mediatype)
-{
+Result openCode(Handle* out, u64 tid, u8 mediatype) {
 	if(!out)return -1;
 
 	u64 archivePath[] = {tid & 0xFFFFFFFF, (tid >> 32) & 0xFFFFFFFF, mediatype, 0x00000000};
@@ -182,8 +171,7 @@ u32 u8to32(u8 *input){  //workaround for weird < 9.0 bug in built-in sha functio
 	return *(input+0) | *(input+1)<<8 | *(input+2)<<16 | *(input+3)<<24;
 }
 
-int sha_quick(uint8_t *dest, uint8_t *src, size_t src_len) //thanks to wolfvak https://github.com/Wolfvak/makefirm
-{
+int sha_quick(uint8_t *dest, uint8_t *src, size_t src_len) { //thanks to wolfvak https://github.com/Wolfvak/makefirm
 		SHA256_CTX *ctx = (SHA256_CTX*)malloc(sizeof(SHA256_CTX));
 		if (!ctx) return 1;
 		sha256_init(ctx);
@@ -227,8 +215,7 @@ int checkHashes(u8 *base){
 	return fail;
 }
 
-Result dumpCode(u64 tid , char* path)
-{
+Result dumpCode(u64 tid , char* path) {
 	Result ret;
 	Handle fileHandle;
 
@@ -297,8 +284,7 @@ Result dumpCode(u64 tid , char* path)
 	return 0;
 }
 
-void dumpDsp()
-{
+void dumpDsp() {
 	Result res;
 
 	for(uint i = 0; i < NB_TITLES; ++i){
