@@ -16,7 +16,7 @@ void GFX::DrawTop(void) {
 
 void GFX::DrawSprite(int img, int x, int y, float ScaleX, float ScaleY)
 {
-	C2D_DrawImageAt(C2D_SpriteSheetGetImage(sprites, img), x, y, 0.5f, NULL, ScaleX, ScaleY);
+	Gui::DrawSprite(sprites, img, x, y, ScaleX, ScaleY);
 }
 
 void GFX::DrawSpriteBlend(int img, int x, int y, u32 color, float ScaleX, float ScaleY) {
