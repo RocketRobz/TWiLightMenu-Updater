@@ -1,7 +1,6 @@
-#ifndef FILE_BROWSE_H
-#define FILE_BROWSE_H
+#ifndef FILE_BROWSE_HPP
+#define FILE_BROWSE_HPP
 
-#include "download.hpp"
 #include <sys/stat.h>
 #include <dirent.h>
 #include <vector>
@@ -24,4 +23,4 @@ void findNdsFiles(vector<DirEntry>& dirContents);
 
 void getDirectoryContents (vector<DirEntry>& dirContents);
 
-#endif //FILE_BROWSE_H
+#endif //FILE_BROWSE_HPP

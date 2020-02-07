@@ -23,8 +23,12 @@ extern "C" {
 #include <regex>
 #include <curl/curl.h>
 
-#include "stringutils.hpp"
+#include "gfx.hpp"
+#include "gui.hpp"
 #include "json.hpp"
+#include "msg.hpp"
+#include "screenCommon.hpp"
+#include "stringutils.hpp"
 
 using json = nlohmann::json;
 
@@ -33,11 +37,3 @@ using json = nlohmann::json;
 extern char * arg0;
 
 #define WORKING_DIR       "/3ds/"
-
-#define HBL_FILE_NAME     APP_TITLE  ".3dsx"
-#define HBL_FILE_PATH     WORKING_DIR  "/"  HBL_FILE_NAME
-
-#define CONFIG_FILE_NAME  "config.json"
-#define CONFIG_FILE_PATH  WORKING_DIR  "/"  CONFIG_FILE_NAME
-
-#define CONFIG_FILE_URL   "https://raw.githubusercontent.com/LiquidFenrir/MultiUpdater/rewrite/config.json"
