@@ -1,15 +1,15 @@
 #include "download.hpp"
-#include <fstream>
-#include <sys/stat.h>
-#include <vector>
-#include <unistd.h>
-
 #include "extract.hpp"
-#include "fileBrowse.h"
+#include "fileBrowse.hpp"
 #include "gui.hpp"
 #include "inifile.h"
 #include "keyboard.h"
 #include "thread.h"
+
+#include <fstream>
+#include <sys/stat.h>
+#include <vector>
+#include <unistd.h>
 
 extern "C" {
 	#include "cia.h"
@@ -31,8 +31,8 @@ std::string latestUpdaterReleaseCache = "";
 std::string latestUpdaterNightlyCache = "";
 std::string usernamePasswordCache = "";
 
-extern C3D_RenderTarget* top;
-extern C3D_RenderTarget* bottom;
+extern C3D_RenderTarget* Top;
+extern C3D_RenderTarget* Bottom;
 
 extern bool downloadNightlies;
 extern bool updateAvailable[];
@@ -267,21 +267,21 @@ bool checkWifiStatus(void) {
 }
 
 void downloadFailed(void) {
-	displayBottomMsg("Download failed!");
+	Msg::DisplayMsg("Download failed!");
 	for (int i = 0; i < 60*2; i++) {
 		gspWaitForVBlank();
 	}
 }
 
 void notConnectedMsg(void) {
-	displayBottomMsg("Please connect to Wi-Fi");
+	Msg::DisplayMsg("Please connect to Wi-Fi");
 	for (int i = 0; i < 60*2; i++) {
 		gspWaitForVBlank();
 	}
 }
 
 void doneMsg(void) {
-	displayBottomMsg("Done!");
+	Msg::DisplayMsg("Done!");
 	for (int i = 0; i < 60*2; i++) {
 		gspWaitForVBlank();
 	}
@@ -640,10 +640,10 @@ void downloadTheme(std::string path) {
 	vector<ThemeEntry> themeContents = getThemeList("DS-Homebrew/twlmenu-extras", path);
 	for(uint i=0;i<themeContents.size();i++) {
 		if(themeContents[i].downloadUrl != "") {
-			displayBottomMsg(("Downloading: "+themeContents[i].name).c_str());
+			Msg::DisplayMsg(("Downloading: "+themeContents[i].name).c_str());
 			downloadToFile(themeContents[i].downloadUrl, themeContents[i].sdPath);
 		} else {
-			displayBottomMsg(("Downloading: "+themeContents[i].name).c_str());
+			Msg::DisplayMsg(("Downloading: "+themeContents[i].name).c_str());
 			mkdir((themeContents[i].sdPath).c_str(), 0777);
 			downloadTheme(themeContents[i].path);
 		}
@@ -651,7 +651,7 @@ void downloadTheme(std::string path) {
 }
 
 bool showReleaseInfo(std::string repo, bool showExitText) {
-	displayBottomMsg("Loading release notes...");
+	Msg::DisplayMsg("Loading release notes...");
 	jsonName = getLatestRelease(repo, "name");
 	std::string jsonBody = getLatestRelease(repo, "body");
 
@@ -694,7 +694,7 @@ bool showReleaseInfo(std::string repo, bool showExitText) {
 }
 
 std::string chooseCommit(std::string repo, std::string title, bool showExitText) {
-	displayBottomMsg("Loading commits...");
+	Msg::DisplayMsg("Loading commits...");
 	std::vector<std::string> jsonShasTemp = getRecentCommits(repo, "sha");
 	std::vector<std::string> jsonBodyTemp = ((jsonShasTemp[0] == "API") ? jsonShasTemp : getRecentCommitsArray(repo, "commit", "message"));
 	std::vector<std::string> jsonShas;
@@ -761,7 +761,7 @@ std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 			commitsText += "\n";
 		}
 		commitsText += "B: Back   A: Info";
-		displayBottomMsg(commitsText.c_str());
+		Msg::DisplayMsg(commitsText);
 	}
 
 	setMessageText(jsonBody[selectedCommit]);
@@ -818,7 +818,7 @@ void setMessageText(const std::string &text) {
 	std::string temp;
 	_topText.clear();
 	for(auto word : words) {
-		int width = Draw_GetTextWidth(0.5f, (temp + " " + word).c_str());
+		int width = Gui::GetStringWidth(0.5f, (temp + " " + word).c_str());
 		if(word.find('\n') != -1u)
 		{
 			word.erase(std::remove(word.begin(), word.end(), '\n'), word.end());
@@ -843,29 +843,29 @@ void setMessageText(const std::string &text) {
 void drawMessageText(int position, bool showExitText) {
 	Gui::clearTextBufs();
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-	C2D_TargetClear(bottom, TRANSPARENT);
-	set_screen(bottom);
-	Gui::sprite(sprites_BS_loading_background_idx, 0, 0);
-	Draw_Text(18, 24, .7, BLACK, jsonName.c_str());
+	C2D_TargetClear(Bottom, TRANSPARENT);
+	Gui::ScreenDraw(Bottom);
+	GFX::DrawSprite(sprites_BS_loading_background_idx, 0, 0);
+	Gui::DrawString(18, 24, .7, BLACK, jsonName.c_str());
 	for (int i = 0; i < (int)_topText.size() && i < (showExitText ? 9 : 10); i++) {
-		Draw_Text(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
+		Gui::DrawString(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
 	}
 	if(showExitText)
-		Draw_Text(24, 200, 0.5f, BLACK, "B: Cancel   A: Update");
-	Draw_EndFrame();
+		Gui::DrawString(24, 200, 0.5f, BLACK, "B: Cancel   A: Update");
+	C3D_FrameEnd(0);
 }
 
 void displayProgressBar() {
 	char str[256];
 	while(showProgressBar) {
 		snprintf(str, sizeof(str), "%s\n%s%s\n%i %s", progressBarMsg, (!progressBarType ? "" : "\nCurrently extracting:\n"), (!progressBarType ? "" : extractingFile.c_str()), (!progressBarType ? (int)round(result_written/1000) : filesExtracted), (!progressBarType ? "KB downloaded." : (filesExtracted == 1 ? "file extracted." :"files extracted.")));
-		displayBottomMsg(str);
+		Msg::DisplayMsg(str);
 		gspWaitForVBlank();
 	}
 }
 
 bool promtUsernamePassword(void) {
-	displayBottomMsg("The GitHub API rate limit has been\n"
+	Msg::DisplayMsg("The GitHub API rate limit has been\n"
 					 "exceeded for your IP, you can regain\n"
 					 "access by signing in to a GitHub account\n"
 					 "or waiting for a bit\n"
@@ -873,15 +873,15 @@ bool promtUsernamePassword(void) {
 					 "B: Cancel   A: Authenticate");
 
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-	set_screen(bottom);
-	Draw_Text(20, 100, 0.45f, BLACK, "Username:");
-	Draw_Rect(100, 100, 100, 14, GRAY);
-	Draw_Text(20, 120, 0.45f, BLACK, "Password:");
-	Draw_Rect(100, 120, 100, 14, GRAY);
+	Gui::ScreenDraw(Bottom);
+	Gui::DrawString(20, 100, 0.45f, BLACK, "Username:");
+	Gui::Draw_Rect(100, 100, 100, 14, GRAY);
+	Gui::DrawString(20, 120, 0.45f, BLACK, "Password:");
+	Gui::Draw_Rect(100, 120, 100, 14, GRAY);
 
-	Draw_Rect(100, 140, 14, 14, GRAY);
-	Draw_Text(120, 140, 0.45f, BLACK, "Save login?");
-	Draw_EndFrame();
+	Gui::Draw_Rect(100, 140, 14, 14, GRAY);
+	Gui::DrawString(120, 140, 0.45f, BLACK, "Save login?");
+	C3D_FrameEnd(0);
 
 	bool save = false;
 	int hDown;
@@ -905,23 +905,23 @@ bool promtUsernamePassword(void) {
 			if(touch.px >= 100 && touch.px <= 200 && touch.py >= 100 && touch.py <= 114) {
 				username = keyboardInput("Username");
 				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-				set_screen(bottom);
-				Draw_Rect(100, 100, 100, 14, GRAY);
-				Draw_Text(100, 100, 0.45f, BLACK, username.c_str());
-				Draw_EndFrame();
+				Gui::ScreenDraw(Bottom);
+				Gui::Draw_Rect(100, 100, 100, 14, GRAY);
+				Gui::DrawString(100, 100, 0.45f, BLACK, username.c_str());
+				C3D_FrameEnd(0);
 			} else if(touch.px >= 100 && touch.px <= 200 && touch.py >= 120 && touch.py <= 134) {
 				password = keyboardInput("Password");
 				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-				set_screen(bottom);
-				Draw_Rect(100, 120, 100, 14, GRAY);
-				Draw_Text(100, 120, 0.45f, BLACK, password.c_str());
-				Draw_EndFrame();
+				Gui::ScreenDraw(Bottom);
+				Gui::Draw_Rect(100, 120, 100, 14, GRAY);
+				Gui::DrawString(100, 120, 0.45f, BLACK, password.c_str());
+				C3D_FrameEnd(0);
 			} else if(touch.px >= 100 && touch.px <= 114 && touch.py >= 140 && touch.py <= 154) {
 				save = !save;
 				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-				set_screen(bottom);
-				Draw_Rect(102, 142, 10, 10, save ? GREEN : GRAY);
-				Draw_EndFrame();
+				Gui::ScreenDraw(Bottom);
+				Gui::Draw_Rect(102, 142, 10, 10, save ? GREEN : GRAY);
+				C3D_FrameEnd(0);
 			}
 		}
 	}
@@ -1072,7 +1072,7 @@ void updateBootstrap(std::string commit) {
 		saveUpdateData();
 		updateAvailable[3] = false;
 	} else {
-		displayBottomMsg("Downloading nds-bootstrap...\n(Release)");
+		Msg::DisplayMsg("Downloading nds-bootstrap...\n(Release)");
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading nds-bootstrap...\n(Release)");
 		showProgressBar = true;
 		progressBarType = 0;
@@ -1117,7 +1117,7 @@ void updateTWiLight(std::string commit) {
 		extractArchive("/TWiLightMenu-nightly.7z", "3DS - CFW users/", "/");
 		showProgressBar = false;
 
-		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
+		Msg::DisplayMsg("Installing TWiLight Menu++ CIA...\n"
 						"(Nightly)");
 		installCia("/TWiLight Menu.cia");
 		installCia("/TWiLight Menu - Game booter.cia");
@@ -1149,7 +1149,7 @@ void updateTWiLight(std::string commit) {
 		extractArchive("/TWiLightMenu-release.7z", "DSi&3DS - SD card users/", "/");
 		showProgressBar = false;
 
-		displayBottomMsg("Installing TWiLight Menu++ CIA...\n"
+		Msg::DisplayMsg("Installing TWiLight Menu++ CIA...\n"
 						"(Release)");
 		installCia("/TWiLight Menu.cia");
 		installCia("/TWiLight Menu - Game booter.cia");
@@ -1184,7 +1184,7 @@ void updateSelf(std::string commit) {
 		saveUpdateData();
 		updateAvailable[5] = false;
 
-		displayBottomMsg("Installing TWiLight Menu++ Updater CIA...\n"
+		Msg::DisplayMsg("Installing TWiLight Menu++ Updater CIA...\n"
 						"(Nightly)\n\n\n\n\n\n\n\n\n\n"
 						"The app will reboot when done.");
 		installCia("/TWiLightMenu-Updater-nightly.cia");
@@ -1207,7 +1207,7 @@ void updateSelf(std::string commit) {
 		saveUpdateData();
 		updateAvailable[4] = false;
 
-		displayBottomMsg("Installing TWiLight Menu++ Updater CIA...\n"
+		Msg::DisplayMsg("Installing TWiLight Menu++ Updater CIA...\n"
 						"(Release)\n\n\n\n\n\n\n\n\n\n"
 						"The app will reboot when done.");
 		installCia("/TWiLightMenu-Updater-release.cia");
@@ -1395,7 +1395,7 @@ void downloadExtras(void) {
 		}
 		extrasText += "\n\n\n\n\n\n\n\n";
 		extrasText += "B: Back   A: Choose";
-		displayBottomMsg(extrasText.c_str());
+		Msg::DisplayMsg(extrasText.c_str());
 	}
 }
 
@@ -1404,7 +1404,7 @@ void downloadBoxart(void) {
 	vector<DirEntry> dirContents;
 	std::string scanDir;
 
-	displayBottomMsg("Would you like to choose a directory, or scan\nthe full card?\n\n\n\n\n\n\n\n\n\nB: Cancel   A: Choose Directory   X: Full SD");
+	Msg::DisplayMsg("Would you like to choose a directory, or scan\nthe full card?\n\n\n\n\n\n\n\n\n\nB: Cancel   A: Choose Directory   X: Full SD");
 
 	while(1) {
 		gspWaitForVBlank();
@@ -1482,7 +1482,7 @@ void downloadBoxart(void) {
 						dirs += "\n";
 					}
 					dirs += "B: Back   A: Open   X: Choose";
-					displayBottomMsg(dirs.c_str());
+					Msg::DisplayMsg(dirs.c_str());
 				}
 			}
 			break;
@@ -1494,7 +1494,7 @@ void downloadBoxart(void) {
 		}
 	}
 
-	displayBottomMsg("Scanning SD card for DS roms...\n\n(Press B to cancel)");
+	Msg::DisplayMsg("Scanning SD card for DS roms...\n\n(Press B to cancel)");
 
 	chdir(scanDir.c_str());
 	continueNdsScan = true;
@@ -1509,7 +1509,7 @@ void downloadBoxart(void) {
 		if(access(path, F_OK) != 0) {
 			char downloadMessage[50];
 			snprintf(downloadMessage, sizeof(downloadMessage), "Downloading \"%s.png\"...\n", dirContents[i].tid);
-			displayBottomMsg(downloadMessage);
+			Msg::DisplayMsg(downloadMessage);
 
 			const char *ba_region = getBoxartRegion(dirContents[i].tid[3]);
 
@@ -1525,7 +1525,7 @@ void downloadBoxart(void) {
 	chdir("sdmc:/_nds/TWiLightMenu/boxart/temp/");
 	getDirectoryContents(dirContents);
 
-	displayBottomMsg("Cleaning up...");
+	Msg::DisplayMsg("Cleaning up...");
 	for(int i=0;i<(int)dirContents.size();i++) {
 		if(dirContents[i].size == 0) {
 			char path[256];
@@ -1582,10 +1582,10 @@ void downloadThemes(void) {
 		}
 		themesText += "\n\n\n\n\n";
 		themesText += "B: Back   A: Choose";
-		displayBottomMsg(themesText.c_str());
+		Msg::DisplayMsg(themesText.c_str());
 	}
 
-	displayBottomMsg("Getting theme list...");
+	Msg::DisplayMsg("Getting theme list...");
 
 	std::vector<ThemeEntry> themeList;
 	themeList = getThemeList("DS-Homebrew/twlmenu-extras", "_nds/TWiLightMenu/"+themeFolders[selectedTwlTheme]+"/themes");
@@ -1601,7 +1601,7 @@ void downloadThemes(void) {
 		if(keyRepeatDelay)	keyRepeatDelay--;
 		if(hDown & KEY_A) {
 			mkdir((themeList[selectedTheme].sdPath).c_str(), 0777);
-			displayBottomMsg(("Downloading: "+themeList[selectedTheme].name).c_str());
+			Msg::DisplayMsg(("Downloading: "+themeList[selectedTheme].name).c_str());
 			downloadTheme(themeList[selectedTheme].path);
 		} else if(hDown & KEY_B) {
 			selectedTheme = 0;
@@ -1641,6 +1641,6 @@ void downloadThemes(void) {
 			themesText += "\n";
 		}
 		themesText += "B: Back   A: Choose";
-		displayBottomMsg(themesText.c_str());
+		Msg::DisplayMsg(themesText.c_str());
 	}
 }

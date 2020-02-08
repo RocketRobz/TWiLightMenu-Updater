@@ -1,17 +1,14 @@
-#include "fileBrowse.h"
-#include <sys/stat.h>
-#include <dirent.h>
-#include <vector>
-#include <unistd.h>
+#include "common.hpp"
+#include "fileBrowse.hpp"
 
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <vector>
 
 using namespace std;
-
 int file_count = 0;
-
 extern bool continueNdsScan;
-
-extern void displayBottomMsg(const char* text);
 
 /**
  * Get the title ID.
@@ -30,7 +27,7 @@ void findNdsFiles(vector<DirEntry>& dirContents) {
 	DIR *pdir = opendir(".");
 
 	if (pdir == NULL) {
-		displayBottomMsg("Unable to open the directory.");
+		Msg::DisplayMsg("Unable to open the directory.");
 		for(int i=0;i<120;i++)
 			gspWaitForVBlank();
 	} else {
@@ -45,7 +42,7 @@ void findNdsFiles(vector<DirEntry>& dirContents) {
 			dirEntry.name = pent->d_name;
 			char scanningMessage[512];
 			snprintf(scanningMessage, sizeof(scanningMessage), "Scanning SD card for DS roms...\n\n(Press B to cancel)\n\n\n\n\n\n\n\n\n%s", dirEntry.name.c_str());
-			displayBottomMsg(scanningMessage);
+			Msg::DisplayMsg(scanningMessage);
 			dirEntry.isDirectory = (st.st_mode & S_IFDIR) ? true : false;
 				if(!(dirEntry.isDirectory) && dirEntry.name.length() >= 3) {
 					if (strcasecmp(dirEntry.name.substr(dirEntry.name.length()-3, 3).c_str(), "nds") == 0) {
@@ -101,7 +98,7 @@ void getDirectoryContents (vector<DirEntry>& dirContents) {
 	DIR *pdir = opendir (".");
 
 	if (pdir == NULL) {
-		displayBottomMsg("Unable to open the directory.");
+		Msg::DisplayMsg("Unable to open the directory.");
 		for(int i=0;i<120;i++)
 			gspWaitForVBlank();
 	} else {
