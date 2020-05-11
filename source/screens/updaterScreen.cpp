@@ -1,33 +1,29 @@
 #include "download.hpp"
-#include "sound.h"
 #include "updaterScreen.hpp"
 
-extern bool dspfirmfound;
 extern bool updatingSelf;
 extern bool updated3dsx;
 extern bool exiting;
 extern int fadealpha;
 extern bool fadein;
-extern sound *sfx_select;
-extern sound *sfx_wrong;
 
-struct {
+/*struct {
 	int x;
 	int y;
 } buttons2[] = { { 129, 48}, { 220, 48}, { 129, 88}, { 220, 88}, { 129, 128}, { 220, 128}, { 129, 168}, { 220, 168},
-};
+};*/
 
 UpdaterScreen::UpdaterScreen() {
-	if(checkWifiStatus()) {
+	/*if(checkWifiStatus()) {
 		if (Msg::promptMsg("Would you like to scan for updates?")) {
 			Msg::DisplayMsg("Scanning for updates...");
 			checkForUpdates();
 		}
-	}
+	}*/
 }
 
 
-bool updateAvailable[] = {
+/*bool updateAvailable[] = {
 	false,
 	false,
 	false,
@@ -65,7 +61,7 @@ const char *row_titles2[] = {
 	"nds-bootstrap",
 	"Updater",
 	"Downloads",
-};
+};*/
 
 
 void UpdaterScreen::Draw(void) const {
@@ -75,9 +71,9 @@ void UpdaterScreen::Draw(void) const {
 
 	Gui::ScreenDraw(Bottom);
 	GFX::DrawSprite(sprites_BS_background_idx, 0, 0);
-	Gui::DrawString(6, 5, 0.55, WHITE, "Updater menu");
+	//Gui::DrawString(6, 5, 0.55, WHITE, "Updater menu");
 	// Draw buttons
-	for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
+	/*for (int i = (int)(sizeof(buttons2)/sizeof(buttons2[0]))-1; i >= 0; i--) {
 		if (menuSelection == i) {
 			// Button is highlighted.
 			GFX::DrawSprite(sprites_BS_2page_extra_small_button_idx, buttons2[i].x, buttons2[i].y);
@@ -106,13 +102,18 @@ void UpdaterScreen::Draw(void) const {
 		if(!(i%2)) {
 			Gui::DrawString(0, y, 0.60, WHITE, row_titles2[i/2]);
 		}
-	}
+	}*/
+	Gui::DrawString(6, 5, 0.55, WHITE, "An error has occurred");
+	Gui::DrawString(8, 72, 0.70, WHITE, "TWiLight Menu++ Updater");
+	Gui::DrawString(8, 92, 0.70, WHITE, "has been discontinued.");
+	Gui::DrawString(8, 136, 0.70, WHITE, "Please switch to Universal-Updater.");
+	Gui::DrawString(8, 218, 0.50, WHITE, "Press START to exit.");
 	if (fadealpha > 0) Gui::Draw_Rect(0, 0, 320, 240, C2D_Color32(0, 0, 0, fadealpha)); // Fade in/out effect
 }
 
 
 void UpdaterScreen::Logic(u32 hDown, u32 hHeld, touchPosition touch) {
-	if (hDown & KEY_UP) {
+	/*if (hDown & KEY_UP) {
 		if (buttonShading) menuSelection -= 2;
 	} else if (hDown & KEY_DOWN) {
 		if (buttonShading) menuSelection += 2;
@@ -303,7 +304,7 @@ void UpdaterScreen::Logic(u32 hDown, u32 hHeld, touchPosition touch) {
 			notConnectedMsg();
 		}
 		setOption = false;
-	}
+	}*/
 	if(hDown & KEY_START || updated3dsx) {
 		exiting = true;
 	}
