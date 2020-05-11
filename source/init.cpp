@@ -33,7 +33,6 @@ Result Init::Initialize() {
 	Gui::init();
 	Gui::loadSheet("romfs:/gfx/sprites.t3x", sprites);
 
-	loadUsernamePassword();
 	Gui::setScreen(std::make_unique<UpdaterScreen>());
 	return 0;
 }
