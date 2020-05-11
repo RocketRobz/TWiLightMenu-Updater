@@ -1,5 +1,3 @@
-**NOTE:** This updater has been discontinued. Please use [Universal-Updater](https://github.com/Universal-Team/Universal-Updater) to update TWiLight Menu++.
-
 # TWiLightMenu-Updater [![Build Status](https://dev.azure.com/DS-Homebrew/Builds/_apis/build/status/RocketRobz.TWiLightMenu-Updater?branchName=master)](https://dev.azure.com/DS-Homebrew/Builds/_build?definitionId=15)
 TWiLightMenu Updater is an open-source updater for TWiLightMenu++
 
