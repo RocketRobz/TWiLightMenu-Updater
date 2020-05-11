@@ -18,3 +18,4 @@ build/*
 # Build artifacts
 app/banner.bin
 app/icon.bin
+*.exe

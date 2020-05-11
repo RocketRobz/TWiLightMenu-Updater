@@ -14,3 +14,4 @@ TWiLightMenu Updater is an open-source updater for TWiLightMenu++
 * [FlameKat53](https://github.com/FlameKat53): The idea of scrapping the TWLMenu++ Launcher. :P
 * [Vulpes-Vulpeos](https://deviantart.com/vulpes-vulpeos): For the provided graphics.
 * [devkitPro](https://github.com/devkitPro): The use of devkitPro, devkitArm, libctru, and libfat.
+* [Universal-Updater And Contributors](https://github.com/Universal-Team/Universal-Updater): All Contributors from it for improving extracting, downloading and installing.
