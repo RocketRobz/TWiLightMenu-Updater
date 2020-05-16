@@ -37,7 +37,7 @@ void GFX::DrawTop(bool showVer) {
 		DrawSprite(sprites_arrow_idx, 41+offset3D[d].updater, 25);
 		DrawSprite(sprites_text_updater_idx, 187+offset3D[d].updater, 151);
 		DrawSprite(sprites_twlm_logo_idx, 127+offset3D[d].logo, 100);
-		Gui::DrawString(336, 222, 0.50, WHITE, VERSION_STRING);
+		if (showVer) Gui::DrawString(336, 222, 0.50, WHITE, VERSION_STRING);
 		if (fadealpha > 0) Gui::Draw_Rect(0, 0, 400, 240, C2D_Color32(0, 0, 0, fadealpha)); // Fade in/out effect
 	}
 }
