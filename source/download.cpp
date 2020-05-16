@@ -1015,8 +1015,9 @@ void displayProgressBar() {
 		Gui::clearTextBufs();
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 		C2D_TargetClear(Top, BLACK);
+		C2D_TargetClear(TopRight, BLACK);
 		C2D_TargetClear(Bottom, BLACK);
-		GFX::DrawTop();
+		GFX::DrawTop(false);
 		Gui::ScreenDraw(Bottom);
 		GFX::DrawSprite(sprites_BS_loading_background_idx, 0, 0);
 		Gui::DrawStringCentered(0, 40, 0.65f, BLACK, progressBarMsg, 400);

@@ -69,9 +69,7 @@ const char *row_titles2[] = {
 
 
 void UpdaterScreen::Draw(void) const {
-	GFX::DrawTop();
-	Gui::DrawString(336, 222, 0.50, WHITE, VERSION_STRING);
-	if (fadealpha > 0) Gui::Draw_Rect(0, 0, 400, 240, C2D_Color32(0, 0, 0, fadealpha)); // Fade in/out effect
+	GFX::DrawTop(true);
 
 	Gui::ScreenDraw(Bottom);
 	GFX::DrawSprite(sprites_BS_background_idx, 0, 0);

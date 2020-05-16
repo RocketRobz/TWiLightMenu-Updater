@@ -1,4 +1,5 @@
 #include "common.hpp"
+extern int fadealpha;
 
 // 3D offsets.
 typedef struct _Offset3D {
@@ -13,7 +14,7 @@ Offset3D offset3D[2] = {0.0f, 0.0f};
 
 extern C2D_SpriteSheet sprites;
 
-void GFX::DrawTop(void) {
+void GFX::DrawTop(bool showVer) {
 	offset3D[0].topbg = CONFIG_3D_SLIDERSTATE * -7.0f;
 	offset3D[1].topbg = CONFIG_3D_SLIDERSTATE * 7.0f;
 	offset3D[0].twinkle3 = CONFIG_3D_SLIDERSTATE * -6.0f;
@@ -36,6 +37,8 @@ void GFX::DrawTop(void) {
 		DrawSprite(sprites_arrow_idx, 41+offset3D[d].updater, 25);
 		DrawSprite(sprites_text_updater_idx, 187+offset3D[d].updater, 151);
 		DrawSprite(sprites_twlm_logo_idx, 127+offset3D[d].logo, 100);
+		Gui::DrawString(336, 222, 0.50, WHITE, VERSION_STRING);
+		if (fadealpha > 0) Gui::Draw_Rect(0, 0, 400, 240, C2D_Color32(0, 0, 0, fadealpha)); // Fade in/out effect
 	}
 }
 

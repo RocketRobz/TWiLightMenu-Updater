@@ -22,7 +22,7 @@ typedef u32 Color;
 
 namespace GFX
 {
-	void DrawTop();
+	void DrawTop(bool showVer);
 	void DrawSprite(int img, int x, int y, float ScaleX = 1, float ScaleY = 1);
 	void DrawSpriteBlend(int img, int x, int y, u32 color, float ScaleX = 1, float ScaleY = 1);
 }

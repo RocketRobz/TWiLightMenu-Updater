@@ -8,7 +8,7 @@ void Msg::DisplayMsg(std::string text) {
 	C2D_TargetClear(Top, TRANSPARENT);
 	C2D_TargetClear(TopRight, TRANSPARENT);
 	C2D_TargetClear(Bottom, TRANSPARENT);
-	GFX::DrawTop();
+	GFX::DrawTop(false);
 	Gui::ScreenDraw(Bottom);
 	GFX::DrawSprite(sprites_BS_loading_background_idx, 0, 0);
 	Gui::DrawString(24, 32, 0.45f, BLACK, text);
@@ -25,8 +25,7 @@ bool Msg::promptMsg(std::string promptMsg)
 		C2D_TargetClear(Top, TRANSPARENT);
 		C2D_TargetClear(TopRight, TRANSPARENT);
 		C2D_TargetClear(Bottom, TRANSPARENT);
-		GFX::DrawTop();
-		if (fadealpha > 0) Gui::Draw_Rect(0, 0, 400, 240, C2D_Color32(0, 0, 0, fadealpha)); // Fade in/out effect
+		GFX::DrawTop(false);
 		Gui::ScreenDraw(Bottom);
 		GFX::DrawSprite(sprites_BS_loading_background_idx, 0, 0);
 		Gui::DrawString(24, 32, 0.5f, BLACK, promptMsg);
