@@ -97,6 +97,7 @@ Result Init::Initialize() {
 	}
 
 	loadUsernamePassword();
+	gfxSet3D(true);
 	Gui::setScreen(std::make_unique<UpdaterScreen>()); // Set Screen to the Updater ones.
 	return 0;
 }
@@ -116,6 +117,7 @@ Result Init::MainLoop() {
 		hidTouchRead(&touch);
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 		C2D_TargetClear(Top, BLACK);
+		C2D_TargetClear(TopRight, BLACK);
 		C2D_TargetClear(Bottom, BLACK);
 		Gui::clearTextBufs();
 		Gui::mainLoop(hDown, hHeld, touch);

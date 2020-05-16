@@ -6,6 +6,8 @@
 #include <3ds.h>
 #include <citro2d.h>
 
+#define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
+
 // Colors.
 #define TRANSPARENT C2D_Color32(0, 0, 0, 0)
 #define BLACK C2D_Color32(0, 0, 0, 255)
