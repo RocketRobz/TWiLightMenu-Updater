@@ -122,7 +122,7 @@ Result Init::MainLoop() {
 		C3D_FrameEnd(0);
 
 		if (fadein == true) {
-			fadealpha -= 3;
+			fadealpha -= 16;
 			if (fadealpha < 0) {
 				fadealpha = 0;
 				fadein = false;
