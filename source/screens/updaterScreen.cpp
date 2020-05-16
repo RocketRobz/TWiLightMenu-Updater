@@ -104,7 +104,7 @@ void UpdaterScreen::Draw(void) const {
 		Gui::DrawString(x_from_width, y, 0.75, BLACK, button_titles2[i]);
 
 		if(!(i%2)) {
-			Gui::DrawString(0, y, 0.60, WHITE, row_titles2[i/2]);
+			Gui::DrawString(6, y, 0.60, WHITE, row_titles2[i/2]);
 		}
 	}
 	if (fadealpha > 0) Gui::Draw_Rect(0, 0, 320, 240, C2D_Color32(0, 0, 0, fadealpha)); // Fade in/out effect
