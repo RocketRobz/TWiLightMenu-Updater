@@ -1,4 +1,5 @@
 #include "download.hpp"
+#include "exiting.hpp"
 #include "sound.h"
 #include "updaterScreen.hpp"
 
@@ -6,8 +7,6 @@ extern bool dspfirmfound;
 extern bool updatingSelf;
 extern bool updated3dsx;
 extern bool exiting;
-extern int fadealpha;
-extern bool fadein;
 extern sound *sfx_select;
 extern sound *sfx_wrong;
 
@@ -17,55 +16,29 @@ struct {
 } buttons2[] = { { 129, 48}, { 220, 48}, { 129, 88}, { 220, 88}, { 129, 128}, { 220, 128}, { 129, 168}, { 220, 168},
 };
 
+std::array<bool, 8> updateAvailable = {
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+};
+
 UpdaterScreen::UpdaterScreen() {
-	if(checkWifiStatus()) {
+	this->checkUpdates(); // Check for updates.
+}
+
+void UpdaterScreen::checkUpdates() {
+	if (checkWifiStatus()) {
 		if (Msg::promptMsg("Would you like to scan for updates?")) {
 			Msg::DisplayMsg("Scanning for updates...");
 			checkForUpdates();
 		}
 	}
 }
-
-
-bool updateAvailable[] = {
-	false,
-	false,
-	false,
-	false,
-	false,
-	false,
-	false,
-	false,
-};
-
-const char *button_titles2[] = {
-	"Release",
-	"Nightly",
-	"Release",
-	"Nightly",
-	"Release",
-	"Nightly",
-	"Cheats",
-	"Extras",
-};
-
-const int title_spacing[] = {
-	6,
-	10,
-	6,
-	10,
-	6,
-	10,
-	10,
-	17,
-};
-
-const char *row_titles2[] = {
-	"TWL Menu++",
-	"nds-bootstrap",
-	"Updater",
-	"Downloads",
-};
 
 
 void UpdaterScreen::Draw(void) const {
@@ -105,7 +78,8 @@ void UpdaterScreen::Draw(void) const {
 			Gui::DrawString(6, y, 0.60, WHITE, row_titles2[i/2]);
 		}
 	}
-	if (fadealpha > 0) Gui::Draw_Rect(0, 0, 320, 240, C2D_Color32(0, 0, 0, fadealpha)); // Fade in/out effect
+
+	if (fadealpha > 0) Gui::Draw_Rect(0, 0, 400, 240, C2D_Color32(fadecolor, fadecolor, fadecolor, fadealpha)); // Fade in/out effect
 }
 
 
@@ -231,8 +205,15 @@ void UpdaterScreen::Logic(u32 hDown, u32 hHeld, touchPosition touch) {
 						sfx_select->stop();
 						sfx_select->play();
 					}
-					if((commit = chooseCommit("TWLBot/Builds", "TWiLightMenu |", true)) != "")
-						updateTWiLight(commit);
+					if (Msg::promptMsg("Do you like to skip:\n- Themes\n- AP Patches\n- Widescreen files\n\nThis would make the progress faster.")) {
+						if ((commit = chooseCommit("TWLBot/Builds", "TWiLightMenu |", true)) != "") {
+							updateTWiLightLite(commit);
+						}
+					} else {
+						if ((commit = chooseCommit("TWLBot/Builds", "TWiLightMenu |", true)) != "") {
+							updateTWiLight(commit);
+						}
+					}
 					break;
 				case 2:	// nds-bootstrap release
 					if(dspfirmfound) {
@@ -304,5 +285,7 @@ void UpdaterScreen::Logic(u32 hDown, u32 hHeld, touchPosition touch) {
 	}
 	if(hDown & KEY_START || updated3dsx) {
 		exiting = true;
+		fadecolor = 0;
+		Gui::setScreen(std::make_unique<Exiting>(), true);
 	}
 }

@@ -1020,7 +1020,7 @@ void displayProgressBar() {
 		GFX::DrawTop(false);
 		Gui::ScreenDraw(Bottom);
 		GFX::DrawSprite(sprites_BS_loading_background_idx, 0, 0);
-		Gui::DrawStringCentered(0, 40, 0.65f, BLACK, progressBarMsg, 400);
+		Gui::DrawStringCentered(0, 40, 0.60f, BLACK, progressBarMsg, 300);
 		// Only display this by downloading.
 		if (progressBarType == 0) {
 			Gui::DrawStringCentered(0, 100, 0.6f, BLACK, str, 300);
@@ -1351,6 +1351,54 @@ void updateTWiLight(std::string commit) {
 		saveUpdateData();
 		updateAvailable[0] = false;
 	}
+	doneMsg();
+}
+
+void updateTWiLightLite(std::string commit) {
+	if (commit != "") {
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ lite...\n(Nightly)");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu-Lite.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
+			showProgressBar = false;
+			downloadFailed();
+			return;
+		}
+	} else {
+		snprintf(progressBarMsg, sizeof(progressBarMsg), "Downloading TWiLight Menu++ lite...\n(Nightly)");
+		showProgressBar = true;
+		progressBarType = 0;
+		createThread((ThreadFunc)displayProgressBar);
+		if (downloadToFile("https://github.com/TWLBot/Builds/blob/master/TWiLightMenu-Lite.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
+			showProgressBar = false;
+			downloadFailed();
+			return;
+		}
+	}
+
+	snprintf(progressBarMsg, sizeof(progressBarMsg), "Extracting TWiLight Menu++...\n(Nightly)");
+	filesExtracted = 0;
+	progressBarType = 1;
+	extractArchive("/TWiLightMenu-nightly.7z", "_nds/", "/_nds/");
+	extractArchive("/TWiLightMenu-nightly.7z", "3DS - CFW users/", "/");
+	extractArchive("/TWiLightMenu-nightly.7z", "DSi&3DS - SD card users/", "/");
+		
+
+	snprintf(progressBarMsg, sizeof(progressBarMsg), "Installing TWiLight Menu++ CIA...\n(Nightly)");
+	progressBarType = 2;
+	installCia("/TWiLight Menu.cia", false);
+	installCia("/TWiLight Menu - Game booter.cia", false);
+	showProgressBar = false;
+
+	deleteFile("sdmc:/TWiLightMenu-nightly.7z");
+	deleteFile("sdmc:/TWiLight Menu.cia");
+	deleteFile("sdmc:/TWiLight Menu - Game booter.cia");
+
+	setInstalledChannel("TWILIGHTMENU", "nightly");
+	setInstalledVersion("TWILIGHTMENU", latestMenuNightly());
+	saveUpdateData();
+	updateAvailable[1] = false;
 	doneMsg();
 }
 
