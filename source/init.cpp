@@ -15,9 +15,6 @@
 
 static touchPosition touch;
 
-int fadealpha = 255;
-bool fadein = true;
-
 bool dspfirmfound = false;
 bool updatingSelf = false;
 bool updated3dsx = false;
@@ -50,7 +47,8 @@ Result Init::Initialize() {
 	amInit();
 	acInit();
 	Gui::loadSheet("romfs:/gfx/sprites.t3x", sprites);
-
+	fadein = true;
+	fadealpha = 255;
 	osSetSpeedupEnable(true);	// Enable speed-up for New 3DS users
 
 	// make folders if they don't exist
@@ -98,7 +96,7 @@ Result Init::Initialize() {
 
 	loadUsernamePassword();
 	gfxSet3D(true);
-	Gui::setScreen(std::make_unique<UpdaterScreen>()); // Set Screen to the Updater ones.
+	Gui::setScreen(std::make_unique<UpdaterScreen>(), false); // Set Screen to the Updater ones.
 	return 0;
 }
 
@@ -109,7 +107,7 @@ Result Init::MainLoop() {
 	Play_Music();
 
 	// Loop as long as the status is not exiting.
-	while (aptMainLoop() && !exiting)
+	while (aptMainLoop())
 	{
 		hidScanInput();
 		u32 hHeld = hidKeysHeld();
@@ -120,16 +118,13 @@ Result Init::MainLoop() {
 		C2D_TargetClear(TopRight, BLACK);
 		C2D_TargetClear(Bottom, BLACK);
 		Gui::clearTextBufs();
-		Gui::mainLoop(hDown, hHeld, touch);
+		Gui::DrawScreen();
+		Gui::ScreenLogic(hDown, hHeld, touch, true); // Call the logic of the current screen here.
 		C3D_FrameEnd(0);
-
-		if (fadein == true) {
-			fadealpha -= 16;
-			if (fadealpha < 0) {
-				fadealpha = 0;
-				fadein = false;
-			}
+		if (exiting) {
+			if (!fadeout)	break;
 		}
+		Gui::fadeEffects(16, 16);
 	}
 	// Exit all services and exit the app.
 	Exit();

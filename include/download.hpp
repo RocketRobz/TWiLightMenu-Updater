@@ -120,6 +120,12 @@ void updateBootstrap(std::string commit);
 void updateTWiLight(std::string commit);
 
 /**
+ * Update TWiLight Menu++ to the latest Nightly Lite build.
+ * commit is the TWlBot commit. Leave blank for latest Nightly.
+ */
+void updateTWiLightLite(std::string commit);
+
+/**
  * Update the TWiLight Menu++ Updater to the latest build.
  * commit is the TWlBot commit, leave blank for release
  */

@@ -30,16 +30,10 @@ bool Msg::promptMsg(std::string promptMsg)
 		GFX::DrawSprite(sprites_BS_loading_background_idx, 0, 0);
 		Gui::DrawString(24, 32, 0.5f, BLACK, promptMsg);
 		Gui::DrawStringCentered(0, 180, 0.6f, BLACK, "Press A to confirm, B to cancel.", 390);
-		if (fadealpha > 0) Gui::Draw_Rect(0, 0, 320, 240, C2D_Color32(0, 0, 0, fadealpha)); // Fade in/out effect
+		if (fadealpha > 0) Gui::Draw_Rect(0, 0, 400, 240, C2D_Color32(fadecolor, fadecolor, fadecolor, fadealpha)); // Fade in/out effect
 		C3D_FrameEnd(0);
 
-		if (fadein == true) {
-			fadealpha -= 16;
-			if (fadealpha < 0) {
-				fadealpha = 0;
-				fadein = false;
-			}
-		}
+		Gui::fadeEffects(16, 16);
 
 		hidScanInput();
 		if(hidKeysDown() & KEY_A) {
