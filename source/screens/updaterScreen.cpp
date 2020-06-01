@@ -84,16 +84,16 @@ void UpdaterScreen::Draw(void) const {
 
 
 void UpdaterScreen::Logic(u32 hDown, u32 hHeld, touchPosition touch) {
-	if (hDown & KEY_UP) {
+	if (hHeld & KEY_UP) {
 		if (buttonShading) menuSelection -= 2;
-	} else if (hDown & KEY_DOWN) {
+	} else if (hHeld & KEY_DOWN) {
 		if (buttonShading) menuSelection += 2;
-	} else if (hDown & KEY_LEFT) {
+	} else if (hHeld & KEY_LEFT) {
 		if (buttonShading && menuSelection%2) menuSelection--;
-	} else if (hDown & KEY_RIGHT) {
+	} else if (hHeld & KEY_RIGHT) {
 		if (buttonShading && !(menuSelection%2)) menuSelection++;
 	}
-	if (hDown & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
+	if (hHeld & (KEY_UP | KEY_DOWN | KEY_LEFT | KEY_RIGHT)) {
 		buttonShading = true;
 		if(dspfirmfound) {
 			sfx_select->stop();
