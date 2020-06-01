@@ -79,7 +79,7 @@ GRAPHICS	:=	assets/gfx
 #GFXBUILD	:=	$(BUILD)
 ROMFS		:=	romfs
 GFXBUILD	:=	$(ROMFS)/gfx
-APP_AUTHOR	:=	RocketRobz/Epicpkmn11
+APP_AUTHOR	:=	RocketRobz/Pk11
 APP_DESCRIPTION :=  	TWiLight Menu++ Updater
 ICON		:=	app/icon.png
 BNR_IMAGE	:=  	app/banner.png
@@ -91,7 +91,7 @@ RSF_FILE	:=	app/build-cia.rsf
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations \
+CFLAGS	:=	-g -Wall -Wno-psabi -O2 -mword-relocations \
 		-DVERSION_STRING=\"$(GIT_VER)\" \
 		-ffunction-sections \
 		$(ARCH)
