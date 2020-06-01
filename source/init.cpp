@@ -50,6 +50,7 @@ Result Init::Initialize() {
 	fadein = true;
 	fadealpha = 255;
 	osSetSpeedupEnable(true);	// Enable speed-up for New 3DS users
+	hidSetRepeatParameters(25, 5);
 
 	// make folders if they don't exist
 	mkdir("sdmc:/3ds", 0777);	// For DSP dump
@@ -110,7 +111,7 @@ Result Init::MainLoop() {
 	while (aptMainLoop())
 	{
 		hidScanInput();
-		u32 hHeld = hidKeysHeld();
+		u32 hHeld = hidKeysDownRepeat();
 		u32 hDown = hidKeysDown();
 		hidTouchRead(&touch);
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
