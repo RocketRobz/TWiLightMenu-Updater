@@ -381,7 +381,7 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
  * @return True if Wi-Fi is connected; false if not.
  */
 bool checkWifiStatus(void) {
-	//return true; // Citra
+	// return true; // Citra
 	u32 wifiStatus;
 	bool res = false;
 
@@ -763,17 +763,9 @@ std::vector<ThemeEntry> getThemeList(std::string repo, std::string path, bool re
 }
 
 void downloadTheme(std::string path) {
-	vector<ThemeEntry> themeContents = getThemeList("DS-Homebrew/twlmenu-extras", path);
-	for(uint i=0;i<themeContents.size();i++) {
-		if(themeContents[i].downloadUrl != "") {
-			Msg::DisplayMsg(("Downloading: "+themeContents[i].name).c_str());
-			downloadToFile(themeContents[i].downloadUrl, themeContents[i].sdPath);
-		} else {
-			Msg::DisplayMsg(("Downloading: "+themeContents[i].name).c_str());
-			mkdir((themeContents[i].sdPath).c_str(), 0777);
-			downloadTheme(themeContents[i].path);
-		}
-	}
+	downloadToFile("https://github.com/DS-Homebrew/twlmenu-extras/raw/master/" + path, "/" + path);
+	extractArchive("/" + path, "", "/" + path.substr(0, path.find_last_of('/')) + "/");
+	deleteFile(("/" + path).c_str());
 }
 
 bool showReleaseInfo(std::string repo, bool showExitText) {
@@ -791,15 +783,10 @@ bool showReleaseInfo(std::string repo, bool showExitText) {
 			redrawText = false;
 		}
 
-		gspWaitForVBlank();
+		//gspWaitForVBlank();
 		hidScanInput();
 		const u32 hDown = hidKeysDown();
-		const u32 hHeld = hidKeysHeld();
-
-		if(hHeld & KEY_UP || hHeld & KEY_DOWN) {
-			for(int i=0;i<9;i++)
-				gspWaitForVBlank();
-		}
+		const u32 hHeld = hidKeysDownRepeat();
 
 		if(hDown & KEY_A) {
 			return true;
@@ -825,7 +812,6 @@ std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 	std::vector<std::string> jsonBodyTemp = ((jsonShasTemp[0] == "API") ? jsonShasTemp : getRecentCommitsArray(repo, "commit", "message"));
 	std::vector<std::string> jsonShas;
 	std::vector<std::string> jsonBody;
-	gspWaitForVBlank();
 
 	jsonBody.push_back("Latest");
 	jsonShas.push_back("master");
@@ -843,10 +829,10 @@ std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 	int keyRepeatDelay = 0;
 	showCommitList:
 	while(1) {
-		gspWaitForVBlank();
+		//gspWaitForVBlank();
 		hidScanInput();
 		const u32 hDown = hidKeysDown();
-		const u32 hHeld = hidKeysHeld();
+		const u32 hHeld = hidKeysDownRepeat();
 		if(keyRepeatDelay)	keyRepeatDelay--;
 		if(hDown & KEY_A) {
 			break;
@@ -901,15 +887,10 @@ std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 			redrawText = false;
 		}
 
-		gspWaitForVBlank();
+		//gspWaitForVBlank();
 		hidScanInput();
 		const u32 hDown = hidKeysDown();
-		const u32 hHeld = hidKeysHeld();
-
-		if(hHeld & KEY_UP || hHeld & KEY_DOWN) {
-			for(int i=0;i<9;i++)
-				gspWaitForVBlank();
-		}
+		const u32 hHeld = hidKeysDownRepeat();
 
 		if(hDown & KEY_A) {
 			return jsonShas[selectedCommit].substr(0,7);
@@ -1047,7 +1028,7 @@ void displayProgressBar() {
 			Animation::DrawProgressBar((float)installOffset, (float)installSize);
 		}
 		C3D_FrameEnd(0);
-		gspWaitForVBlank();
+		//gspWaitForVBlank();
 	}
 }
 
@@ -1075,7 +1056,7 @@ bool promtUsernamePassword(void) {
 	std::string username, password;
 	while(1) {
 		do {
-			gspWaitForVBlank();
+			//gspWaitForVBlank();
 			hidScanInput();
 			hDown = hidKeysDown();
 		} while(!hDown);
@@ -1592,7 +1573,7 @@ void scanToCancelBoxArt(void) {
 		if(hidKeysDown() & KEY_B) {
 			continueNdsScan = false;
 		}
-		gspWaitForVBlank();
+		//gspWaitForVBlank();
 	}
 }
 
@@ -1600,7 +1581,7 @@ void downloadExtras(void) {
 	std::string extrasOptions[] = {"Boxart", "Themes"};
 	int selectedOption = 0;
 	while(1) {
-		gspWaitForVBlank();
+		//gspWaitForVBlank();
 		hidScanInput();
 		const u32 hDown = hidKeysDown();
 		if(hDown & KEY_A) {
@@ -1642,7 +1623,7 @@ void downloadBoxart(void) {
 	Msg::DisplayMsg("Would you like to choose a directory, or scan\nthe full card?\n\n\n\n\n\n\n\n\n\nB: Cancel   A: Choose Directory   X: Full SD");
 
 	while(1) {
-		gspWaitForVBlank();
+		//gspWaitForVBlank();
 		hidScanInput();
 		const u32 hDown = hidKeysDown();
 
@@ -1650,7 +1631,6 @@ void downloadBoxart(void) {
 			chdir("sdmc:/");
 			bool dirChosen = false;
 			uint selectedDir = 0;
-			uint keyRepeatDelay = 0;
 			while(!dirChosen) {
 				getDirectoryContents(dirContents);
 				for(uint i=0;i<dirContents.size();i++) {
@@ -1659,11 +1639,10 @@ void downloadBoxart(void) {
 					}
 				}
 				while(1) {
-					gspWaitForVBlank();
+					//gspWaitForVBlank();
 					hidScanInput();
 					const u32 hDown = hidKeysDown();
-					const u32 hHeld = hidKeysHeld();
-					if(keyRepeatDelay)	keyRepeatDelay--;
+					const u32 hHeld = hidKeysDownRepeat();
 					if(hDown & KEY_A) {
 						chdir(dirContents[selectedDir].name.c_str());
 						selectedDir = 0;
@@ -1682,28 +1661,24 @@ void downloadBoxart(void) {
 						scanDir = path;
 						dirChosen = true;
 						break;
-					} else if(hHeld & KEY_UP && !keyRepeatDelay) {
+					} else if(hHeld & KEY_UP) {
 						if(selectedDir > 0) {
 							selectedDir--;
-							keyRepeatDelay = 3;
 						}
-					} else if(hHeld & KEY_DOWN && !keyRepeatDelay) {
+					} else if(hHeld & KEY_DOWN) {
 						if(selectedDir < dirContents.size()-1) {
 							selectedDir++;
-							keyRepeatDelay = 3;
 						}
-					} else if(hHeld & KEY_LEFT && !keyRepeatDelay) {
+					} else if(hHeld & KEY_LEFT) {
 						selectedDir -= 10;
 						if(selectedDir < 0) {
 							selectedDir = 0;
 						}
-						keyRepeatDelay = 3;
-					} else if(hHeld & KEY_RIGHT && !keyRepeatDelay) {
+					} else if(hHeld & KEY_RIGHT) {
 						selectedDir += 10;
 						if(selectedDir > dirContents.size()) {
 							selectedDir = dirContents.size()-1;
 						}
-						keyRepeatDelay = 3;
 					}
 					std::string dirs;
 					for(uint i=(selectedDir<10) ? 0 : selectedDir-10;i<dirContents.size()&&i<((selectedDir<10) ? 11 : selectedDir+1);i++) {
@@ -1782,29 +1757,25 @@ void downloadBoxart(void) {
 void downloadThemes(void) {
 
 	int selectedTwlTheme = 0;
-	int keyRepeatDelay = 0;
 	std::string themeNames[] = {"DSi theme", "3DS theme", "R4 theme", "Acekard theme"};
 	std::string themeFolders[] = {"dsimenu", "3dsmenu", "r4menu", "akmenu"};
 	chooseTWlTheme:
 	while(1) {
-		gspWaitForVBlank();
+		//gspWaitForVBlank();
 		hidScanInput();
 		const u32 hDown = hidKeysDown();
-		const u32 hHeld = hidKeysHeld();
-		if(keyRepeatDelay)	keyRepeatDelay--;
+		const u32 hHeld = hidKeysDownRepeat();
 		if(hDown & KEY_A) {
 			break;
 		} else if(hDown & KEY_B) {
 			return;
-		} else if(hHeld & KEY_UP && !keyRepeatDelay) {
+		} else if(hHeld & KEY_UP) {
 			if(selectedTwlTheme > 0) {
 				selectedTwlTheme--;
-				keyRepeatDelay = 3;
 			}
-		} else if(hHeld & KEY_DOWN && !keyRepeatDelay) {
+		} else if(hHeld & KEY_DOWN) {
 			if(selectedTwlTheme < 3) {
 				selectedTwlTheme++;
-				keyRepeatDelay = 3;
 			}
 		}
 		std::string themesText = "Which TWiLight theme would you like\nto download themes for?\n";
@@ -1822,54 +1793,47 @@ void downloadThemes(void) {
 
 	Msg::DisplayMsg("Getting theme list...");
 
-	std::vector<ThemeEntry> themeList;
-	themeList = getThemeList("DS-Homebrew/twlmenu-extras", "_nds/TWiLightMenu/"+themeFolders[selectedTwlTheme]+"/themes");
+	std::vector<ThemeEntry> themeList = getThemeList("DS-Homebrew/twlmenu-extras", "_nds/TWiLightMenu/"+themeFolders[selectedTwlTheme]+"/themes");
 	mkdir(("sdmc:/_nds/TWiLightMenu/"+themeFolders[selectedTwlTheme]).c_str(), 0777);
 	mkdir(("sdmc:/_nds/TWiLightMenu/"+themeFolders[selectedTwlTheme]+"/themes/").c_str(), 0777);
 
 	int selectedTheme = 0;
 	while(1) {
-		gspWaitForVBlank();
+		//gspWaitForVBlank();
 		hidScanInput();
 		const u32 hDown = hidKeysDown();
-		const u32 hHeld = hidKeysHeld();
-		if(keyRepeatDelay)	keyRepeatDelay--;
+		const u32 hHeld = hidKeysDownRepeat();
 		if(hDown & KEY_A) {
-			mkdir((themeList[selectedTheme].sdPath).c_str(), 0777);
-			Msg::DisplayMsg(("Downloading: "+themeList[selectedTheme].name).c_str());
+			Msg::DisplayMsg("Downloading: " + themeList[selectedTheme].name.substr(0, themeList[selectedTheme].name.find_last_of('.')));
 			downloadTheme(themeList[selectedTheme].path);
 		} else if(hDown & KEY_B) {
 			selectedTheme = 0;
 			goto chooseTWlTheme;
-		} else if(hHeld & KEY_UP && !keyRepeatDelay) {
+		} else if(hHeld & KEY_UP) {
 			if(selectedTheme > 0) {
 				selectedTheme--;
-				keyRepeatDelay = 3;
 			}
-		} else if(hHeld & KEY_DOWN && !keyRepeatDelay) {
+		} else if(hHeld & KEY_DOWN) {
 			if(selectedTheme < (int)themeList.size()-1) {
 				selectedTheme++;
-				keyRepeatDelay = 3;
 			}
-		} else if(hHeld & KEY_LEFT && !keyRepeatDelay) {
+		} else if(hHeld & KEY_LEFT) {
 			selectedTheme -= 10;
 			if(selectedTheme < 0) {
 				selectedTheme = 0;
 			}
-			keyRepeatDelay = 3;
-		} else if(hHeld & KEY_RIGHT && !keyRepeatDelay) {
+		} else if(hHeld & KEY_RIGHT) {
 			selectedTheme += 10;
 			if(selectedTheme > (int)themeList.size()) {
 				selectedTheme = themeList.size()-1;
 			}
-			keyRepeatDelay = 3;
 		}
 		std::string themesText;
 		for(int i=(selectedTheme<10) ? 0 : selectedTheme-10;i<(int)themeList.size()&&i<((selectedTheme<10) ? 11 : selectedTheme+1);i++) {
 			if(i == selectedTheme) {
-				themesText += "> " + themeList[i].name + "\n";
+				themesText += "> " + themeList[i].name.substr(0, themeList[i].name.find_last_of('.')) + "\n";
 			} else {
-				themesText += "  " + themeList[i].name + "\n";
+				themesText += "  " + themeList[i].name.substr(0, themeList[i].name.find_last_of('.')) + "\n";
 			}
 		}
 		for(uint i=0;i<((themeList.size()<10) ? 11-themeList.size() : 0);i++) {
