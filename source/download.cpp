@@ -783,7 +783,7 @@ bool showReleaseInfo(std::string repo, bool showExitText) {
 			redrawText = false;
 		}
 
-		//gspWaitForVBlank();
+		gspWaitForVBlank();
 		hidScanInput();
 		const u32 hDown = hidKeysDown();
 		const u32 hHeld = hidKeysDownRepeat();
