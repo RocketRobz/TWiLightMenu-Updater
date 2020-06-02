@@ -381,7 +381,7 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
  * @return True if Wi-Fi is connected; false if not.
  */
 bool checkWifiStatus(void) {
-	return true; // Citra
+	// return true; // Citra
 	u32 wifiStatus;
 	bool res = false;
 
