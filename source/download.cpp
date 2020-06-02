@@ -381,7 +381,7 @@ Result downloadFromRelease(std::string url, std::string asset, std::string path)
  * @return True if Wi-Fi is connected; false if not.
  */
 bool checkWifiStatus(void) {
-	// return true; // Citra
+	return true; // Citra
 	u32 wifiStatus;
 	bool res = false;
 
@@ -1028,7 +1028,7 @@ void displayProgressBar() {
 			Animation::DrawProgressBar((float)installOffset, (float)installSize);
 		}
 		C3D_FrameEnd(0);
-		//gspWaitForVBlank();
+		gspWaitForVBlank();
 	}
 }
 
@@ -1056,7 +1056,7 @@ bool promtUsernamePassword(void) {
 	std::string username, password;
 	while(1) {
 		do {
-			//gspWaitForVBlank();
+			gspWaitForVBlank();
 			hidScanInput();
 			hDown = hidKeysDown();
 		} while(!hDown);
@@ -1573,7 +1573,7 @@ void scanToCancelBoxArt(void) {
 		if(hidKeysDown() & KEY_B) {
 			continueNdsScan = false;
 		}
-		//gspWaitForVBlank();
+		gspWaitForVBlank();
 	}
 }
 
@@ -1623,7 +1623,7 @@ void downloadBoxart(void) {
 	Msg::DisplayMsg("Would you like to choose a directory, or scan\nthe full card?\n\n\n\n\n\n\n\n\n\nB: Cancel   A: Choose Directory   X: Full SD");
 
 	while(1) {
-		//gspWaitForVBlank();
+		gspWaitForVBlank();
 		hidScanInput();
 		const u32 hDown = hidKeysDown();
 
