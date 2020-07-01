@@ -30,7 +30,7 @@ bool Msg::promptMsg(std::string promptMsg)
 		Gui::ScreenDraw(Bottom);
 		GFX::DrawSprite(sprites_BS_loading_background_idx, 0, 0);
 		Gui::DrawString(24, 32, 0.5f, BLACK, promptMsg);
-		Gui::DrawStringCentered(0, 180, 0.6f, BLACK, "Press A to confirm, B to cancel.", 390);
+		Gui::DrawStringCentered(0, 180, 0.6f, BLACK, "Press  to confirm,  to cancel.", 390);
 		if (fadealpha > 0) Gui::Draw_Rect(0, 0, 400, 240, C2D_Color32(fadecolor, fadecolor, fadecolor, fadealpha)); // Fade in/out effect
 		C3D_FrameEnd(0);
 		wide3DSwap();

@@ -1039,7 +1039,7 @@ bool promtUsernamePassword(void) {
 					 "exceeded for your IP. You can regain\n"
 					 "access by signing in to a GitHub account,\n"
 					 "or waiting for a bit.\n"
-					 "(or press B but some things won't work)\n\n\n\n\n\n\n\n"
+					 "(or press  but some things won't work)\n\n\n\n\n\n\n\n"
 					 " Cancel    Authenticate");
 
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
