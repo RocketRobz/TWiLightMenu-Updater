@@ -31,12 +31,12 @@ void GFX::DrawTop(bool showVer) {
 	for (int d = 0; d <= 1; d++) {
 		Gui::ScreenDraw(d==1 ? TopRight : Top);
 		DrawSprite(sprites_top_bg_idx, 0+offset3D[d].topbg, 0);
-		DrawSprite(sprites_twinkle_3_idx, 133+offset3D[d].twinkle3, 61);
-		DrawSprite(sprites_twinkle_2_idx, 157+offset3D[d].twinkle2, 81);
-		DrawSprite(sprites_twinkle_1_idx, 184+offset3D[d].twinkle1, 107);
+		DrawSprite(sprites_twinkle_3_idx, 133+offset3D[d].twinkle3, 61, 0.5);
+		DrawSprite(sprites_twinkle_2_idx, 157+offset3D[d].twinkle2, 81, 0.5);
+		DrawSprite(sprites_twinkle_1_idx, 184+offset3D[d].twinkle1, 107, 0.5);
 		DrawSprite(sprites_arrow_idx, 41+offset3D[d].updater, 25);
-		DrawSprite(sprites_text_updater_idx, 187+offset3D[d].updater, 151);
-		DrawSprite(sprites_twlm_logo_idx, 127+offset3D[d].logo, 100);
+		DrawSprite(sprites_text_updater_idx, 187+offset3D[d].updater, 151, 0.5);
+		DrawSprite(sprites_twlm_logo_idx, 127+offset3D[d].logo, 100, 0.5);
 		if (showVer) Gui::DrawString(336, 222, 0.50, WHITE, VERSION_STRING);
 		if (fadealpha > 0) Gui::Draw_Rect(0, 0, 400, 240, C2D_Color32(fadecolor, fadecolor, fadecolor, fadealpha)); // Fade in/out effect
 	}
@@ -45,7 +45,11 @@ void GFX::DrawTop(bool showVer) {
 
 void GFX::DrawSprite(int img, int x, int y, float ScaleX, float ScaleY)
 {
-	Gui::DrawSprite(sprites, img, x, y, ScaleX, ScaleY);
+	C2D_Image image = C2D_SpriteSheetGetImage(sprites, img);
+	if (img != sprites_top_bg_idx) {
+		C3D_TexSetFilter(image.tex, GPU_LINEAR, GPU_LINEAR);
+	}
+	C2D_DrawImageAt(image, x, y, 0.5f, NULL, ScaleX, ScaleY);
 }
 
 void GFX::DrawSpriteBlend(int img, int x, int y, u32 color, float ScaleX, float ScaleY) {

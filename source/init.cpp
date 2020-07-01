@@ -19,6 +19,7 @@ bool dspfirmfound = false;
 bool updatingSelf = false;
 bool updated3dsx = false;
 static bool musicPlaying = false;
+u8 consoleModel = 0;
 bool exiting = false;
 
 // Music and sound effects.
@@ -41,8 +42,13 @@ void Play_Music(void) {
 
 Result Init::Initialize() {
 	romfsInit();
-	cfguInit();
+	Result res = cfguInit();
+	if (R_SUCCEEDED(res)) {
+		CFGU_GetSystemModel(&consoleModel);
+		cfguExit();
+	}
 	gfxInitDefault();
+	(CONFIG_3D_SLIDERSTATE==0) ? gfxSetWide(consoleModel != 3) : gfxSet3D(true);
 	Gui::init();
 	amInit();
 	acInit();
@@ -96,7 +102,6 @@ Result Init::Initialize() {
 	}
 
 	loadUsernamePassword();
-	gfxSet3D(true);
 	Gui::setScreen(std::make_unique<UpdaterScreen>(), false); // Set Screen to the Updater ones.
 	return 0;
 }
@@ -122,6 +127,26 @@ Result Init::MainLoop() {
 		Gui::DrawScreen();
 		Gui::ScreenLogic(hDown, hHeld, touch, true); // Call the logic of the current screen here.
 		C3D_FrameEnd(0);
+		if (consoleModel != 3 && consoleModel != 5) {
+			if (CONFIG_3D_SLIDERSTATE==0 && gfxIs3D()) {
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				C2D_TargetClear(Top, BLACK);
+				C2D_TargetClear(TopRight, BLACK);
+				C3D_FrameEnd(0);
+
+				gfxSet3D(false);
+				gfxSetWide(true);
+				Gui::reinit();
+			} else if (CONFIG_3D_SLIDERSTATE>0 && gfxIsWide()) {
+				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+				C2D_TargetClear(Top, BLACK);
+				C3D_FrameEnd(0);
+
+				gfxSetWide(false);
+				gfxSet3D(true);
+				Gui::reinit();
+			}
+		}
 		if (exiting) {
 			if (!fadeout)	break;
 		}
@@ -146,7 +171,6 @@ Result Init::Exit() {
 	Gui::exit();
 	Gui::unloadSheet(sprites);
 	romfsExit();
-	cfguExit();
 	amExit();
 	acExit();
 	return 0;
