@@ -29,9 +29,11 @@ void GFX::DrawTop(bool showVer) {
 	offset3D[1].logo = CONFIG_3D_SLIDERSTATE * 2.0f;
 
 	for (int d = 0; d <= 1; d++) {
+		if (d==1 && gfxIsWide()) break;
 		Gui::ScreenDraw(d==1 ? TopRight : Top);
 		DrawSprite(sprites_top_bg_idx, 0+offset3D[d].topbg, 0);
 		Gui::Draw_Rect(0, 0, 32, 240, C2D_Color32(0, 0, 0, 255));
+		Gui::Draw_Rect(400-32, 0, 32, 240, C2D_Color32(0, 0, 0, 255));
 		DrawSprite(sprites_twinkle_3_idx, 133+offset3D[d].twinkle3, 61, 0.5);
 		DrawSprite(sprites_twinkle_2_idx, 157+offset3D[d].twinkle2, 81, 0.5);
 		DrawSprite(sprites_twinkle_1_idx, 184+offset3D[d].twinkle1, 107, 0.5);

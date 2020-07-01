@@ -5,6 +5,7 @@
 #include "init.hpp"
 #include "sound.h"
 #include "thread.h"
+#include "rocketRobz.hpp"
 #include "updaterScreen.hpp"
 
 #include <3ds.h>
@@ -20,6 +21,8 @@ bool updatingSelf = false;
 bool updated3dsx = false;
 static bool musicPlaying = false;
 u8 consoleModel = 0;
+bool isInit = true;
+int delay = 0;
 bool exiting = false;
 
 // Music and sound effects.
@@ -102,7 +105,8 @@ Result Init::Initialize() {
 	}
 
 	loadUsernamePassword();
-	Gui::setScreen(std::make_unique<UpdaterScreen>(), false); // Set Screen to the Updater ones.
+	Gui::setScreen(std::make_unique<RocketRobz>(), false); // Set Screen to RocketRobz logo.
+	//Gui::setScreen(std::make_unique<UpdaterScreen>(), false); // Set Screen to the Updater ones.
 	return 0;
 }
 
@@ -133,8 +137,6 @@ Result Init::MainLoop() {
 	// Initialize everything.
 	Initialize();
 
-	Play_Music();
-
 	// Loop as long as the status is not exiting.
 	while (aptMainLoop())
 	{
@@ -153,6 +155,14 @@ Result Init::MainLoop() {
 		wide3DSwap();
 		if (exiting) {
 			if (!fadeout)	break;
+		}
+		if (isInit) {
+			delay++;
+			if (delay > 60*((consoleModel != 3) ? 6 : 3)) {
+				Gui::setScreen(std::make_unique<UpdaterScreen>(), false); // Set Screen to the Updater ones.
+				Play_Music();
+				isInit = false;
+			}
 		}
 		Gui::fadeEffects(16, 16);
 	}
