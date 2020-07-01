@@ -14,6 +14,7 @@ void Msg::DisplayMsg(std::string text) {
 	GFX::DrawSprite(sprites_BS_loading_background_idx, 0, 0);
 	Gui::DrawString(24, 32, 0.45f, BLACK, text);
 	C3D_FrameEnd(0);
+	wide3DSwap();
 }
 
 // Display a Message, which needs to be confirmed with A/B.
