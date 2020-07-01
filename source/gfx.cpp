@@ -15,20 +15,18 @@ Offset3D offset3D[2] = {0.0f, 0.0f};
 extern C2D_SpriteSheet sprites;
 
 void GFX::DrawTop(bool showVer) {
-	if (gfxIs3D()) {
-		offset3D[0].topbg = CONFIG_3D_SLIDERSTATE * -7.0f;
-		offset3D[1].topbg = CONFIG_3D_SLIDERSTATE * 7.0f;
-		offset3D[0].twinkle3 = CONFIG_3D_SLIDERSTATE * -6.0f;
-		offset3D[1].twinkle3 = CONFIG_3D_SLIDERSTATE * 6.0f;
-		offset3D[0].twinkle2 = CONFIG_3D_SLIDERSTATE * -5.0f;
-		offset3D[1].twinkle2 = CONFIG_3D_SLIDERSTATE * 5.0f;
-		offset3D[0].twinkle1 = CONFIG_3D_SLIDERSTATE * -4.0f;
-		offset3D[1].twinkle1 = CONFIG_3D_SLIDERSTATE * 4.0f;
-		offset3D[0].updater = CONFIG_3D_SLIDERSTATE * -3.0f;
-		offset3D[1].updater = CONFIG_3D_SLIDERSTATE * 3.0f;
-		offset3D[0].logo = CONFIG_3D_SLIDERSTATE * -2.0f;
-		offset3D[1].logo = CONFIG_3D_SLIDERSTATE * 2.0f;
-	}
+	offset3D[0].topbg = CONFIG_3D_SLIDERSTATE * -7.0f;
+	offset3D[1].topbg = CONFIG_3D_SLIDERSTATE * 7.0f;
+	offset3D[0].twinkle3 = CONFIG_3D_SLIDERSTATE * -6.0f;
+	offset3D[1].twinkle3 = CONFIG_3D_SLIDERSTATE * 6.0f;
+	offset3D[0].twinkle2 = CONFIG_3D_SLIDERSTATE * -5.0f;
+	offset3D[1].twinkle2 = CONFIG_3D_SLIDERSTATE * 5.0f;
+	offset3D[0].twinkle1 = CONFIG_3D_SLIDERSTATE * -4.0f;
+	offset3D[1].twinkle1 = CONFIG_3D_SLIDERSTATE * 4.0f;
+	offset3D[0].updater = CONFIG_3D_SLIDERSTATE * -3.0f;
+	offset3D[1].updater = CONFIG_3D_SLIDERSTATE * 3.0f;
+	offset3D[0].logo = CONFIG_3D_SLIDERSTATE * -2.0f;
+	offset3D[1].logo = CONFIG_3D_SLIDERSTATE * 2.0f;
 
 	for (int d = 0; d <= 1; d++) {
 		Gui::ScreenDraw(d==1 ? TopRight : Top);
