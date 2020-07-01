@@ -1,6 +1,7 @@
 #include "common.hpp"
 extern int fadealpha;
 extern bool fadein;
+extern void wide3DSwap(void);
 
 void Msg::DisplayMsg(std::string text) {
 	Gui::clearTextBufs();
@@ -32,6 +33,7 @@ bool Msg::promptMsg(std::string promptMsg)
 		Gui::DrawStringCentered(0, 180, 0.6f, BLACK, "Press A to confirm, B to cancel.", 390);
 		if (fadealpha > 0) Gui::Draw_Rect(0, 0, 400, 240, C2D_Color32(fadecolor, fadecolor, fadecolor, fadealpha)); // Fade in/out effect
 		C3D_FrameEnd(0);
+		wide3DSwap();
 
 		Gui::fadeEffects(16, 16);
 

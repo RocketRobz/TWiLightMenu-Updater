@@ -32,6 +32,7 @@ std::string usernamePasswordCache = "";
 
 extern C3D_RenderTarget* Top;
 extern C3D_RenderTarget* Bottom;
+extern void wide3DSwap(void);
 
 extern bool downloadNightlies;
 extern bool updateAvailable[];
@@ -1028,15 +1029,16 @@ void displayProgressBar() {
 			Animation::DrawProgressBar((float)installOffset, (float)installSize);
 		}
 		C3D_FrameEnd(0);
+		wide3DSwap();
 		gspWaitForVBlank();
 	}
 }
 
 bool promtUsernamePassword(void) {
 	Msg::DisplayMsg("The GitHub API rate limit has been\n"
-					 "exceeded for your IP, you can regain\n"
-					 "access by signing in to a GitHub account\n"
-					 "or waiting for a bit\n"
+					 "exceeded for your IP. You can regain\n"
+					 "access by signing in to a GitHub account,\n"
+					 "or waiting for a bit.\n"
 					 "(or press B but some things won't work)\n\n\n\n\n\n\n\n"
 					 "B: Cancel   A: Authenticate");
 

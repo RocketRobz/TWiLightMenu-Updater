@@ -106,6 +106,29 @@ Result Init::Initialize() {
 	return 0;
 }
 
+void wide3DSwap(void) {
+	if (consoleModel == 3 || consoleModel == 5) return;
+
+	if (CONFIG_3D_SLIDERSTATE==0 && gfxIs3D()) {
+		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+		C2D_TargetClear(Top, BLACK);
+		C2D_TargetClear(TopRight, BLACK);
+		C3D_FrameEnd(0);
+
+		gfxSet3D(false);
+		gfxSetWide(true);
+		Gui::reinit();
+	} else if (CONFIG_3D_SLIDERSTATE>0 && gfxIsWide()) {
+		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+		C2D_TargetClear(Top, BLACK);
+		C3D_FrameEnd(0);
+
+		gfxSetWide(false);
+		gfxSet3D(true);
+		Gui::reinit();
+	}
+}
+
 Result Init::MainLoop() {
 	// Initialize everything.
 	Initialize();
@@ -127,26 +150,7 @@ Result Init::MainLoop() {
 		Gui::DrawScreen();
 		Gui::ScreenLogic(hDown, hHeld, touch, true); // Call the logic of the current screen here.
 		C3D_FrameEnd(0);
-		if (consoleModel != 3 && consoleModel != 5) {
-			if (CONFIG_3D_SLIDERSTATE==0 && gfxIs3D()) {
-				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-				C2D_TargetClear(Top, BLACK);
-				C2D_TargetClear(TopRight, BLACK);
-				C3D_FrameEnd(0);
-
-				gfxSet3D(false);
-				gfxSetWide(true);
-				Gui::reinit();
-			} else if (CONFIG_3D_SLIDERSTATE>0 && gfxIsWide()) {
-				C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-				C2D_TargetClear(Top, BLACK);
-				C3D_FrameEnd(0);
-
-				gfxSetWide(false);
-				gfxSet3D(true);
-				Gui::reinit();
-			}
-		}
+		wide3DSwap();
 		if (exiting) {
 			if (!fadeout)	break;
 		}
