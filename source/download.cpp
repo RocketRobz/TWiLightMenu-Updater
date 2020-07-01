@@ -873,7 +873,7 @@ std::string chooseCommit(std::string repo, std::string title, bool showExitText)
 		for(uint i=0;i<((jsonBody.size()<9) ? 10-jsonBody.size() : 0);i++) {
 			commitsText += "\n";
 		}
-		commitsText += "B: Back   A: Info";
+		commitsText += " Back    Info";
 		Msg::DisplayMsg(commitsText);
 	}
 
@@ -959,7 +959,7 @@ void drawMessageText(int position, bool showExitText) {
 		Gui::DrawString(24, ((i * 16) + 48), 0.5f, BLACK, _topText[i+position].c_str());
 	}
 	if(showExitText)
-		Gui::DrawString(24, 200, 0.5f, BLACK, "B: Cancel   A: Update");
+		Gui::DrawString(24, 200, 0.5f, BLACK, " Cancel    Update");
 	C3D_FrameEnd(0);
 }
 
@@ -1040,7 +1040,7 @@ bool promtUsernamePassword(void) {
 					 "access by signing in to a GitHub account,\n"
 					 "or waiting for a bit.\n"
 					 "(or press B but some things won't work)\n\n\n\n\n\n\n\n"
-					 "B: Cancel   A: Authenticate");
+					 " Cancel    Authenticate");
 
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	Gui::ScreenDraw(Bottom);
@@ -1612,7 +1612,7 @@ void downloadExtras(void) {
 			}
 		}
 		extrasText += "\n\n\n\n\n\n\n\n";
-		extrasText += "B: Back   A: Choose";
+		extrasText += " Back    Choose";
 		Msg::DisplayMsg(extrasText.c_str());
 	}
 }
@@ -1622,7 +1622,7 @@ void downloadBoxart(void) {
 	vector<DirEntry> dirContents;
 	std::string scanDir;
 
-	Msg::DisplayMsg("Would you like to choose a directory, or scan\nthe full card?\n\n\n\n\n\n\n\n\n\nB: Cancel   A: Choose Directory   X: Full SD");
+	Msg::DisplayMsg("Would you like to choose a directory, or scan\nthe full card?\n\n\n\n\n\n\n\n\n\n Cancel    Choose Directory    Full SD");
 
 	while(1) {
 		gspWaitForVBlank();
@@ -1693,7 +1693,7 @@ void downloadBoxart(void) {
 					for(uint i=0;i<((dirContents.size()<10) ? 11-dirContents.size() : 0);i++) {
 						dirs += "\n";
 					}
-					dirs += "B: Back   A: Open   X: Choose";
+					dirs += " Back    Open    Choose";
 					Msg::DisplayMsg(dirs.c_str());
 				}
 			}
@@ -1789,7 +1789,7 @@ void downloadThemes(void) {
 			}
 		}
 		themesText += "\n\n\n\n\n";
-		themesText += "B: Back   A: Choose";
+		themesText += " Back    Choose";
 		Msg::DisplayMsg(themesText.c_str());
 	}
 
@@ -1841,7 +1841,7 @@ void downloadThemes(void) {
 		for(uint i=0;i<((themeList.size()<10) ? 11-themeList.size() : 0);i++) {
 			themesText += "\n";
 		}
-		themesText += "B: Back   A: Choose";
+		themesText += " Back    Choose";
 		Msg::DisplayMsg(themesText.c_str());
 	}
 }
