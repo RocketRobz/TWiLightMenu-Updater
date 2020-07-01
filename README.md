@@ -1,5 +1,5 @@
 # TWiLight Menu++ Updater [![Build Status](https://dev.azure.com/DS-Homebrew/Builds/_apis/build/status/RocketRobz.TWiLightMenu-Updater?branchName=master)](https://dev.azure.com/DS-Homebrew/Builds/_build?definitionId=15)
-TWiLightMenu Updater is an open-source updater for TWiLightMenu++
+TWiLight Menu++ Updater is an open-source updater for TWiLightMenu++
 
 # Links
 [TWiLightMenu++](https://github.com/DS-Homebrew/TWiLightMenu)
