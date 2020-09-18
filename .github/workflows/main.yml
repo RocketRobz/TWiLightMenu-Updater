@@ -116,7 +116,7 @@ jobs:
           mkdir -p Builds/TWiLightMenu-Updater
           cd Builds/TWiLightMenu-Updater
           qrencode -o TWiLight_Menu++_Updater.png https://github.com/TWLBot/Builds/raw/v$CURRENT_DATE/TWiLightMenu%20Updater/TWiLight_Menu++_Updater.cia
-          qrencode -o TWiLight_Menu++_Updater-release.png https://github.com/${{ github.repository }}/releases/download/$COMMIT_TAG/TWiLight_Menu++_Updater.cia
+          qrencode -o TWiLight_Menu++_Updater-release.png https://github.com/${{ github.repository }}/releases/download/$COMMIT_TAG/TWiLightMenu-Updater.cia
           cp ${{ github.workspace }}/build/* .
           git stage .
           git commit -m "TWiLightMenu-Updater | $COMMIT_HASH"
