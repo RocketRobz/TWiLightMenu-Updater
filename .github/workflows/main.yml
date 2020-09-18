@@ -56,6 +56,12 @@ jobs:
           echo ::set-output name=committer_name::$(git log -1 "$GITHUB_SHA" --pretty="%cN")
           echo ::set-output name=commit_subject::$(git log -1 "$GITHUB_SHA" --pretty="%s")
           echo ::set-output name=commit_message::$(git log -1 "$GITHUB_SHA" --pretty="%b")
+      - name: Fix release file names
+        if: ${{ startsWith(github.ref, 'refs/tags') }}
+        run: |
+          cd ~/artifacts
+          mv TWiLight_Menu++_Updater.3dsx TWiLightMenu-Updater.3dsx
+          mv TWiLight_Menu++_Updater.cia TWiLightMenu-Updater.cia
       - name: Publish build to GH Actions
         uses: actions/upload-artifact@v2
         with:
