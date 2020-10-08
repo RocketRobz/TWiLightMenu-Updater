@@ -1274,7 +1274,7 @@ void updateTWiLight(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if(downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
+		if(downloadToFile("https://github.com/TWLBot/Builds/blob/"+commit+"/TWiLightMenu-3DS.7z?raw=true", "/TWiLightMenu-nightly.7z") != 0) {
 			showProgressBar = false;
 			downloadFailed();
 			return;
@@ -1283,10 +1283,7 @@ void updateTWiLight(std::string commit) {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Extracting TWiLight Menu++...\n(Nightly)");
 		filesExtracted = 0;
 		progressBarType = 1;
-		extractArchive("/TWiLightMenu-nightly.7z", "_nds/", "/_nds/");
-		extractArchive("/TWiLightMenu-nightly.7z", "3DS - CFW users/", "/");
-		extractArchive("/TWiLightMenu-nightly.7z", "DSi&3DS - SD card users/", "/");
-		
+		extractArchive("/TWiLightMenu-nightly.7z", "TWiLightMenu/", "/");
 
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Installing TWiLight Menu++ CIA...\n(Nightly)");
 		progressBarType = 2;
@@ -1307,7 +1304,7 @@ void updateTWiLight(std::string commit) {
 		showProgressBar = true;
 		progressBarType = 0;
 		createThread((ThreadFunc)displayProgressBar);
-		if(downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu", "TWiLightMenu\\.7z", "/TWiLightMenu-release.7z") != 0) {
+		if(downloadFromRelease("https://github.com/DS-Homebrew/TWiLightMenu", "TWiLightMenu-3DS\\.7z", "/TWiLightMenu-release.7z") != 0) {
 			showProgressBar = false;
 			downloadFailed();
 			return;
@@ -1316,9 +1313,7 @@ void updateTWiLight(std::string commit) {
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Extracting TWiLight Menu++...\n(Release)");
 		filesExtracted = 0;
 		progressBarType = 1;
-		extractArchive("/TWiLightMenu-release.7z", "_nds/", "/_nds/");
-		extractArchive("/TWiLightMenu-release.7z", "3DS - CFW users/", "/");
-		extractArchive("/TWiLightMenu-release.7z", "DSi&3DS - SD card users/", "/");
+		extractArchive("/TWiLightMenu-release.7z", "", "/");
 
 		snprintf(progressBarMsg, sizeof(progressBarMsg), "Installing TWiLight Menu++ CIA...\n(Release)");
 		progressBarType = 2;
